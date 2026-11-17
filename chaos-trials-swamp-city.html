@@ -61,7 +61,10 @@
     MEDIEVAL: true,
     // Brick city buildings and street props from your Downtown City MegaKit (Quaternius, CC0):
     // three ready-made buildings, bollards, planters, rooftop AC units and manhole covers. Also needs the hosted pack.
-    DOWNTOWN: true
+    DOWNTOWN: true,
+    // Textured streets (asphalt with painted lines, sidewalks with curbs, crosswalk intersections),
+    // a grass lawn over the whole island and paved plaza stones. Also needs the hosted pack.
+    STREETS: true
   };
 
   /* =========================================================================
@@ -127,6 +130,8 @@
   const DT_DIM = { "dt-large": [20.6, 16.6], "dt-medium": [15.1, 13.1], "dt-small": [12.5, 14.5] };
   const DT_NAMES = Object.keys(DT_DIM).concat(["dt-acunit", "dt-bollard", "dt-planter", "dt-manhole"]);
   const DT = !!CONFIG.DOWNTOWN && (!!CONFIG.ASSET_HOST || DT_NAMES.every(n => CONFIG.ASSET_URLS[n]));
+  const ST_NAMES = ["road-seg-34", "road-seg-84", "road-seg-4", "road-cross", "ground-grass", "plaza-pavers"];
+  const ST = !!CONFIG.STREETS && (!!CONFIG.ASSET_HOST || ST_NAMES.every(n => CONFIG.ASSET_URLS[n]));
   function natModel(name, x, y, z, s, ry, collide) {
     return el("m-model", { src: natURL(name), x: r2(x), y: r2(y), z: r2(z), ry: Math.round(ry), sx: r2(s), sy: r2(s), sz: r2(s), collide: collide ? "true" : "false", "cast-shadows": "false" });
   }
@@ -254,7 +259,8 @@
   function buildGround() {
     box({ y: -1.3, z: CZ, width: 1500, height: 0.4, depth: 1500, color: "#2b2418" });                         // swamp mud (walkable)
     box({ y: -0.45, z: CZ, width: 1500, height: 0.08, depth: 1500, color: "#2d4a3a", opacity: 0.82, collide: "false" }); // water
-    box({ y: -0.5, z: CZ, width: ISLAND.x2 - ISLAND.x1, height: 1.2, depth: ISLAND.z2 - ISLAND.z1, color: "#3d4a2c" }); // island
+    box({ y: ST ? -0.58 : -0.5, z: CZ, width: ISLAND.x2 - ISLAND.x1, height: 1.2, depth: ISLAND.z2 - ISLAND.z1, color: "#3d4a2c" }); // island
+    if (ST) natModel("ground-grass", 0, 0.11, CZ, 1, 0, true);                                                                // grass lawn
     // boardwalk rim around the island
     const rim = (x, z, w, d) => box({ x, y: 0.16, z, width: w, height: 0.12, depth: d, color: WOOD });
     rim(0, ISLAND.z1 + 1.5, 2 * HALF, 3); rim(0, ISLAND.z2 - 1.5, 2 * HALF, 3);
@@ -264,6 +270,16 @@
 
   function buildRoads() {
     const L = 2 * HALF - 4;
+    if (ST) {
+      const segs = [[-(HALF - 5), 4]];
+      for (let k = 0; k < ROAD_X.length - 1; k++) segs.push([(ROAD_X[k] + ROAD_X[k + 1]) / 2, ROAD_X[k + 1] - ROAD_X[k] - 16]);
+      segs.push([HALF - 5, 4]);
+      for (const r of ROAD_X) for (const [c, len] of segs) {
+        natModel("road-seg-" + len, r, 0.14, CZ + c, 1, 0, true);   // north-south street
+        natModel("road-seg-" + len, c, 0.14, CZ + r, 1, 90, true);  // east-west street
+      }
+      for (const x of ROAD_X) for (const z of ROAD_X) natModel("road-cross", x, 0.14, CZ + z, 1, 0, true);
+    } else {
     for (const z of ROAD_Z) {
       box({ y: 0.11, z, width: L, height: 0.06, depth: 10, color: ASPHALT });
       box({ y: 0.145, z: z - 0.18, width: L - 4, height: 0.01, depth: 0.15, color: AMBER, collide: "false" });
@@ -273,6 +289,7 @@
       box({ x, y: 0.11, z: CZ, width: 10, height: 0.06, depth: L, color: ASPHALT });
       box({ x: x - 0.18, y: 0.145, z: CZ, width: 0.15, height: 0.01, depth: L - 4, color: AMBER, collide: "false" });
       box({ x: x + 0.18, y: 0.145, z: CZ, width: 0.15, height: 0.01, depth: L - 4, color: AMBER, collide: "false" });
+    }
     }
     if (DT) for (let i = 0; i < (LOW ? 20 : 40); i++) {
       const along = (rand() - 0.5) * (L - 20), lane = (rand() < 0.5 ? -1 : 1) * 2.5, horiz = rand() < 0.5, r = (horiz ? ROAD_Z : ROAD_X)[Math.floor(rand() * 8)];
@@ -288,7 +305,8 @@
      ========================================================================= */
   const SCREEN = {};
   function buildPlaza() {
-    box({ y: 0.115, z: CZ, width: 90, height: 0.05, depth: 90, color: STONE });
+    if (ST) natModel("plaza-pavers", 0, 0.145, CZ, 1, 0, true);
+    else box({ y: 0.115, z: CZ, width: 90, height: 0.05, depth: 90, color: STONE });
     // bank: hollow, doors north and south, vault in the middle
     const bx = 13, bz1 = CZ - 12, bz2 = CZ + 12, H = 12, col = "#d8cbb0";
     box({ x: -bx + 0.4, y: H / 2, z: CZ, width: 0.8, height: H, depth: 24, color: col });
@@ -840,6 +858,13 @@
       }
       if (!LOW && rand() < 0.5) { const tx = cx + (rand() - 0.5) * (x2 - x1) * 0.6, tz = CZ + cr; if (!overlaps(tx, tz, 3, 3)) { tree(tx, tz, 0.8, false); FOOT.push({ cx: tx, cz: tz, r: 1 }); } }
       if (NAT) for (let b = 0; b < (LOW ? 1 : 3); b++) { const bx = cx + (rand() - 0.5) * (x2 - x1) * 0.8, bz = CZ + cr + (rand() - 0.5) * 8; if (!overlaps(bx, bz, 2.5, 2.5)) natModel(pick(["bush", "bush-large", "bush-small-flowers", "rock-" + (1 + Math.floor(rand() * 5))]), bx, 0.1, bz, 1 + rand() * 0.5, rand() * 360, false); }
+    }
+    if (NAT) for (let i = 0, n = LOW ? 60 : 150; i < n; i++) {
+      const x = (rand() - 0.5) * 2 * (HALF - 10), rz = (rand() - 0.5) * 2 * (HALF - 10);
+      if (ROAD_X.some(r => Math.abs(x - r) < 9.5 || Math.abs(rz - r) < 9.5)) continue;
+      if (Math.abs(x) < 47 && Math.abs(rz) < 47) continue;
+      if (overlaps(x, CZ + rz, 2, 2)) continue;
+      natModel(rand() < 0.8 ? "grass-large" : "plant-flowers", x, 0.1, CZ + rz, 1.4 + rand() * 1.1, rand() * 360, false);
     }
     // district signs at the middle ring road
     const dsign = (s, x, z, ry, c) => text(s, { x, y: 4.2, z, ry, width: 12, height: 1.1, "font-size": 80, color: "#120d10", "font-color": c, emissive: 1 });

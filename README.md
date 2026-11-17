@@ -154,6 +154,14 @@ Props: bollards, planters, rooftop AC units and manhole covers.
 
 I removed the kit's built-in "wear mask" colors, because MML viewers showed them as red smears. Like the other add-ons, these turn on once the pack is hosted (`DOWNTOWN: true` plus `ASSET_HOST`).
 
+## Streets, grass and fixes (update)
+
+- **Streets:** textured asphalt with a double yellow center line and white edge lines, concrete sidewalks with curbs on both sides, and zebra crosswalks at every intersection. Six small models (`road-seg-34`, `road-seg-84`, `road-seg-4`, `road-cross`, `ground-grass`, `plaza-pavers`) replace the old flat strips.
+- **Grass:** a textured lawn covers the whole island, with about 150 extra grass clumps in the lots.
+- **Plaza:** paved with warm stone bricks.
+- **Fixed:** the medieval houses' side and back walls now face outward. Before, they were turned sideways or inward.
+- **Fixed:** every model now uses standard JPEG/PNG textures and no compression extensions, so it loads in Otherside and other MML viewers. The earlier WebP version showed up white there.
+
 ## Optional add-ons (top of the world file)
 
 - `CASTLE_BASE`: the folder URL holding your princess castle GLBs. The castle then appears on Queen's Isle, out in the swamp north of the city.
