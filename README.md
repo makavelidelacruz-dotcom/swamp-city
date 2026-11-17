@@ -56,14 +56,16 @@ Players click their team's stand and type a name. Clicking another stand switche
 
 Every point counts toward **series points**, which add up across all games until you press **Reset series points**. Use them for the weekly leaderboard. When a game's timer ends, the big screen shows the winner and returns to intermission.
 
-## Buggies
+## Vehicles (every truck and boat is drivable)
 
-There are 12 (Kenney pickup trucks): four at the plaza, one at each hideout, and four on the middle ring road. Top speed is 14 m/s.
+There are **47 drivable vehicles**: 12 trucks and 35 boats (3 motor yachts, 2 sailboats, 8 airboats, 7 shrimp boats and 15 skiffs).
 
-- Click a truck to claim it. Only the driver sees the dashboard (GAS, LEFT, RIGHT, REVERSE, BRAKE, EXIT).
-- Jump in the bed to ride along. Anyone else in the bed rides too.
-- Buggies stop when they hit a building. They're amphibious, so they can drive out into the swamp.
-- A buggy is released if its driver leaves, or sits idle for 2 minutes. **Reset all buggies** in the controller parks them all back home.
+- **Drive:** click any vehicle, or its "CLICK TO DRIVE" sign, to take the wheel. Only you see its control panel, which floats in front of the riders: **LEFT, GAS, RIGHT / REVERSE, BRAKE, EXIT**. The panel's top line shows FORWARD, REVERSE or STOPPED. Click EXIT to park it, and anyone can then take it.
+- **Ride:** every vehicle has an invisible MML floor matched to its deck, plus low invisible rails, so riders stay on while it moves. Trucks carry riders in the bed, with two metal steps at the tailgate to climb in. Yachts, sailboats and shrimp boats have boarding steps on both sides; riders stand on the back deck. Airboats and skiffs carry riders on the open deck.
+- **Trucks** sit on the road, top out at 14 m/s and turn in 22.5° steps. They stop when they hit a building, and they're amphibious, so they can drive out into the swamp.
+- **Boats** stay in open water, so they can't drive onto the island or through the piers, and they stop at the edge of the swamp. Airboats are the fastest (15 m/s); yachts and skiffs do 10, shrimp boats 8 and sailboats 7. Yachts, sailboats and shrimp boats turn in 15° steps.
+- **Where they are:** 4 trucks at the plaza, one at each hideout and four on the middle ring road. Each pier has a yacht, a sailboat, four airboats and three skiffs, with one more yacht on the west pier. Shrimp boats are moored off the north and south shores and out in the open water, and the other skiffs sit along the shoreline.
+- Vehicles nobody drives for 2 minutes are released. **Reset all buggies** in the controller puts every truck and boat back where it started.
 
 ## Kenney models (CC0)
 

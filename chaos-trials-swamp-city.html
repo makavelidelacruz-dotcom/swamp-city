@@ -718,8 +718,9 @@
     for (const s of [-1, 1]) {
       box({ x: s * (HALF + 51), y: 0.45, z: CZ, width: 102, height: 0.3, depth: 4, color: WOOD, mat: "boardwalk" });
       for (let k = 0; k < 14; k++) cyl({ x: s * (HALF + 3 + k * 7.3), y: -0.4, z: CZ + 1.8, radius: 0.2, height: 1.6, color: WOOD_D, collide: "false", mat: "log" });
-      text("AIRBOAT STOP - hop on as one passes", { x: s * 310, y: 2.6, z: CZ - 2.4, ry: s > 0 ? -90 : 90, width: 7, height: 0.6, "font-size": 36, "font-color": AMBER, mount: "post", drop: 2.0 });
+      text(BOATS ? "AIRBOATS - click one to drive" : "AIRBOAT STOP - hop on as one passes", { x: s * 310, y: 2.6, z: CZ - 2.4, ry: s > 0 ? -90 : 90, width: 7, height: 0.6, "font-size": 36, "font-color": AMBER, mount: "post", drop: 2.0 });
     }
+    if (BOATS) { live(buildBoats); return; }
     live(() => {
     const loop = grp({ z: CZ });
     el("m-attr-anim", { attr: "ry", start: 0, end: 360, duration: 240000, loop: "true" }, loop);
@@ -743,37 +744,42 @@
       text("BAYOU LOOP", { y: 0.6, x: 2.02, z: 0.5, ry: 90, width: 3, height: 0.4, "font-size": 30, color: "#111", "font-color": AMBER, emissive: 0.6 }, b);
     });
     });
-    if (BOATS) live(buildBoats);
   }
 
-  // yachts at the piers, shrimp boats and skiffs moored off the shore, and slow work-boat traffic further out
-  function buildBoats() {
-    const W = -0.42;   // waterline
-    const boat = (name, x, z, ry, collide) => el("m-model", { src: natURL(name), x: r2(x), y: W, z: r2(z), ry: r2(ry), collide: collide ? "true" : "false" });
-    // the marina: yachts tied up along both piers (fenders against the pier)
-    boat("yacht-1", HALF + 52, CZ - 5.2, -90, true);
-    boat("sailboat", HALF + 78, CZ + 4.6, 90, true);
-    boat("yacht-2", -(HALF + 50), CZ - 5.2, -90, true);
-    boat("sailboat", -(HALF + 80), CZ + 4.6, 90, true);
-    boat("yacht-1", -(HALF + 26), CZ + 5.2, 90, true);
-    for (const s of [-1, 1]) for (let k = 0; k < 3; k++) boat("skiff-" + (1 + (k % 2)), s * (HALF + 4 + k * 4.6), CZ + 3.4, 90 + rnd2() * 10, false);
-    if (LOW) return;
-    // shrimp boats and skiffs moored off the north and south shores
-    for (const [x, z, ry] of [[-60, CZ - HALF - 14, 95], [45, CZ - HALF - 16, 80], [-150, CZ + HALF + 15, 100], [120, CZ + HALF + 14, 85]])
-      boat("shrimpboat-" + (x < 0 ? 1 : 2), x, z, ry, false);
-    for (let k = 0; k < 10; k++) {
-      const side = k % 4, along = -180 + rnd2() * 360, off = HALF + 6 + rnd2() * 10;
-      const [x, z] = side === 0 ? [along, CZ - off] : side === 1 ? [along, CZ + off] : side === 2 ? [off, CZ + along] : [-off, CZ + along];
-      if (Math.abs(z - CZ) < 12 && Math.abs(x) > HALF) continue;   // keep the piers clear
-      boat("skiff-" + (1 + (k % 2)), x, z, rnd2() * 360, false);
-    }
-    // slow work-boat traffic on an outer loop, the other way round
-    const loop2 = grp({ z: CZ });
-    el("m-attr-anim", { attr: "ry", start: 360, end: 0, duration: 420000, loop: "true" }, loop2);
-    ["shrimpboat-1", "skiff-1", "shrimpboat-2", "skiff-2", "shrimpboat-1", "skiff-2"].forEach((name, i) => {
-      const phi = i * 60 + 20, rad = phi * Math.PI / 180, R2 = 342;
-      el("m-model", { src: natURL(name), x: r2(Math.cos(rad) * R2), y: W, z: r2(-Math.sin(rad) * R2), ry: phi, collide: "false" }, loop2);
+  // every boat is drivable: airboats and yachts at the piers, shrimp boats and skiffs moored around the island
+  let BOAT_N = 0;
+  function boat(kind, model, x, z, ry, extra) {
+    return vehicle("boat-" + (BOAT_N++), kind, x, z, ry, g => {
+      const m = el("m-model", { src: natURL(model), collide: "false" }, g);
+      if (extra) extra(g);
+      return [m];
     });
+  }
+  const fan = g => { const f = el("m-model", { src: natURL("airboat-prop"), y: 1.7, z: -2.62, collide: "false", "cast-shadows": "false" }, g); el("m-attr-anim", { attr: "rz", start: 0, end: 360, duration: 450, loop: "true" }, f); };
+  function buildBoats() {
+    for (const s of [-1, 1]) {
+      // the marina: a yacht and a sailboat at each pier
+      boat("yacht", s > 0 ? "yacht-1" : "yacht-2", s * (HALF + 52), CZ - 5.6, -90);
+      boat("sailboat", "sailboat", s * (HALF + 80), CZ + 5.0, 90);
+      // four airboats tied along the north side of each pier
+      [6, 13, 20, 78].forEach((dx, k) => boat("airboat", "airboat-" + (1 + ((k + (s > 0 ? 0 : 2)) % 4)), s * (HALF + dx), CZ - 3.7, s > 0 ? -90 : 90, fan));
+      // skiffs on the south side, near the shore end
+      for (let k = 0; k < 3; k++) boat("skiff", "skiff-" + (1 + (k % 2)), s * (HALF + 5 + k * 5.2), CZ + 3.4, 90);
+    }
+    boat("yacht", "yacht-1", -(HALF + 30), CZ + 5.6, 90);
+    if (LOW) return;
+    // shrimp boats moored off the north and south shores, and out in the open water
+    for (const [x, z, ry, n] of [[-60, CZ - HALF - 14, 95, 1], [45, CZ - HALF - 16, 80, 2], [-150, CZ + HALF + 15, 100, 1], [120, CZ + HALF + 14, 85, 2],
+      [315, CZ - 115, 20, 1], [-315, CZ + 115, 200, 2], [-250, CZ - 240, 135, 1]])
+      boat("shrimp", "shrimpboat-" + n, x, z, ry);
+    // skiffs along the shoreline
+    for (let k = 0; k < 10; k++) {
+      const side = k % 4, along = -180 + rnd2() * 360, off = HALF + 7 + rnd2() * 9;
+      const [x, z] = side === 0 ? [along, CZ - off] : side === 1 ? [along, CZ + off] : side === 2 ? [off, CZ + along] : [-off, CZ + along];
+      if (Math.abs(z - CZ) < 14 && Math.abs(x) > HALF) continue;   // keep the piers clear
+      if (CARS.some(o => Math.hypot(o.x - x, o.z - z) < 10)) continue;
+      boat("skiff", "skiff-" + (1 + (k % 2)), x, z, Math.floor(rnd2() * 360));
+    }
   }
 
   /* =========================================================================
@@ -1338,43 +1344,91 @@
      ========================================================================= */
   const CARS = [];
   const CAR_COLORS = ["#d6452f", "#2f7fd6", "#e0b23a", "#6fbf4a", "#a24ad6", "#e07a2f", "#2fbfb0", "#d64a8a", "#f2f2f2", "#3a3a3a", "#8fd34a", "#ff7ab8"];
+  const WATERLINE = -0.42, GROUND = 0.15;
+  // Every rideable vehicle: an invisible MML floor matched to the model's deck (so riders stay on while it moves),
+  // low invisible rails, boarding steps, and a big control panel that floats in front of the riders (driver only).
+  //   floor: [top y, centre z, width, depth]   rails: side x, front z, back z (null = open back)   dash: panel y, z, width
+  const VSPEC = {
+    truck:    { floor: [1.45, -1.8, 2.5, 1.95], rails: { x: 1.3, zf: -0.82, zb: null }, steps: "rear", dash: { y: 3.3, z: -0.62, w: 2.6 }, tag: 4.1, speed: 14, rev: -5, turn: 22.5, rad: 2.4, land: true },
+    airboat:  { floor: [0.62, 0.75, 2.2, 3.9], rails: { x: 1.15, zf: 2.75, zb: -1.25 }, dash: { y: 2.3, z: 1.95, w: 2.0 }, tag: 4.5, speed: 15, rev: -4, turn: 22.5, rad: 3 },
+    skiff:    { floor: [0.47, -0.1, 1.6, 4.4], rails: { x: 0.85, zf: 2.25, zb: -2.45 }, dash: { y: 2.1, z: 1.7, w: 1.7 }, tag: 3.2, speed: 10, rev: -3, turn: 22.5, rad: 2.4 },
+    yacht:    { floor: [1.6, -7.05, 4.2, 3.9], rails: { x: 2.15, zf: -5.0, zb: -9.05 }, steps: "sides", dash: { y: 3.35, z: -5.45, w: 2.6 }, tag: 9.2, speed: 10, rev: -3, turn: 15, rad: 8 },
+    sailboat: { floor: [1.15, -4.95, 3.2, 4.1], rails: { x: 1.75, zf: -2.85, zb: -7.0 }, steps: "sides", dash: { y: 2.9, z: -3.15, w: 2.4 }, tag: 4.4, speed: 7, rev: -3, turn: 15, rad: 6.5 },
+    shrimp:   { floor: [1.35, -3.6, 4.0, 6.6], rails: { x: 2.15, zf: -0.25, zb: -6.95 }, steps: "sides", dash: { y: 3.1, z: -1.05, w: 2.6 }, tag: 10.2, speed: 8, rev: -3, turn: 15, rad: 6.5 }
+  };
+  const LABELS = { truck: "TRUCK", airboat: "AIRBOAT", skiff: "SKIFF", yacht: "YACHT", sailboat: "SAILBOAT", shrimp: "SHRIMP BOAT" };
+  const ghost = (attrs, parent) => box(Object.assign({ color: "#ffffff", opacity: 0, "cast-shadows": "false" }, attrs), parent);   // invisible collider
+  function rideBits(kind, g) {
+    const s = VSPEC[kind], [fy, fz, fw, fd] = s.floor, rh = 0.6;
+    ghost({ y: r2(fy - 0.06), z: fz, width: fw, height: 0.12, depth: fd }, g);                       // the floor
+    const r = s.rails, zb = r.zb == null ? fz - fd / 2 : r.zb, len = r2(r.zf - zb), mid = r2((r.zf + zb) / 2);
+    for (const sx of [-1, 1]) ghost({ x: sx * r.x, y: r2(fy + rh / 2), z: mid, width: 0.12, height: rh, depth: len }, g);
+    ghost({ y: r2(fy + rh / 2), z: r.zf, width: r2(r.x * 2), height: rh, depth: 0.12 }, g);
+    if (r.zb != null) ghost({ y: r2(fy + rh / 2), z: r.zb, width: r2(r.x * 2), height: rh, depth: 0.12 }, g);
+    if (s.steps === "rear") {   // two metal steps behind the tailgate to climb into the bed
+      box({ y: 0.5, z: r2(zb - 0.45), width: 1.4, height: 0.12, depth: 0.5, color: "#3a3d42", "cast-shadows": "false" }, g);
+      box({ y: 0.98, z: r2(zb - 0.12), width: 1.4, height: 0.12, depth: 0.3, color: "#3a3d42", "cast-shadows": "false" }, g);
+    } else if (s.steps === "sides") {   // boarding steps on both sides, between pier height and the deck
+      for (const sx of [-1, 1]) {
+        box({ x: sx * r2(r.x + 0.55), y: r2(fy - 0.55), z: mid, width: 0.9, height: 0.12, depth: 1.6, color: "#6b4a2b", "cast-shadows": "false" }, g);
+        for (const dz of [-0.7, 0.7]) cyl({ x: sx * r2(r.x + 0.55), y: r2(fy - 0.3), z: r2(mid + dz), radius: 0.03, height: 0.5, color: "#9aa0a6", collide: "false" }, g);
+      }
+    }
+  }
+  // kind: truck | airboat | skiff | yacht | sailboat | shrimp
+  function vehicle(id, kind, x, z, ry, buildLook) {
+    const s = VSPEC[kind], baseY = s.land ? GROUND : WATERLINE;
+    const g = grp({ id, x: r2(x), y: baseY, z: r2(z), ry: r2(ry) });
+    el("m-attr-lerp", { attr: "x,y,z,ry", duration: 220 }, g);
+    const parts = buildLook(g);
+    rideBits(kind, g);
+    const free = "CLICK TO DRIVE THE " + LABELS[kind];
+    const tagAt = { y: s.tag, z: r2(s.floor[1]), width: 4.6, height: 0.46, "font-size": 24, color: "#120d10", "font-color": AMBER, emissive: 0.4 };
+    const tagF = text(free, tagAt, g), tagB = text(free, Object.assign({}, tagAt, { ry: 180 }), g);
+    ANCHORS[id] = { parent: g, x: 0, y: r2(s.dash.y + 1.0), z: s.dash.z, ry: 180, w: 3.2 };
+    const car = { id, kind, i: CARS.length, g, dash: null, tagF, tagB, free, x, z, y: baseY, ry, v: 0, throttle: 0, driver: null, last: 0, home: { x, z, ry } };
+    onClick(parts.concat([tagF, tagB]), cid => claim(car, cid));
+    CARS.push(car);
+    return car;
+  }
+  // the control panel is built only while someone is driving, and only that driver can see it
+  function makeDash(car, cid) {
+    const d = VSPEC[car.kind].dash, w = d.w, bw = r2((w - 0.3) / 3), bh = 0.44;
+    const dash = grp({ y: d.y, z: d.z, ry: 180, rx: -12, "visible-to": String(cid) }, car.g);
+    box({ y: 0.02, z: -0.06, width: r2(w + 0.16), height: 1.36, depth: 0.08, color: "#0b1a24", collide: "false" }, dash);
+    const head = text(LABELS[car.kind] + "  |  STOPPED", { y: 0.52, z: 0.0, width: w, height: 0.26, "font-size": 20, color: "#0b1a24", "font-color": "#9fd8e6" }, dash);
+    const ctl = (lbl, cx, cy, colr, act) => {
+      const b = box({ x: cx, y: cy, width: bw, height: bh, depth: 0.1, color: colr, collide: "false" }, dash);
+      const tl = text(lbl, { x: cx, y: cy, z: 0.06, width: r2(bw - 0.04), height: r2(bh - 0.08), "font-size": 22, color: colr, "font-color": INK }, dash);
+      onClick([b, tl], c => control(car, c, act));
+    };
+    const cx = r2(bw + 0.1);
+    ctl("LEFT", -cx, 0.12, "#9fd8e6", "left"); ctl("GAS", 0, 0.12, "#4fe08f", "gas"); ctl("RIGHT", cx, 0.12, "#9fd8e6", "right");
+    ctl("REVERSE", -cx, -0.4, "#ffc857", "rev"); ctl("BRAKE", 0, -0.4, "#ff4d6a", "brake"); ctl("EXIT", cx, -0.4, "#f4ead8", "exit");
+    car.dash = dash; car.dashHead = head;
+  }
+  function dropDash(car) { if (car.dash) { car.dash.remove(); car.dash = null; car.dashHead = null; } }
+  function dashStatus(car) {
+    if (!car.dashHead) return;
+    const st = car.throttle > 0 ? "FORWARD" : car.throttle < 0 ? "REVERSE" : "STOPPED";
+    setT(car.dashHead, LABELS[car.kind] + "  |  " + st);
+  }
+  // swamp buggy / truck (kept as car-0 .. car-11 for the controller and tests)
   function buggy(i, x, z, ry) {
     const color = CAR_COLORS[i % CAR_COLORS.length];
-    const g = grp({ id: "car-" + i, x, y: 0, z, ry });
-    el("m-attr-lerp", { attr: "x,y,z,ry", duration: 220 }, g);
-    const parts = [];
     const truck = KEN && !CONFIG.MODELS.buggy;
-    if (CONFIG.MODELS.buggy) parts.push(el("m-model", { src: CONFIG.MODELS.buggy }, g));
-    else if (truck) parts.push(el("m-model", { src: asset(TRUCKS[i % TRUCKS.length]), y: 0.6, sx: 2, sy: 2, sz: 2 }, g)); // ride in the bed
-    else {
-      parts.push(box({ y: 0.95, width: 2.8, height: 0.3, depth: 4.6, color }, g));                 // deck - stand here
-      parts.push(box({ y: 1.32, z: 1.75, width: 2.6, height: 0.45, depth: 1.1, color }, g));         // hood (click to drive)
-      for (const s of [-1, 1]) box({ x: s * 1.36, y: 1.3, z: -0.4, width: 0.1, height: 0.45, depth: 3.4, color: "#1c1c1c", collide: "false" }, g);
-      box({ y: 1.3, z: -2.25, width: 2.7, height: 0.45, depth: 0.1, color: "#1c1c1c", collide: "false" }, g);
-      for (const [wx, wz] of [[-1.6, 1.45], [1.6, 1.45], [-1.6, -1.45], [1.6, -1.45]])
-        cyl({ x: wx, y: 0.62, z: wz, rz: 90, radius: 0.62, height: 0.55, color: "#141414", collide: "false" }, g);
-      for (const s of [-1, 1]) cyl({ x: s * 1.25, y: 2.05, z: -0.75, radius: 0.06, height: 1.9, color: "#cfcfcf", collide: "false" }, g);
-      box({ y: 3.0, z: -0.75, width: 2.6, height: 0.08, depth: 0.08, color: "#cfcfcf", collide: "false" }, g);
-      box({ y: 1.35, z: -0.9, width: 1.1, height: 0.5, depth: 0.8, color: "#3a2a1a", collide: "false" }, g);
-      for (const s of [-1, 1]) glow({ x: s * 0.85, y: 1.32, z: 2.31, width: 0.5, height: 0.26, color: "#fff6c8" }, g);
-    }
-    // driver dashboard (only the driver sees it)
-    const dash = truck ? grp({ y: 2.45, z: -0.45, ry: 180, "visible-to": "-1" }, g) : grp({ y: 1.75, z: 0.55, ry: 180, "visible-to": "-1" }, g);
-    box({ y: 0.05, z: -0.06, width: 1.95, height: 0.95, depth: 0.06, color: "#0b1a24", collide: "false" }, dash);
-    const ctl = (lbl, cx, cy, colr, act) => {
-      const b = box({ x: cx, y: cy, width: 0.58, height: 0.36, depth: 0.08, color: colr, collide: "false" }, dash);
-      const t = text(lbl, { x: cx, y: cy, z: 0.05, width: 0.56, height: 0.3, "font-size": 15, color: colr, "font-color": INK, emissive: 0.1 }, dash);
-      onClick([b, t], cid => control(car, cid, act));
-    };
-    ctl("LEFT", -0.65, 0.25, "#9fd8e6", "left"); ctl("GAS", 0, 0.25, "#4fe08f", "gas"); ctl("RIGHT", 0.65, 0.25, "#9fd8e6", "right");
-    ctl("REVERSE", -0.65, -0.17, "#ffc857", "rev"); ctl("BRAKE", 0, -0.17, "#ff4d6a", "brake"); ctl("EXIT", 0.65, -0.17, "#f4ead8", "exit");
-    const tagY = truck ? 3.9 : 3.45, tagZ = truck ? -1.2 : -0.75, free = truck ? "CLICK THE TRUCK TO DRIVE" : "CLICK THE HOOD TO DRIVE";
-    const tagF = text(free, { y: tagY, z: tagZ, width: truck ? 4.4 : 3.4, height: 0.42, "font-size": 24, "font-color": AMBER }, g);
-    const tagB = text(free, { y: tagY, z: tagZ, ry: 180, width: truck ? 4.4 : 3.4, height: 0.42, "font-size": 24, "font-color": AMBER }, g);
-    ANCHORS["car-" + i] = truck ? { parent: g, x: 0, y: 3.2, z: -0.5, ry: 180, w: 3.2 } : { parent: g, x: 0, y: 2.55, z: 0.62, ry: 180, w: 3.2 };
-    const car = { i, g, dash, tagF, tagB, free, x, z, y: 0, ry, v: 0, throttle: 0, driver: null, last: 0, home: { x, z, ry } };
-    onClick(parts, cid => claim(car, cid));
-    CARS.push(car);
+    vehicle("car-" + i, "truck", x, z, ry, g => {
+      const parts = [];
+      if (CONFIG.MODELS.buggy) parts.push(el("m-model", { src: CONFIG.MODELS.buggy, collide: "false" }, g));
+      else if (truck) parts.push(el("m-model", { src: asset(TRUCKS[i % TRUCKS.length]), sx: 2, sy: 2, sz: 2, collide: "false" }, g));   // wheels on the road
+      else {
+        parts.push(box({ y: 1.1, width: 2.8, height: 0.3, depth: 4.6, color, collide: "false" }, g));
+        parts.push(box({ y: 1.5, z: 1.75, width: 2.6, height: 0.5, depth: 1.1, color, collide: "false" }, g));
+        for (const [wx, wz] of [[-1.4, 1.45], [1.4, 1.45], [-1.4, -1.45], [1.4, -1.45]])
+          cyl({ x: wx, y: 0.55, z: wz, rz: 90, radius: 0.55, height: 0.5, color: "#141414", collide: "false" }, g);
+      }
+      return parts;
+    });
   }
   function setCarTag(car) {
     const s = car.driver == null ? car.free : nameOf(car.driver).toUpperCase() + " IS DRIVING";
@@ -1382,38 +1436,54 @@
   }
   function release(car) {
     car.driver = null; car.throttle = 0; car.v = 0;
-    car.dash.setAttribute("visible-to", "-1");
+    dropDash(car);
     setCarTag(car);
   }
   function claim(car, cid) {
-    if (car.driver === cid) return say(cid, "car-" + car.i, "Use the dashboard: GAS, LEFT, RIGHT", "info");
-    if (car.driver != null) return say(cid, "car-" + car.i, "Taken - " + nameOf(car.driver) + " is driving", "bad");
+    if (car.driver === cid) return say(cid, car.id, "Use the panel: GAS, LEFT, RIGHT", "info");
+    if (car.driver != null) return say(cid, car.id, "Taken - " + nameOf(car.driver) + " is driving", "bad");
     for (const c of CARS) if (c.driver === cid) release(c);
     car.driver = cid; car.last = now();
-    car.dash.setAttribute("visible-to", String(cid));
+    makeDash(car, cid);
     setCarTag(car);
-    say(cid, "car-" + car.i, "Yours! Jump in the back, then hit GAS", "good");
+    say(cid, car.id, car.kind === "truck" ? "Yours! Climb in the back, then hit GAS" : "Yours! Step aboard, then hit GAS", "good");
   }
   function control(car, cid, act) {
     if (car.driver !== cid) return;
     car.last = now();
+    const turn = VSPEC[car.kind].turn;
     if (act === "gas") car.throttle = 1;
     else if (act === "rev") car.throttle = -1;
     else if (act === "brake") car.throttle = 0;
-    else if (act === "left") { car.ry += 22.5; setCar(car); }
-    else if (act === "right") { car.ry -= 22.5; setCar(car); }
-    else if (act === "exit") { release(car); say(cid, "car-" + car.i, "Parked. Click it to drive again", "info"); }
+    else if (act === "left") { car.ry += turn; setCar(car); }
+    else if (act === "right") { car.ry -= turn; setCar(car); }
+    else if (act === "exit") { release(car); say(cid, car.id, "Parked. Click it to drive again", "info"); return; }
+    dashStatus(car);
   }
   function setCar(car) {
     for (const k of ["x", "y", "z", "ry"]) { const v = String(r2(car[k])); if (car.g.getAttribute(k) !== v) car.g.setAttribute(k, v); }
   }
   const onIsland = (x, z) => x > ISLAND.x1 + 1 && x < ISLAND.x2 - 1 && z > ISLAND.z1 + 1 && z < ISLAND.z2 - 1;
+  const inSwamp = (x, z, pad) => Math.hypot(x, z - CZ) < SWAMP_R - pad;
   function blocked(x, z) {
-    if (Math.abs(x) > 380 || Math.abs(z - CZ) > 380) return true;
+    if (!inSwamp(x, z, 4)) return true;
     for (const f of FOOT) {
       if (f.r != null) { if (Math.hypot(x - f.cx, z - f.cz) < f.r + 1.6) return true; }
       else if (x > f.x1 - 1.8 && x < f.x2 + 1.8 && z > f.z1 - 1.8 && z < f.z2 + 1.8) return true;
     }
+    return false;
+  }
+  // boats stay in open water: off the island, clear of the piers, inside the swamp
+  function boatBlocked(x, z, rad) {
+    if (!inSwamp(x, z, rad + 2)) return true;
+    const m = rad * 0.6 + 2;
+    if (x > ISLAND.x1 - m && x < ISLAND.x2 + m && z > ISLAND.z1 - m && z < ISLAND.z2 + m) return true;
+    if (Math.abs(z - CZ) < 2 + rad * 0.45 && Math.abs(x) > HALF - m && Math.abs(x) < HALF + 104 + rad * 0.5) return true;
+    return false;
+  }
+  function bumps(car, x, z) {   // don't drive through another vehicle
+    const r1 = VSPEC[car.kind].rad;
+    for (const o of CARS) if (o !== car && Math.hypot(o.x - x, o.z - z) < (r1 + VSPEC[o.kind].rad) * 0.7 && Math.hypot(o.x - x, o.z - z) < Math.hypot(o.x - car.x, o.z - car.z)) return true;
     return false;
   }
   function carTick() {
@@ -1421,21 +1491,23 @@
     for (const car of CARS) {
       if (car.driver != null && car.throttle === 0 && t - car.last > 120000) release(car);
       if (!car.throttle) { car.v = 0; continue; }
-      const target = car.throttle > 0 ? 14 : -5;
+      const s = VSPEC[car.kind];
+      const target = car.throttle > 0 ? s.speed : s.rev;
       car.v += (target - car.v) * 0.3;
       const rad = car.ry * Math.PI / 180, dt = 0.2;
       const nx = car.x + Math.sin(rad) * car.v * dt, nz = car.z + Math.cos(rad) * car.v * dt;
-      if (blocked(nx, nz)) {
-        car.throttle = 0; car.v = 0;
-        if (car.driver != null) say(car.driver, "car-" + car.i, "BONK! Steer away, then GAS", "bad");
+      if ((s.land ? blocked(nx, nz) : boatBlocked(nx, nz, s.rad)) || bumps(car, nx, nz)) {
+        car.throttle = 0; car.v = 0; dashStatus(car);
+        if (car.driver != null) say(car.driver, car.id, s.land ? "BONK! Steer away, then GAS" : "Too shallow - steer for open water", "bad");
         continue;
       }
-      car.x = nx; car.z = nz; car.y = onIsland(nx, nz) ? 0 : -0.5;
+      car.x = nx; car.z = nz;
+      if (s.land) car.y = onIsland(nx, nz) ? GROUND : -0.5;
       setCar(car);
-      if (car.driver != null) race.driveCheck(car.driver, car.x, car.z);
+      if (car.driver != null && s.land) race.driveCheck(car.driver, car.x, car.z);
     }
   }
-  function resetCars() { for (const car of CARS) { release(car); car.x = car.home.x; car.z = car.home.z; car.ry = car.home.ry; car.y = 0; setCar(car); } }
+  function resetCars() { for (const car of CARS) { release(car); car.x = car.home.x; car.z = car.home.z; car.ry = car.home.ry; car.y = VSPEC[car.kind].land ? GROUND : WATERLINE; setCar(car); } }
   // plaza and ring-road trucks cycle colours; hideout trucks match their team where Kenney has the colour
   const TRUCKS = ["truck-red", "truck-yellow", "truck-green", "truck-purple", "truck-green", "truck-red", "truck-yellow", "truck-purple", "truck-red", "truck-yellow", "truck-green", "truck-purple"];
   function buildCars() {
