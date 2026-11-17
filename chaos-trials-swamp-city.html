@@ -64,7 +64,10 @@
     DOWNTOWN: true,
     // Textured streets (asphalt with painted lines, sidewalks with curbs, crosswalk intersections),
     // a grass lawn over the whole island and paved plaza stones. Also needs the hosted pack.
-    STREETS: true
+    STREETS: true,
+    // Detailed textured versions of every building, the bank, the casino, the arena and the signs
+    // (baked from this file into a few models). Also needs the hosted pack.
+    BAKED: true
   };
 
   /* =========================================================================
@@ -132,6 +135,8 @@
   const DT = !!CONFIG.DOWNTOWN && (!!CONFIG.ASSET_HOST || DT_NAMES.every(n => CONFIG.ASSET_URLS[n]));
   const ST_NAMES = ["road-seg-34", "road-seg-84", "road-seg-4", "road-cross", "ground-grass", "plaza-pavers"];
   const ST = !!CONFIG.STREETS && (!!CONFIG.ASSET_HOST || ST_NAMES.every(n => CONFIG.ASSET_URLS[n]));
+  const BAKE_NAMES = ["city-a", "city-b", "city-c", "city-d", "city-e"];
+  const BAKE_EXPORT = !!CONFIG.BAKE_EXPORT; // used only when generating the baked models
   function natModel(name, x, y, z, s, ry, collide) {
     return el("m-model", { src: natURL(name), x: r2(x), y: r2(y), z: r2(z), ry: Math.round(ry), sx: r2(s), sy: r2(s), sz: r2(s), collide: collide ? "true" : "false", "cast-shadows": "false" });
   }
@@ -141,6 +146,8 @@
   let seed = 7;
   const rand = () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
   const LOW = CONFIG.DETAIL === "low";
+  // the baked city matches the full-detail layout with every add-on on, so it only switches on in that setup
+  const BAKED = !BAKE_EXPORT && !!CONFIG.BAKED && !LOW && KEN && NAT && MED && DT && ST && (!!CONFIG.ASSET_HOST || BAKE_NAMES.every(n => CONFIG.ASSET_URLS[n]));
   const now = () => Date.now();
   const r2 = n => Math.round(n * 100) / 100;
 
@@ -153,10 +160,20 @@
       attrs = Object.assign({}, attrs, { intensity: lvl, enabled: lvl > 0 ? "true" : "false" });
     }
     const e = document.createElement(tag);
-    for (const k in attrs) if (attrs[k] !== undefined && attrs[k] !== null) e.setAttribute(k, String(attrs[k]));
+    const hints = attrs && (attrs.mat || attrs.mount) ? { mat: attrs.mat, mount: attrs.mount, drop: attrs.drop, back: attrs.back } : null;
+    for (const k in attrs) if (attrs[k] !== undefined && attrs[k] !== null && !HINT_KEYS[k]) e.setAttribute(k, String(attrs[k]));
+    if (STATIC && BAKEABLE[tag]) {
+      if (BAKE_EXPORT) { e.setAttribute("data-bake", "1"); if (hints) for (const k in hints) if (hints[k] != null) e.setAttribute("data-" + k, String(hints[k])); }
+      else if (BAKED) return e; // drawn by the textured city models instead
+    }
     (parent || W).appendChild(e);
     return e;
   }
+  let STATIC = false;
+  const BAKEABLE = { "m-cube": 1, "m-cylinder": 1, "m-sphere": 1, "m-label": 1, "m-plane": 1 };
+  const HINT_KEYS = { mat: 1, mount: 1, drop: 1, back: 1 };
+  const stat = fn => { const p = STATIC; STATIC = true; try { return fn(); } finally { STATIC = p; } };
+  const live = fn => { const p = STATIC; STATIC = false; try { return fn(); } finally { STATIC = p; } };
   const grp = (a, p) => el("m-group", a, p);
   const box = (a, p) => el("m-cube", Object.assign({ "cast-shadows": "false" }, a), p);
   const cyl = (a, p) => el("m-cylinder", Object.assign({ "cast-shadows": "false" }, a), p);
@@ -183,30 +200,30 @@
     const w = o.w, d = o.d, h = o.h, base = o.stilts ? 1.8 : 0.1;
     if (o.stilts) {
       for (const sx of [-1, 1]) for (const sz of [-1, 1])
-        cyl({ x: sx * (w / 2 - 0.5), y: (base - 1.1) / 2, z: sz * (d / 2 - 0.5), radius: 0.28, height: base + 1.1, color: WOOD_D }, g);
-      box({ y: base - 0.1, z: d / 2 + 1.2, width: w * 0.7, height: 0.2, depth: 2.4, color: WOOD }, g); // porch
-      if (!o.lite) for (let s = 0; s < 3; s++) box({ y: 0.3 + s * 0.5, z: d / 2 + 2.9 + (2 - s) * 0.5, width: 2, height: 0.5, depth: 0.5, color: WOOD }, g); // steps
+        cyl({ x: sx * (w / 2 - 0.5), y: (base - 1.1) / 2, z: sz * (d / 2 - 0.5), radius: 0.28, height: base + 1.1, color: WOOD_D, mat: "log" }, g);
+      box({ y: base - 0.1, z: d / 2 + 1.2, width: w * 0.7, height: 0.2, depth: 2.4, color: WOOD, mat: "planks" }, g); // porch
+      if (!o.lite) for (let s = 0; s < 3; s++) box({ y: 0.3 + s * 0.5, z: d / 2 + 2.9 + (2 - s) * 0.5, width: 2, height: 0.5, depth: 0.5, color: WOOD, mat: "planks" }, g); // steps
     }
-    box({ y: base + h / 2, width: w, height: h, depth: d, color: o.color }, g);
-    box({ y: base + h + 0.15, width: w + 0.5, height: 0.3, depth: d + 0.5, color: o.trim || "#2b2b2b", collide: "false" }, g);
+    box({ y: base + h / 2, width: w, height: h, depth: d, color: o.color, mat: o.wall || (o.stilts ? "siding" : "plaster") }, g);
+    box({ y: base + h + 0.15, width: w + 0.5, height: 0.3, depth: d + 0.5, color: o.trim || "#2b2b2b", collide: "false", mat: "cornice" }, g);
     if (o.roof === "gable") {
       const a = 24, half = w / 2 + 0.4, len = half / Math.cos(a * Math.PI / 180);
       for (const s of [-1, 1])
-        box({ x: s * half / 2, y: base + h + 0.3 + half / 2 * Math.tan(a * Math.PI / 180), width: len, height: 0.25, depth: d + 0.8, rz: -s * a, color: o.roofColor || "#5a3b2a", collide: "false" }, g);
+        box({ x: s * half / 2, y: base + h + 0.3 + half / 2 * Math.tan(a * Math.PI / 180), width: len, height: 0.25, depth: d + 0.8, rz: -s * a, color: o.roofColor || "#5a3b2a", collide: "false", mat: o.stilts ? "shingle" : "tile" }, g);
     }
     const floors = Math.min(o.maxFloors || 99, Math.max(1, Math.floor((h - 0.6) / 3.2)));
     for (let f = 0; f < floors; f++) {
       const wc = WINDOWS[Math.floor(rand() * WINDOWS.length)];
-      glow({ y: base + 1.9 + f * 3.2, z: d / 2 + 0.03, width: w * 0.74, height: 1.1, color: wc, emissive: 0.55 }, g);
-      if (o.side !== false) glow({ x: w / 2 + 0.03, y: base + 1.9 + f * 3.2, ry: 90, width: d * 0.7, height: 1.1, color: wc, emissive: 0.55 }, g);
+      glow({ y: base + 1.9 + f * 3.2, z: d / 2 + 0.03, width: w * 0.74, height: 1.1, color: wc, emissive: 0.55, mat: "window" }, g);
+      if (o.side !== false) glow({ x: w / 2 + 0.03, y: base + 1.9 + f * 3.2, ry: 90, width: d * 0.7, height: 1.1, color: wc, emissive: 0.55, mat: "window" }, g);
     }
-    box({ y: base + 1.35, z: d / 2 + 0.06, width: 1.8, height: 2.7, depth: 0.12, color: "#1c1410", collide: "false" }, g);
+    box({ y: base + 1.35, z: d / 2 + 0.06, width: 1.8, height: 2.7, depth: 0.12, color: "#1c1410", collide: "false", mat: "door" }, g);
     if (o.balcony && floors >= 2) {
-      box({ y: base + 3.25, z: d / 2 + 0.7, width: w * 0.8, height: 0.18, depth: 1.4, color: "#2b2b2b" }, g);
-      box({ y: base + 3.8, z: d / 2 + 1.38, width: w * 0.8, height: 0.9, depth: 0.06, color: "#151515", collide: "false" }, g);
+      box({ y: base + 3.25, z: d / 2 + 0.7, width: w * 0.8, height: 0.18, depth: 1.4, color: "#2b2b2b", mat: "iron" }, g);
+      box({ y: base + 3.8, z: d / 2 + 1.38, width: w * 0.8, height: 0.9, depth: 0.06, color: "#151515", collide: "false", mat: "railing" }, g);
     }
     if (o.sign) {
-      text(o.sign, { y: base + h + 1.1, z: d / 2 - 0.2, width: Math.min(w * 0.95, o.sign.length * 0.62 + 1.2), height: 1.3, "font-size": 85, color: "#120d10", "font-color": o.signColor || PINK, emissive: 0.9 }, g);
+      text(o.sign, { y: base + h + 1.1, z: d / 2 - 0.2, width: Math.min(w * 0.95, o.sign.length * 0.62 + 1.2), height: 1.3, "font-size": 85, color: "#120d10", "font-color": o.signColor || PINK, emissive: 0.9, mount: "roof", drop: r2(1.1 - 0.65 - 0.3) }, g);
     }
     footBox(o.x, o.z, w, d, o.ry);
     return g;
@@ -215,19 +232,19 @@
   function tower(o) {
     const g = grp({ x: o.x, y: 0, z: o.z, ry: o.ry || 0 });
     const w = o.w, d = o.d, h = o.h;
-    box({ y: h / 2 + 0.1, width: w, height: h, depth: d, color: o.color }, g);
+    box({ y: h / 2 + 0.1, width: w, height: h, depth: d, color: o.color, mat: "concrete" }, g);
     const glass = o.glass || "#7fb8c9";
-    glow({ y: h / 2 + 1, z: d / 2 + 0.04, width: w * 0.82, height: h - 3, color: glass, emissive: 0.25 }, g);
-    glow({ y: h / 2 + 1, x: w / 2 + 0.04, ry: 90, width: d * 0.82, height: h - 3, color: glass, emissive: 0.25 }, g);
-    glow({ y: h / 2 + 1, x: -w / 2 - 0.04, ry: -90, width: d * 0.82, height: h - 3, color: glass, emissive: 0.25 }, g);
-    for (let y = 4; y < h - 1; y += 4) box({ y, width: w + 0.3, height: 0.35, depth: d + 0.3, color: o.band || "#3a4148", collide: "false" }, g);
-    box({ y: h + 0.4, width: w + 0.6, height: 0.6, depth: d + 0.6, color: "#22262a", collide: "false" }, g);
-    cyl({ x: w * 0.25, y: h + 2.2, z: -d * 0.2, radius: 1.3, height: 3, color: "#7a5b3a", collide: "false" }, g); // water tank
-    cyl({ x: -w * 0.25, y: h + 4, radius: 0.08, height: 7, color: "#aaaaaa", collide: "false" }, g);   // antenna
-    sph({ x: -w * 0.25, y: h + 7.6, radius: 0.35, color: "#ff3b3b" }, g);
-    if (o.sign) text(o.sign, { y: h - 1.5, z: d / 2 + 0.1, width: w * 0.9, height: 1.6, "font-size": 110, color: "#120d10", "font-color": o.signColor || NEON, emissive: 0.9 }, g);
+    glow({ y: h / 2 + 1, z: d / 2 + 0.04, width: w * 0.82, height: h - 3, color: glass, emissive: 0.25, mat: "curtain" }, g);
+    glow({ y: h / 2 + 1, x: w / 2 + 0.04, ry: 90, width: d * 0.82, height: h - 3, color: glass, emissive: 0.25, mat: "curtain" }, g);
+    glow({ y: h / 2 + 1, x: -w / 2 - 0.04, ry: -90, width: d * 0.82, height: h - 3, color: glass, emissive: 0.25, mat: "curtain" }, g);
+    for (let y = 4; y < h - 1; y += 4) box({ y, width: w + 0.3, height: 0.35, depth: d + 0.3, color: o.band || "#3a4148", collide: "false", mat: "metal" }, g);
+    box({ y: h + 0.4, width: w + 0.6, height: 0.6, depth: d + 0.6, color: "#22262a", collide: "false", mat: "cornice" }, g);
+    cyl({ x: w * 0.25, y: h + 2.2, z: -d * 0.2, radius: 1.3, height: 3, color: "#7a5b3a", collide: "false", mat: "tank" }, g); // water tank
+    cyl({ x: -w * 0.25, y: h + 4, radius: 0.08, height: 7, color: "#aaaaaa", collide: "false", mat: "steel" }, g);   // antenna
+    sph({ x: -w * 0.25, y: h + 7.6, radius: 0.35, color: "#ff3b3b", mat: "beacon" }, g);
+    if (o.sign) text(o.sign, { y: h - 1.5, z: d / 2 + 0.1, width: w * 0.9, height: 1.6, "font-size": 110, color: "#120d10", "font-color": o.signColor || NEON, emissive: 0.9, mount: "wall", back: 0.1 }, g);
     if (DT) for (let k = 0; k < 3; k++) el("m-model", { src: natURL("dt-acunit"), x: r2(-w * 0.3 + k * w * 0.22), y: h + 0.7, z: r2(d * 0.25), sx: 1.8, sy: 1.8, sz: 1.8, collide: "false", "cast-shadows": "false" }, g);
-    box({ y: 1.6, z: d / 2 + 0.08, width: 3.5, height: 3.2, depth: 0.12, color: "#10161a", collide: "false" }, g);
+    box({ y: 1.6, z: d / 2 + 0.08, width: 3.5, height: 3.2, depth: 0.12, color: "#10161a", collide: "false", mat: "glassdoor" }, g);
     footBox(o.x, o.z, w, d, o.ry);
     return g;
   }
@@ -249,23 +266,23 @@
   }
 
   function lamp(x, z) {
-    cyl({ x, y: 2.6, z, radius: 0.09, height: 5, color: "#1b1b1b", collide: "false" });
-    sph({ x, y: 5.15, z, radius: 0.32, color: "#ffe9a8" });
+    cyl({ x, y: 2.6, z, radius: 0.09, height: 5, color: "#1b1b1b", collide: "false", mat: "iron" });
+    sph({ x, y: 5.15, z, radius: 0.32, color: "#ffe9a8", mat: "globe" });
   }
 
   /* =========================================================================
      GROUND, WATER, ROADS
      ========================================================================= */
   function buildGround() {
-    box({ y: -1.3, z: CZ, width: 1500, height: 0.4, depth: 1500, color: "#2b2418" });                         // swamp mud (walkable)
-    box({ y: -0.45, z: CZ, width: 1500, height: 0.08, depth: 1500, color: "#2d4a3a", opacity: 0.82, collide: "false" }); // water
-    box({ y: ST ? -0.58 : -0.5, z: CZ, width: ISLAND.x2 - ISLAND.x1, height: 1.2, depth: ISLAND.z2 - ISLAND.z1, color: "#3d4a2c" }); // island
+    box({ y: -1.3, z: CZ, width: 1500, height: 0.4, depth: 1500, color: "#2b2418", mat: "mud" });                         // swamp mud (walkable)
+    box({ y: -0.45, z: CZ, width: 1500, height: 0.08, depth: 1500, color: "#2d4a3a", opacity: 0.82, collide: "false", mat: "water" }); // water
+    box({ y: ST ? -0.58 : -0.5, z: CZ, width: ISLAND.x2 - ISLAND.x1, height: 1.2, depth: ISLAND.z2 - ISLAND.z1, color: "#3d4a2c", mat: "bank" }); // island
     if (ST) natModel("ground-grass", 0, 0.11, CZ, 1, 0, true);                                                                // grass lawn
     // boardwalk rim around the island
-    const rim = (x, z, w, d) => box({ x, y: 0.16, z, width: w, height: 0.12, depth: d, color: WOOD });
+    const rim = (x, z, w, d) => box({ x, y: 0.16, z, width: w, height: 0.12, depth: d, color: WOOD, mat: "boardwalk" });
     rim(0, ISLAND.z1 + 1.5, 2 * HALF, 3); rim(0, ISLAND.z2 - 1.5, 2 * HALF, 3);
     rim(ISLAND.x1 + 1.5, CZ, 3, 2 * HALF); rim(ISLAND.x2 - 1.5, CZ, 3, 2 * HALF);
-    for (let i = 0; i < Math.floor(2 * HALF / 5.4); i++) cyl({ x: ISLAND.x1 + 2 + i * 5.4, y: -0.4, z: ISLAND.z2 + 0.3, radius: 0.2, height: 1.4, color: WOOD_D, collide: "false" });
+    for (let i = 0; i < Math.floor(2 * HALF / 5.4); i++) cyl({ x: ISLAND.x1 + 2 + i * 5.4, y: -0.4, z: ISLAND.z2 + 0.3, radius: 0.2, height: 1.4, color: WOOD_D, collide: "false", mat: "log" });
   }
 
   function buildRoads() {
@@ -309,25 +326,26 @@
     else box({ y: 0.115, z: CZ, width: 90, height: 0.05, depth: 90, color: STONE });
     // bank: hollow, doors north and south, vault in the middle
     const bx = 13, bz1 = CZ - 12, bz2 = CZ + 12, H = 12, col = "#d8cbb0";
-    box({ x: -bx + 0.4, y: H / 2, z: CZ, width: 0.8, height: H, depth: 24, color: col });
-    box({ x: bx - 0.4, y: H / 2, z: CZ, width: 0.8, height: H, depth: 24, color: col });
+    box({ x: -bx + 0.4, y: H / 2, z: CZ, width: 0.8, height: H, depth: 24, color: col, mat: "limestone" });
+    box({ x: bx - 0.4, y: H / 2, z: CZ, width: 0.8, height: H, depth: 24, color: col, mat: "limestone" });
     for (const zf of [bz1, bz2]) {
       const zz = zf === bz1 ? bz1 + 0.4 : bz2 - 0.4;
-      box({ x: -8, y: H / 2, z: zz, width: 10, height: H, depth: 0.8, color: col });
-      box({ x: 8, y: H / 2, z: zz, width: 10, height: H, depth: 0.8, color: col });
-      box({ x: 0, y: (H + 5) / 2, z: zz, width: 6, height: H - 5, depth: 0.8, color: col });
+      box({ x: -8, y: H / 2, z: zz, width: 10, height: H, depth: 0.8, color: col, mat: "limestone" });
+      box({ x: 8, y: H / 2, z: zz, width: 10, height: H, depth: 0.8, color: col, mat: "limestone" });
+      box({ x: 0, y: (H + 5) / 2, z: zz, width: 6, height: H - 5, depth: 0.8, color: col, mat: "limestone" });
       const out = zf === bz1 ? -1 : 1;
-      for (const cx of [-12.2, -10.2, 10.2, 12.2]) cyl({ x: cx, y: H / 2, z: zf + out * 1.6, radius: 0.55, height: H, color: "#efe6d2" });
-      box({ x: 0, y: 0.25, z: zf + out * 2.2, width: 14, height: 0.3, depth: 3, color: "#bdb29b" });
+      for (const cx of [-12.2, -10.2, 10.2, 12.2]) cyl({ x: cx, y: H / 2, z: zf + out * 1.6, radius: 0.55, height: H, color: "#efe6d2", mat: "column" });
+      box({ x: 0, y: 0.25, z: zf + out * 2.2, width: 14, height: 0.3, depth: 3, color: "#bdb29b", mat: "marble" });
     }
-    box({ y: H + 0.3, z: CZ, width: 2 * bx + 1, height: 0.6, depth: 25, color: "#bfb39a" });
-    sph({ y: H + 0.6, z: CZ, radius: 8, sy: 0.55, color: "#7fae9b", collide: "true" });
-    text("BAYOU SAVINGS & TRUST", { y: H - 1, z: bz1 - 0.05, ry: 180, width: 16, height: 1.2, "font-size": 80, color: "#2b2418", "font-color": "#f2d48a", emissive: 0.5 });
+    box({ y: H + 0.3, z: CZ, width: 2 * bx + 1, height: 0.6, depth: 25, color: "#bfb39a", mat: "cornice-stone" });
+    sph({ y: H + 0.6, z: CZ, radius: 8, sy: 0.55, color: "#7fae9b", collide: "true", mat: "copper" });
+    text("BAYOU SAVINGS & TRUST", { y: H - 1, z: bz1 - 0.05, ry: 180, width: 16, height: 1.2, "font-size": 80, color: "#2b2418", "font-color": "#f2d48a", emissive: 0.5, mount: "engraved" });
     footBox(0, CZ, 2 * bx + 4, 30, 0);
     // vault (the heist loot cage)
-    cyl({ y: 2.2, z: CZ, radius: 3, height: 4.4, color: "#8c8f93" }).setAttribute("id", "vault");
-    cyl({ y: 2.2, z: CZ + 3.02, rx: 90, radius: 1.7, height: 0.25, color: "#c9a24a", collide: "false" });
-    cyl({ y: 2.2, z: CZ - 3.02, rx: 90, radius: 1.7, height: 0.25, color: "#c9a24a", collide: "false" });
+    live(() => cyl({ y: 2.2, z: CZ, radius: 3, height: 4.4, color: "#8c8f93" }).setAttribute("id", "vault"));
+    cyl({ y: 2.2, z: CZ + 3.02, rx: 90, radius: 1.7, height: 0.25, color: "#c9a24a", collide: "false", mat: "vaultdoor" });
+    cyl({ y: 2.2, z: CZ - 3.02, rx: 90, radius: 1.7, height: 0.25, color: "#c9a24a", collide: "false", mat: "vaultdoor" });
+    live(() => {
     const loot = grp({ "data-game": "heist", visible: "false" });
     for (let i = 0; i < 10; i++) {
       const a = i / 10 * Math.PI * 2;
@@ -343,12 +361,14 @@
     text("CLICK THE VAULT TO GRAB A BAG", { y: 5.1, z: CZ - 3.3, ry: 180, width: 6.2, height: 0.5, "font-size": 30, "font-color": AMBER }, loot);
     ANCHORS.vault = { x: 0, y: 5.75, z: CZ + 3.3, ry: 0, w: 6.2, twin: { x: 0, z: CZ - 3.3, ry: 180 } };
     void vs;
+    });
 
     // big screen on the south facade, facing the spawn
     const s = grp({ z: bz2 + 0.05 });
-    box({ y: 8.7, z: 0.05, width: 18.4, height: 6.8, depth: 0.15, color: INK, collide: "false" }, s);
-    glow({ y: 12.15, z: 0.15, width: 18.4, height: 0.16, color: NEON }, s);
-    glow({ y: 5.25, z: 0.15, width: 18.4, height: 0.16, color: NEON }, s);
+    box({ y: 8.7, z: 0.05, width: 18.4, height: 6.8, depth: 0.15, color: INK, collide: "false", mat: "screenframe" }, s);
+    glow({ y: 12.15, z: 0.15, width: 18.4, height: 0.16, color: NEON, mat: "neon" }, s);
+    glow({ y: 5.25, z: 0.15, width: 18.4, height: 0.16, color: NEON, mat: "neon" }, s);
+    live(() => {
     SCREEN.title = text("INTERMISSION", { y: 11.3, z: 0.16, width: 17.6, height: 1.1, "font-size": 95, "font-color": PAPER, emissive: 0.4 }, s);
     SCREEN.kind = text("", { y: 10.45, z: 0.16, width: 17.6, height: 0.55, "font-size": 42, "font-color": AMBER }, s);
     SCREEN.what = text("", { y: 9.85, z: 0.16, width: 17.6, height: 0.52, "font-size": 36 }, s);
@@ -357,10 +377,12 @@
     SCREEN.cells = TEAMS.map((t, i) => text(t.name + "  0", { x: -6.6 + i * 4.4, y: 7.6, z: 0.16, width: 4.25, height: 0.9, "font-size": 34, "font-color": t.color, color: "#081218" }, s));
     SCREEN.subs = TEAMS.map((t, i) => text("SERIES POINTS", { x: -6.6 + i * 4.4, y: 6.92, z: 0.16, width: 4.25, height: 0.42, "font-size": 26, "font-color": SKY, color: "#081218" }, s));
     SCREEN.youParent = s;
-    text("CHAOS TRIALS  |  SWAMP CITY", { y: 12.75, z: 0.2, width: 12, height: 0.9, "font-size": 70, color: "#120d10", "font-color": PINK, emissive: 0.9 }, s);
+    });
+    text("CHAOS TRIALS  |  SWAMP CITY", { y: 12.75, z: 0.2, width: 12, height: 0.9, "font-size": 70, color: "#120d10", "font-color": PINK, emissive: 0.9, mount: "marquee" }, s);
 
     // team check-in stands
     const xs = [-16, -8, 8, 16];
+    live(() => {
     TEAMS.forEach((t, i) => {
       const p = el("m-prompt", { id: "join-" + i, message: "Join TEAM " + t.name + " (" + t.tone + ") - type your name", placeholder: "Your name" });
       const g = grp({ x: xs[i], z: CZ + 17 }, p);
@@ -372,7 +394,8 @@
       ROSTER.names.push(text("Be the first to join!", { id: "names-" + i, y: 3.0, z: 0.05, width: 3, height: 0.38, "font-size": 20, "font-color": SKY }, g));
       ANCHORS["join-" + i] = { x: xs[i], y: 4.05, z: CZ + 17.05, ry: 0, w: 5 };
     });
-    text("CHECK IN: click your team's stand and type your name", { y: 4.3, z: CZ + 17, width: 12, height: 0.5, "font-size": 30, "font-color": AMBER });
+    });
+    text("CHECK IN: click your team's stand and type your name", { y: 4.3, z: CZ + 17, width: 12, height: 0.5, "font-size": 30, "font-color": AMBER, mount: "hang" });
 
     // plaza dressing
     for (const [x, z] of [[-30, CZ + 35], [30, CZ + 35], [-38, CZ - 8], [38, CZ - 8], [-38, CZ - 35], [38, CZ - 35], [-20, CZ - 40], [20, CZ - 40]]) { tree(x, z, 0.9, false); FOOT.push({ cx: x, cz: z, r: 1 }); }
@@ -383,11 +406,11 @@
       for (const [x, z] of [[-17, CZ - 25], [17, CZ - 25], [-19, CZ - 35], [19, CZ - 35], [-4, CZ - 21], [4, CZ - 39]]) natModel(rand() < 0.5 ? "plant-flowers" : "bush-small-flowers", x, 0.1, z, 1.3, rand() * 360, false);
     }
     // bayou pond in the north half of the plaza, crossed by a boardwalk
-    box({ y: 0.15, z: CZ - 30, width: 34, height: 0.04, depth: 14, color: "#2f4f3c", opacity: 0.9, collide: "false" });
-    box({ y: 0.13, z: CZ - 30, width: 36, height: 0.03, depth: 16, color: "#3b3324", collide: "false" });
-    box({ y: 0.32, z: CZ - 30, width: 4, height: 0.2, depth: 18, color: WOOD });
-    for (const s of [-1, 1]) box({ x: s * 2, y: 0.85, z: CZ - 30, width: 0.08, height: 0.9, depth: 18, color: WOOD_D, collide: "false" });
-    for (let i = 0; i < 14; i++) cyl({ x: -16 + rand() * 32, y: 0.19, z: CZ - 36 + rand() * 12, radius: 0.4 + rand() * 0.5, height: 0.03, color: rand() < 0.2 ? "#e88fb8" : "#4f7a35", collide: "false" });
+    box({ y: 0.15, z: CZ - 30, width: 34, height: 0.04, depth: 14, color: "#2f4f3c", opacity: 0.9, collide: "false", mat: "water" });
+    box({ y: 0.13, z: CZ - 30, width: 36, height: 0.03, depth: 16, color: "#3b3324", collide: "false", mat: "mud" });
+    box({ y: 0.32, z: CZ - 30, width: 4, height: 0.2, depth: 18, color: WOOD, mat: "boardwalk" });
+    for (const s of [-1, 1]) box({ x: s * 2, y: 0.85, z: CZ - 30, width: 0.08, height: 0.9, depth: 18, color: WOOD_D, collide: "false", mat: "planks" });
+    for (let i = 0; i < 14; i++) cyl({ x: -16 + rand() * 32, y: 0.19, z: CZ - 36 + rand() * 12, radius: 0.4 + rand() * 0.5, height: 0.03, color: rand() < 0.2 ? "#e88fb8" : "#4f7a35", collide: "false", mat: "lily" });
     for (const [x, z] of [[-11, CZ - 33], [9, CZ - 27], [14, CZ - 34]]) { tree(x, z, 0.75, false); FOOT.push({ cx: x, cz: z, r: 1 }); }
     if (MED) for (const zz of [CZ - 22.4, CZ - 37.6]) for (let k = 0; k < 7; k++) for (const s of [-1, 1]) natModel("med-ironfence", s * (3.2 + k * 2), 0.1, zz, 1, 0, true);
     if (KEN) for (const s of [-1, 1]) {
@@ -396,9 +419,9 @@
     }
     if (DT) for (let x = 22; x <= 43; x += 3) for (const s of [-1, 1]) natModel("dt-bollard", s * x, 0.1, CZ + 44.2, 1.2, 0, true);
     // gator statue fountain behind the spawn
-    cyl({ y: 0.5, z: CZ + 33, radius: 4, height: 0.8, color: "#9a917c" });
-    cyl({ y: 0.92, z: CZ + 33, radius: 3.6, height: 0.1, color: "#3f7f8a", collide: "false" });
-    gatorModel(0, 1.4, CZ + 33, 30, 1.6, "#7f8f6a");
+    cyl({ y: 0.5, z: CZ + 33, radius: 4, height: 0.8, color: "#9a917c", mat: "stone" });
+    cyl({ y: 0.92, z: CZ + 33, radius: 3.6, height: 0.1, color: "#3f7f8a", collide: "false", mat: "water" });
+    gatorModel(0, 1.4, CZ + 33, 30, 1.6, "#7f8f6a", "bronze");
     FOOT.push({ cx: 0, cz: CZ + 33, r: 4.2 });
     el("m-light", { type: "point", y: 9, z: CZ + 20, color: "#ffe2b0", intensity: 1100, distance: 40, "cast-shadows": "false" });
   }
@@ -412,28 +435,29 @@
   const BET_PAY = { CROWN: 6, GATOR: 2, FROG: 2, SKULL: 2 };
   function buildCasino() {
     const x1 = 60, x2 = 92, z1 = CZ - 22, z2 = CZ + 22, H = 9;
-    box({ x: (x1 + x2) / 2, y: 0.13, z: CZ, width: x2 - x1, height: 0.06, depth: z2 - z1, color: "#5a1626" });   // carpet
-    box({ x: x2, y: H / 2, z: CZ, width: 0.8, height: H, depth: z2 - z1, color: "#2a1830" });
-    box({ x: (x1 + x2) / 2, y: H / 2, z: z1, width: x2 - x1, height: H, depth: 0.8, color: "#2a1830" });
-    box({ x: (x1 + x2) / 2, y: H / 2, z: z2, width: x2 - x1, height: H, depth: 0.8, color: "#2a1830" });
-    box({ x: (x1 + x2) / 2, y: H + 0.3, z: CZ, width: x2 - x1 + 1, height: 0.6, depth: z2 - z1 + 1, color: "#1d1022" });
-    for (let z = z1 + 2; z <= z2 - 2; z += 8) cyl({ x: x1, y: H / 2, z, radius: 0.5, height: H, color: "#c9a24a" });
+    box({ x: (x1 + x2) / 2, y: 0.13, z: CZ, width: x2 - x1, height: 0.06, depth: z2 - z1, color: "#5a1626", mat: "carpet" });   // carpet
+    box({ x: x2, y: H / 2, z: CZ, width: 0.8, height: H, depth: z2 - z1, color: "#2a1830", mat: "casinowall" });
+    box({ x: (x1 + x2) / 2, y: H / 2, z: z1, width: x2 - x1, height: H, depth: 0.8, color: "#2a1830", mat: "casinowall" });
+    box({ x: (x1 + x2) / 2, y: H / 2, z: z2, width: x2 - x1, height: H, depth: 0.8, color: "#2a1830", mat: "casinowall" });
+    box({ x: (x1 + x2) / 2, y: H + 0.3, z: CZ, width: x2 - x1 + 1, height: 0.6, depth: z2 - z1 + 1, color: "#1d1022", mat: "cornice" });
+    for (let z = z1 + 2; z <= z2 - 2; z += 8) cyl({ x: x1, y: H / 2, z, radius: 0.5, height: H, color: "#c9a24a", mat: "gold" });
     // facade + marquee
-    box({ x: x1 - 0.3, y: H + 2.2, z: CZ, width: 0.5, height: 3.6, depth: z2 - z1, color: "#160a1a", collide: "false" });
-    text("LUCKY GATOR CASINO", { x: x1 - 0.6, y: H + 2.4, z: CZ, ry: -90, width: 30, height: 2.4, "font-size": 170, color: "#160a1a", "font-color": PINK, emissive: 1 });
-    glow({ x: x1 - 0.6, y: H + 0.55, z: CZ, ry: -90, width: 42, height: 0.22, color: AMBER });
-    glow({ x: x1 - 0.6, y: H + 4.0, z: CZ, ry: -90, width: 42, height: 0.22, color: NEON });
+    box({ x: x1 - 0.3, y: H + 2.2, z: CZ, width: 0.5, height: 3.6, depth: z2 - z1, color: "#160a1a", collide: "false", mat: "marqueebox" });
+    text("LUCKY GATOR CASINO", { x: x1 - 0.6, y: H + 2.4, z: CZ, ry: -90, width: 30, height: 2.4, "font-size": 170, color: "#160a1a", "font-color": PINK, emissive: 1, mount: "marquee" });
+    glow({ x: x1 - 0.6, y: H + 0.55, z: CZ, ry: -90, width: 42, height: 0.22, color: AMBER, mat: "bulbs" });
+    glow({ x: x1 - 0.6, y: H + 4.0, z: CZ, ry: -90, width: 42, height: 0.22, color: NEON, mat: "bulbs" });
     // slot machines along the side walls, card tables in the middle
     for (const zz of [z1 + 1.2, z2 - 1.2]) for (let x = x1 + 5; x < x2 - 4; x += 3.2) {
       const ry = zz < CZ ? 0 : 180;
-      box({ x, y: 1, z: zz, width: 1.4, height: 2, depth: 1, color: "#3b1f4a" });
-      glow({ x, y: 1.4, z: zz + (ry === 0 ? 0.52 : -0.52), ry, width: 1, height: 0.7, color: [PINK, NEON, AMBER][Math.floor(rand() * 3)], emissive: 0.7 });
+      box({ x, y: 1, z: zz, width: 1.4, height: 2, depth: 1, color: "#3b1f4a", mat: "slotcab" });
+      glow({ x, y: 1.4, z: zz + (ry === 0 ? 0.52 : -0.52), ry, width: 1, height: 0.7, color: [PINK, NEON, AMBER][Math.floor(rand() * 3)], emissive: 0.7, mat: "slotscreen" });
     }
     for (const [x, z] of [[68, CZ - 10], [68, CZ + 10], [76, CZ - 12], [76, CZ + 12]]) {
-      cyl({ x, y: 0.5, z, radius: 1.7, height: 0.9, color: "#3a2a1a" });
-      cyl({ x, y: 0.97, z, radius: 1.55, height: 0.06, color: "#1f6b45", collide: "false" });
+      cyl({ x, y: 0.5, z, radius: 1.7, height: 0.9, color: "#3a2a1a", mat: "woodpolish" });
+      cyl({ x, y: 0.97, z, radius: 1.55, height: 0.06, color: "#1f6b45", collide: "false", mat: "felt" });
     }
     // the wheel: vertical disc on the back wall, facing -x
+    live(() => {
     const wg = grp({ x: x2 - 0.7, y: 4.2, z: CZ, ry: -90 });
     cyl({ rx: 90, radius: 3.65, height: 0.3, color: "#c9a24a", collide: "false" }, wg);
     const spin = grp({ z: 0.2, rz: 0 }, wg);
@@ -462,6 +486,7 @@
       return g;
     });
     ANCHORS.bet = { x: 81.6, y: 3.0, z: CZ, ry: -90, w: 7 };
+    });
     if (DT) for (let z = z1 + 1; z <= z2 - 1; z += 3) natModel("dt-bollard", x1 - 2.2, 0.1, z, 1.2, 0, true);
     // casino block: hotel tower to the north, stilt motel to the south
     tower({ x: 75, z: CZ - 35, w: 24, d: 12, h: 24, ry: 0, color: "#5a2f4a", glass: "#d9a3c7", band: "#2a1830", sign: "GATOR GRAND HOTEL", signColor: PINK });
@@ -477,30 +502,34 @@
   const ARENA = { x: -75, z: CZ };
   function buildArena() {
     const { x, z } = ARENA, N = 16;
-    cyl({ x, y: 0.14, z, radius: 14.5, height: 0.08, color: "#b89a62" });
+    cyl({ x, y: 0.14, z, radius: 14.5, height: 0.08, color: "#b89a62", mat: "sand" });
+    live(() => {
     const throne = cyl({ x, y: 0.32, z, radius: 4.5, height: 0.36, color: "#6a5a3a", "collision-interval": 250 });
     ARENA.throne = throne;
     ARENA.ringDisc = cyl({ x, y: 0.52, z, radius: 4.6, height: 0.02, color: AMBER, opacity: 0.55, collide: "false", "data-game": "arena", visible: "false" });
-    gatorModel(x, 0.5, z - 2.5, 0, 0.9, "#556b3f");
+    });
+    gatorModel(x, 0.5, z - 2.5, 0, 0.9, "#556b3f", "bronze");
     for (let k = 0; k < N; k++) {
       const th = k / N * 360, rad = th * Math.PI / 180;
       if (k === 0 || k === N / 2) continue; // entrances east and west
       const ry = -(th + 90);
       const chord = 2 * 15.5 * Math.sin(Math.PI / N) + 0.3;
-      box({ x: r2(x + Math.cos(rad) * 15.5), y: 1.6, z: r2(z + Math.sin(rad) * 15.5), ry: r2(ry), width: r2(chord), height: 3, depth: 0.7, color: "#4b3a2a" });
+      box({ x: r2(x + Math.cos(rad) * 15.5), y: 1.6, z: r2(z + Math.sin(rad) * 15.5), ry: r2(ry), width: r2(chord), height: 3, depth: 0.7, color: "#4b3a2a", mat: "palisade" });
       for (let t = 0; t < 3; t++) {
         const rr = 16.9 + t * 1.3, ch = 2 * rr * Math.sin(Math.PI / N) + 0.3;
-        box({ x: r2(x + Math.cos(rad) * rr), y: 0.6 * (t + 1), z: r2(z + Math.sin(rad) * rr), ry: r2(ry), width: r2(ch), height: 1.2 * (t + 1), depth: 1.3, color: t % 2 ? "#6b4a2b" : "#5a3d24" });
+        box({ x: r2(x + Math.cos(rad) * rr), y: 0.6 * (t + 1), z: r2(z + Math.sin(rad) * rr), ry: r2(ry), width: r2(ch), height: 1.2 * (t + 1), depth: 1.3, color: t % 2 ? "#6b4a2b" : "#5a3d24", mat: "bleacher" });
       }
     }
     for (const a of [45, 135, 225, 315]) {
       const rad = a * Math.PI / 180, px = x + Math.cos(rad) * 21, pz = z + Math.sin(rad) * 21;
-      cyl({ x: px, y: 6, z: pz, radius: 0.25, height: 12, color: "#222" });
-      box({ x: px, y: 12.2, z: pz, width: 2, height: 0.8, depth: 0.4, color: "#ddd", collide: "false" });
+      cyl({ x: px, y: 6, z: pz, radius: 0.25, height: 12, color: "#222", mat: "steel" });
+      box({ x: px, y: 12.2, z: pz, width: 2, height: 0.8, depth: 0.4, color: "#ddd", collide: "false", mat: "floodlight" });
     }
-    text("GATOR PIT", { x: x + 16.2, y: 5.2, z, ry: 90, width: 10, height: 1.6, "font-size": 120, color: "#120d10", "font-color": "#7dff8a", emissive: 1 });
+    text("GATOR PIT", { x: x + 16.2, y: 5.2, z, ry: 90, width: 10, height: 1.6, "font-size": 120, color: "#120d10", "font-color": "#7dff8a", emissive: 1, mount: "post", drop: 4.4 });
+    live(() => {
     ARENA.board = text("GATOR PIT - waiting for the host", { x: x + 16.2, y: 3.8, z, ry: 90, width: 10, height: 0.6, "font-size": 40, "font-color": AMBER });
     ARENA.board2 = text("GATOR PIT - waiting for the host", { x, y: 7, z, width: 10, height: 0.7, "font-size": 44, "font-color": AMBER });
+    });
     ANCHORS.arena = { x: x + 16.3, y: 3.1, z, ry: 90, w: 9 };
     // arena block: gator farm shacks north, bait shack south
     building({ x: -86, z: CZ - 36, w: 10, d: 8, h: 5, ry: 0, stilts: true, color: "#6a7a4a", roof: "gable", sign: "GATOR FARM", signColor: "#7dff8a", side: false });
@@ -517,9 +546,9 @@
      ========================================================================= */
   function buildDowntown() {
     tower({ x: -32, z: CZ - 77, w: 14, d: 14, h: 34, color: "#3d5560", sign: "BAYOU HEIGHTS", signColor: NEON });
-    building({ x: -12, z: CZ - 80, w: 12, d: 12, h: 14, color: "#2f3b55", sign: "BAYOU PD", signColor: "#5aa0ff", roof: "flat", side: false });
-    glow({ x: -15, y: 15.6, z: CZ - 73.8, width: 1.4, height: 0.5, color: "#ff3b3b" });
-    glow({ x: -9, y: 15.6, z: CZ - 73.8, width: 1.4, height: 0.5, color: "#3b6bff" });
+    building({ x: -12, z: CZ - 80, w: 12, d: 12, h: 14, color: "#2f3b55", sign: "BAYOU PD", signColor: "#5aa0ff", roof: "flat", side: false, wall: "brick" });
+    glow({ x: -15, y: 15.6, z: CZ - 73.8, width: 1.4, height: 0.5, color: "#ff3b3b", mat: "neon" });
+    glow({ x: -9, y: 15.6, z: CZ - 73.8, width: 1.4, height: 0.5, color: "#3b6bff", mat: "neon" });
     tower({ x: 12, z: CZ - 77, w: 14, d: 14, h: 42, color: "#5c4a3d", glass: "#9cc4b0", sign: "MARSH TOWER", signColor: AMBER });
     tower({ x: 32, z: CZ - 80, w: 12, d: 12, h: 26, color: "#45514a", glass: "#86a8c4" });
     // NW and NE corners: one tower each behind the hideouts
@@ -549,19 +578,21 @@
     HIDEOUTS.forEach((h, i) => {
       const t = TEAMS[i];
       const g = grp({ x: h.x, z: h.z, ry: h.ry });
-      box({ y: 3.6, width: 16, height: 7, depth: 10, color: "#2a2620" }, g);
-      box({ y: 7.25, width: 16.6, height: 0.3, depth: 10.6, color: "#1a1a1a", collide: "false" }, g);
-      glow({ y: 2.3, z: 5.03, width: 7, height: 4.2, color: t.color, emissive: 0.35 }, g);
-      for (let s = 0; s < 6; s++) box({ y: 0.6 + s * 0.7, z: 5.06, width: 7, height: 0.06, depth: 0.04, color: "#000", collide: "false" }, g);
-      text(t.name + " HIDEOUT", { y: 6, z: 5.05, width: 12, height: 1.2, "font-size": 80, color: "#120d10", "font-color": t.color, emissive: 1 }, g);
+      box({ y: 3.6, width: 16, height: 7, depth: 10, color: "#2a2620", mat: "corrugated" }, g);
+      box({ y: 7.25, width: 16.6, height: 0.3, depth: 10.6, color: "#1a1a1a", collide: "false", mat: "cornice" }, g);
+      glow({ y: 2.3, z: 5.03, width: 7, height: 4.2, color: t.color, emissive: 0.35, mat: "shutter" }, g);
+      for (let s = 0; s < 6; s++) box({ y: 0.6 + s * 0.7, z: 5.06, width: 7, height: 0.06, depth: 0.04, color: "#000", collide: "false", mat: "skip" }, g);
+      text(t.name + " HIDEOUT", { y: 6, z: 5.05, width: 12, height: 1.2, "font-size": 80, color: "#120d10", "font-color": t.color, emissive: 1, mount: "wall", back: 0.05 }, g);
+      live(() => {
       const board = box({ x: 6.3, y: 1.3, z: 6, width: 2.4, height: 1.8, depth: 0.3, color: "#1b2a33" }, g);
       const face = glow({ x: 6.3, y: 1.3, z: 6.17, width: 2.2, height: 1.6, color: t.color, emissive: 0.5 }, g);
       const l1 = text("DROP LOOT", { x: 6.3, y: 1.6, z: 6.19, width: 2.1, height: 0.5, "font-size": 36, color: t.color, "font-color": INK, emissive: 0.1 }, g);
       const l2 = text("click here", { x: 6.3, y: 1.0, z: 6.19, width: 2.1, height: 0.38, "font-size": 24, color: t.color, "font-color": INK, emissive: 0.1 }, g);
       onClick([board, face, l1, l2], cid => GAMES.heist.drop(cid, i));
-      cyl({ x: -7, y: 5, z: 6, radius: 0.08, height: 10, color: "#bbb", collide: "false" }, g);
-      box({ x: -6.1, y: 9.2, z: 6, width: 1.8, height: 1.1, depth: 0.04, color: t.color, collide: "false" }, g);
       cyl({ y: 30, z: 9, radius: 1.3, height: 60, color: t.color, opacity: 0.35, collide: "false", "data-game": "heist", visible: "false" }, g);
+      });
+      cyl({ x: -7, y: 5, z: 6, radius: 0.08, height: 10, color: "#bbb", collide: "false", mat: "steel" }, g);
+      box({ x: -6.1, y: 9.2, z: 6, width: 1.8, height: 1.1, depth: 0.04, color: t.color, collide: "false", mat: "flag" }, g);
       // world-space anchor in front of the drop board
       const rad = h.ry * Math.PI / 180, lx = 6.3, lz = 6.25;
       ANCHORS["hide-" + i] = { x: h.x + lx * Math.cos(rad) + lz * Math.sin(rad), y: 2.75, z: h.z - lx * Math.sin(rad) + lz * Math.cos(rad), ry: h.ry, w: 5 };
@@ -574,17 +605,17 @@
   /* =========================================================================
      NATURE: cypress, reeds, lily pads, gators
      ========================================================================= */
-  function gatorModel(x, y, z, ry, s, color) {
+  function gatorModel(x, y, z, ry, s, color, mat) {
     const g = grp({ x, y, z, ry, sx: s, sy: s, sz: s });
     if (CONFIG.MODELS.gator) { el("m-model", { src: CONFIG.MODELS.gator, collide: "false" }, g); return g; }
-    const c = color || "#4b5e37";
-    box({ width: 0.9, height: 0.35, depth: 2.4, color: c, collide: "false" }, g);
-    box({ z: 1.55, y: -0.02, width: 0.6, height: 0.28, depth: 0.9, color: c, collide: "false" }, g);
-    box({ z: 2.15, y: -0.05, width: 0.42, height: 0.18, depth: 0.6, color: c, collide: "false" }, g);
-    sph({ x: 0.2, y: 0.17, z: 1.4, radius: 0.09, color: "#e6d35a" }, g);
-    sph({ x: -0.2, y: 0.17, z: 1.4, radius: 0.09, color: "#e6d35a" }, g);
-    box({ z: -1.8, width: 0.55, height: 0.25, depth: 1.4, color: c, collide: "false" }, g);
-    box({ z: -2.9, width: 0.3, height: 0.18, depth: 1.1, color: c, collide: "false" }, g);
+    const c = color || "#4b5e37", m = mat || "gatorskin";
+    box({ width: 0.9, height: 0.35, depth: 2.4, color: c, collide: "false", mat: m }, g);
+    box({ z: 1.55, y: -0.02, width: 0.6, height: 0.28, depth: 0.9, color: c, collide: "false", mat: m }, g);
+    box({ z: 2.15, y: -0.05, width: 0.42, height: 0.18, depth: 0.6, color: c, collide: "false", mat: m }, g);
+    sph({ x: 0.2, y: 0.17, z: 1.4, radius: 0.09, color: "#e6d35a", mat: "eye" }, g);
+    sph({ x: -0.2, y: 0.17, z: 1.4, radius: 0.09, color: "#e6d35a", mat: "eye" }, g);
+    box({ z: -1.8, width: 0.55, height: 0.25, depth: 1.4, color: c, collide: "false", mat: m }, g);
+    box({ z: -2.9, width: 0.3, height: 0.18, depth: 1.1, color: c, collide: "false", mat: m }, g);
     return g;
   }
 
@@ -601,7 +632,7 @@
     const nPads = LOW ? 40 : 80;
     for (let i = 0; i < nPads; i++) {
       const a = rand() * Math.PI * 2, r = HALF + 6 + rand() * 180;
-      cyl({ x: Math.cos(a) * r, y: -0.39, z: CZ + Math.sin(a) * r, radius: 0.5 + rand() * 0.7, height: 0.04, color: rand() < 0.15 ? "#e88fb8" : "#4f7a35", collide: "false" });
+      cyl({ x: Math.cos(a) * r, y: -0.39, z: CZ + Math.sin(a) * r, radius: 0.5 + rand() * 0.7, height: 0.04, color: rand() < 0.15 ? "#e88fb8" : "#4f7a35", collide: "false", mat: "lily" });
     }
     const nReeds = LOW ? 50 : 100;
     const shore = (o1, o2) => {
@@ -618,13 +649,13 @@
       for (let i = 0; i < (LOW ? 15 : 30); i++) { const [x, z] = shore(0, 4); if (Math.abs(z - CZ) < 6) continue; natModel("rock-" + (1 + Math.floor(rand() * 5)), x, -0.9, z, 1.2 + rand() * 1.6, rand() * 360, false); }
       for (let i = 0; i < (LOW ? 20 : 45); i++) { const [x, z] = shore(4, 26); if (Math.abs(z - CZ) < 8) continue; natModel("deadtree-" + (1 + Math.floor(rand() * 10)), x, -1.1, z, 1.4 + rand() * 0.7, rand() * 360, true); }
     }
-    // swimming gators
-    for (let i = 0; i < 6; i++) {
+    // swimming gators (they move, so they stay live)
+    live(() => { for (let i = 0; i < 6; i++) {
       const a = (i / 6) * Math.PI * 2 + 0.3, r = 245 + (i % 2) * 30;
       const x = Math.cos(a) * r, z = CZ + Math.sin(a) * r;
       const g = gatorModel(x, -0.42, z, (a * 180 / Math.PI) % 360, 1.2);
       el("m-attr-anim", { attr: "x", start: r2(x - 6), end: r2(x + 6), duration: 22000 + i * 3000, loop: "true", "ping-pong": "true", easing: "easeInOutSine" }, g);
-    }
+    } });
   }
 
   /* =========================================================================
@@ -643,11 +674,11 @@
 
   function buildAirboats() {
     for (const s of [-1, 1]) {
-      box({ x: s * (HALF + 51), y: 0.45, z: CZ, width: 102, height: 0.3, depth: 4, color: WOOD });
-      for (let k = 0; k < 14; k++) cyl({ x: s * (HALF + 3 + k * 7.3), y: -0.4, z: CZ + 1.8, radius: 0.2, height: 1.6, color: WOOD_D, collide: "false" });
-      text("AIRBOAT STOP - hop on as one passes", { x: s * 310, y: 2.6, z: CZ - 2.4, ry: s > 0 ? -90 : 90, width: 7, height: 0.6, "font-size": 36, "font-color": AMBER });
-      cyl({ x: s * 310, y: 1.4, z: CZ - 2.4, radius: 0.08, height: 2.2, color: "#222", collide: "false" });
+      box({ x: s * (HALF + 51), y: 0.45, z: CZ, width: 102, height: 0.3, depth: 4, color: WOOD, mat: "boardwalk" });
+      for (let k = 0; k < 14; k++) cyl({ x: s * (HALF + 3 + k * 7.3), y: -0.4, z: CZ + 1.8, radius: 0.2, height: 1.6, color: WOOD_D, collide: "false", mat: "log" });
+      text("AIRBOAT STOP - hop on as one passes", { x: s * 310, y: 2.6, z: CZ - 2.4, ry: s > 0 ? -90 : 90, width: 7, height: 0.6, "font-size": 36, "font-color": AMBER, mount: "post", drop: 2.0 });
     }
+    live(() => {
     const loop = grp({ z: CZ });
     el("m-attr-anim", { attr: "ry", start: 0, end: 360, duration: 240000, loop: "true" }, loop);
     const R = 320;
@@ -662,6 +693,7 @@
       cyl({ y: 2.3, z: -2.95, rx: 90, radius: 0.35, height: 0.3, color: "#aaa", collide: "false" }, b);
       box({ y: 1.0, z: 0.8, width: 3.6, height: 0.5, depth: 0.5, color: WOOD, collide: "false" }, b);
       text("BAYOU LOOP", { y: 0.6, x: 2.02, z: 0.5, ry: 90, width: 3, height: 0.4, "font-size": 30, color: "#111", "font-color": AMBER, emissive: 0.6 }, b);
+    });
     });
   }
 
@@ -697,7 +729,8 @@
     // SWAMP FAIR - Ferris wheel (south outer block)
     const fx = 0, fz = CZ + 178, R = 16, hub = R + 3, a = 18, ar = a * Math.PI / 180;
     for (const zz of [-1.8, 1.8]) for (const s of [-1, 1])
-      box({ x: fx + s * hub * Math.tan(ar) / 2, y: hub / 2, z: fz + zz, rz: s * a, width: 0.6, height: r2(hub / Math.cos(ar)), depth: 0.6, color: "#d9d2c0" });
+      box({ x: fx + s * hub * Math.tan(ar) / 2, y: hub / 2, z: fz + zz, rz: s * a, width: 0.6, height: r2(hub / Math.cos(ar)), depth: 0.6, color: "#d9d2c0", mat: "truss" });
+    live(() => {
     const wheel = grp({ x: fx, y: hub, z: fz });
     const spin = grp({}, wheel);
     el("m-attr-anim", { attr: "rz", start: 0, end: 360, duration: 90000, loop: "true" }, spin);
@@ -716,10 +749,11 @@
       box({ y: -1.3, width: 1.8, height: 1.5, depth: 1.6, color: ["#d6452f", "#2f7fd6", "#e0b23a", "#6fbf4a"][k % 4], collide: "false" }, gnd);
     }
     sph({ radius: 1, color: AMBER }, wheel);
-    text("SWAMP FAIR", { x: fx, y: 2.8, z: fz - 9, ry: 180, width: 10, height: 1.4, "font-size": 100, color: "#120d10", "font-color": PINK, emissive: 1 });
+    });
+    text("SWAMP FAIR", { x: fx, y: 2.8, z: fz - 9, ry: 180, width: 10, height: 1.4, "font-size": 100, color: "#120d10", "font-color": PINK, emissive: 1, mount: "arch", drop: 2.1 });
     for (const [sx, c] of [[-30, "#d6452f"], [-20, "#2f7fd6"], [20, "#e0b23a"], [30, "#6fbf4a"]]) {
-      box({ x: sx, y: 1.1, z: CZ + 168, width: 5, height: 2, depth: 3, color: "#e8e2d4" });
-      box({ x: sx, y: 2.6, z: CZ + 168, width: 5.6, height: 0.3, depth: 3.6, color: c, collide: "false" });
+      box({ x: sx, y: 1.1, z: CZ + 168, width: 5, height: 2, depth: 3, color: "#e8e2d4", mat: "booth" });
+      box({ x: sx, y: 2.6, z: CZ + 168, width: 5.6, height: 0.3, depth: 3.6, color: c, collide: "false", mat: "awning" });
     }
     footBox(fx, fz, 2 * hub * Math.tan(ar) + 2, 6, 0);
     if (MED) { natModel("med-wagon", -12, 0.1, CZ + 164, 1.1, 100, true); natModel("med-wagon", 13, 0.1, CZ + 190, 1.1, -70, true); for (const [x, z] of [[-24, CZ + 165], [-23, CZ + 166.4], [24, CZ + 165]]) natModel("med-crate", x, 0.1, z, 1.2, rand() * 45, true); }
@@ -730,12 +764,12 @@
     el("m-light", { type: "point", x: fx, y: hub, z: fz - 6, color: "#ff9ad5", intensity: 1600, distance: 45, "cast-shadows": "false" });
 
     // BAYOU CANNERY (north outer block)
-    building({ x: 0, z: CZ - 179, w: 56, d: 20, h: 10, ry: 0, color: "#6a4a3a", roof: "gable", roofColor: "#4a3a32", sign: "BAYOU CANNERY CO.", signColor: AMBER, side: false, maxFloors: 2 });
+    building({ x: 0, z: CZ - 179, w: 56, d: 20, h: 10, ry: 0, color: "#6a4a3a", roof: "gable", roofColor: "#4a3a32", sign: "BAYOU CANNERY CO.", signColor: AMBER, side: false, maxFloors: 2, wall: "brick" });
     for (const sx of [-18, 0, 18]) {
-      cyl({ x: sx, y: 12, z: CZ - 186, radius: 1.3, height: 24, color: "#7a3a2a" });
-      cyl({ x: sx, y: 24.2, z: CZ - 186, radius: 1.45, height: 0.5, color: "#222", collide: "false" });
+      cyl({ x: sx, y: 12, z: CZ - 186, radius: 1.3, height: 24, color: "#7a3a2a", mat: "brick" });
+      cyl({ x: sx, y: 24.2, z: CZ - 186, radius: 1.45, height: 0.5, color: "#222", collide: "false", mat: "iron" });
     }
-    box({ y: 0.7, z: CZ - 166.5, width: 30, height: 1.2, depth: 3, color: "#5a5047" });
+    box({ y: 0.7, z: CZ - 166.5, width: 30, height: 1.2, depth: 3, color: "#5a5047", mat: "concrete" });
     for (let i = 0; i < 6; i++) {
       if (MED) { natModel("med-crate", -24 + i * 9.5, 0.1, CZ - 162.5, 1.3, rand() * 30, true); if (i % 2) natModel("med-crate", -24 + i * 9.5 + 0.3, 1.5, CZ - 162.6, 1.3, rand() * 40, false); }
       else box({ x: -24 + i * 9.5, y: 0.7, z: CZ - 162.5, ry: rand() * 30, width: 1.4, height: 1.4, depth: 1.4, color: "#8a6a3a", collide: "false" });
@@ -745,22 +779,22 @@
     // GATOR JUNK (west outer block)
     const jx = -175, jz = CZ;
     for (const [x, z, w, d] of [[jx, jz - 17, 34, 0.3], [jx, jz + 17, 34, 0.3], [jx - 17, jz, 0.3, 34], [jx + 17, jz - 11, 0.3, 12], [jx + 17, jz + 11, 0.3, 12]])
-      box({ x, y: 1.3, z, width: w, height: 2.6, depth: d, color: "#6a6a64", opacity: 0.85 });
+      box({ x, y: 1.3, z, width: w, height: 2.6, depth: d, color: "#6a6a64", opacity: 0.85, mat: "chainlink" });
     for (let i = 0; i < 16; i++)
-      box({ x: jx - 13 + rand() * 24, y: 0.5 + (i % 3) * 1, z: jz - 13 + rand() * 26, ry: rand() * 90, width: 2.4, height: 1, depth: 4.2, color: CAR_COLORS[i % CAR_COLORS.length], collide: i % 3 === 0 ? "true" : "false" });
-    cyl({ x: jx - 8, y: 7, z: jz - 8, radius: 0.5, height: 14, color: "#d6a52f" });
-    box({ x: jx - 2, y: 13.8, z: jz - 8, width: 14, height: 0.6, depth: 0.6, color: "#d6a52f", collide: "false" });
+      box({ x: jx - 13 + rand() * 24, y: 0.5 + (i % 3) * 1, z: jz - 13 + rand() * 26, ry: rand() * 90, width: 2.4, height: 1, depth: 4.2, color: CAR_COLORS[i % CAR_COLORS.length], collide: i % 3 === 0 ? "true" : "false", mat: "rustcar" });
+    cyl({ x: jx - 8, y: 7, z: jz - 8, radius: 0.5, height: 14, color: "#d6a52f", mat: "crane" });
+    box({ x: jx - 2, y: 13.8, z: jz - 8, width: 14, height: 0.6, depth: 0.6, color: "#d6a52f", collide: "false", mat: "crane" });
     if (NAT) for (let i = 0; i < 6; i++) natModel("rock-" + (1 + (i % 5)), jx - 14 + rand() * 26, 0.1, jz - 14 + rand() * 28, 1.4 + rand(), rand() * 360, false);
     if (MED) { natModel("med-wagon", jx + 8, 0.1, jz + 9, 1.1, 30, true); natModel("med-wagon", jx - 4, 0.1, jz + 12, 1.1, 160, true); }
-    text("GATOR JUNK", { x: jx + 17.3, y: 3.6, z: jz, ry: 90, width: 8, height: 1.2, "font-size": 90, color: "#120d10", "font-color": AMBER, emissive: 1 });
+    text("GATOR JUNK", { x: jx + 17.3, y: 3.6, z: jz, ry: 90, width: 8, height: 1.2, "font-size": 90, color: "#120d10", "font-color": AMBER, emissive: 1, mount: "post", drop: 3.0 });
     FOOT.push({ x1: jx - 17.5, x2: jx + 17.5, z1: jz - 17.5, z2: jz + 17.5 });
 
     // KGTR SWAMP RADIO (east outer block)
     const tx = 175, tz = CZ;
-    cyl({ x: tx, y: 12, z: tz, radius: 1.2, height: 24, color: "#c94a3a" });
-    cyl({ x: tx, y: 32, z: tz, radius: 0.8, height: 16, color: "#e8e2d4" });
-    cyl({ x: tx, y: 46, z: tz, radius: 0.4, height: 12, color: "#c94a3a" });
-    sph({ x: tx, y: 52.4, z: tz, radius: 0.8, color: "#ff3b3b" });
+    cyl({ x: tx, y: 12, z: tz, radius: 1.2, height: 24, color: "#c94a3a", mat: "mast" });
+    cyl({ x: tx, y: 32, z: tz, radius: 0.8, height: 16, color: "#e8e2d4", mat: "mast" });
+    cyl({ x: tx, y: 46, z: tz, radius: 0.4, height: 12, color: "#c94a3a", mat: "mast" });
+    sph({ x: tx, y: 52.4, z: tz, radius: 0.8, color: "#ff3b3b", mat: "beacon" });
     building({ x: tx - 10, z: tz + 8, w: 12, d: 8, h: 4.5, ry: -90, color: "#3a4a5a", sign: "KGTR 97.3", signColor: "#ff6b6b", side: false });
     FOOT.push({ cx: tx, cz: tz, r: 2 });
     for (const [x, z] of [[tx + 12, tz - 12], [tx + 10, tz + 13], [tx - 6, tz - 14]]) { tree(x, z, 0.9, false); FOOT.push({ cx: x, cz: z, r: 1 }); }
@@ -781,9 +815,9 @@
   }
   const pick = arr => arr[Math.floor(rand() * arr.length)];
   const STYLE = {
-    industry: (x, z, w, d, ry) => building({ x, z, w, d, ry, h: 6 + rand() * 4, color: pick(["#6a4a3a", "#5a5047", "#7a5a3a", "#4a5a5a", "#6a3a32"]), roof: rand() < 0.6 ? "gable" : "flat", roofColor: "#4a3a32", side: false, lite: true, maxFloors: 1, sign: rand() < 0.35 ? pick(["SHRIMP CO.", "ROPE & NET", "DRY DOCK", "ICE HOUSE", "BOAT WORKS", "FISH MARKET"]) : null, signColor: pick([AMBER, NEON, "#ffd98a"]) }),
+    industry: (x, z, w, d, ry) => building({ wall: "brick", x, z, w, d, ry, h: 6 + rand() * 4, color: pick(["#6a4a3a", "#5a5047", "#7a5a3a", "#4a5a5a", "#6a3a32"]), roof: rand() < 0.6 ? "gable" : "flat", roofColor: "#4a3a32", side: false, lite: true, maxFloors: 1, sign: rand() < 0.35 ? pick(["SHRIMP CO.", "ROPE & NET", "DRY DOCK", "ICE HOUSE", "BOAT WORKS", "FISH MARKET"]) : null, signColor: pick([AMBER, NEON, "#ffd98a"]) }),
     village: (x, z, w, d, ry) => building({ x, z, w: Math.min(w, 10), d: Math.min(d, 9), ry, h: 4.2 + rand() * 1.8, color: pick(["#6f8a5a", "#8a6f5a", "#5a6f8a", "#8a5a7a", "#7a8a5a", "#5f8a8a"]), stilts: true, roof: "gable", roofColor: pick(["#5a3b2a", "#3f4a3a", "#6a2f2f"]), side: false, lite: true, maxFloors: 1 }),
-    quarter: (x, z, w, d, ry) => building({ x, z, w, d, ry, h: 7 + rand() * 3.5, color: pick(["#c9643a", "#3a8a7a", "#c9a23a", "#7a3a8a", "#3a5ac9", "#c93a6a", "#e8d9b0"]), trim: "#e8e2d4", balcony: true, side: false, lite: true, maxFloors: 3, sign: rand() < 0.5 ? pick(["JAZZ", "VOODOO", "OYSTER BAR", "PRALINES", "PO' BOYS", "HOODOO", "BEIGNETS", "CAJUN GRILL"]) : null, signColor: pick([PINK, NEON, AMBER, "#c48bff"]) }),
+    quarter: (x, z, w, d, ry) => building({ wall: "stucco", x, z, w, d, ry, h: 7 + rand() * 3.5, color: pick(["#c9643a", "#3a8a7a", "#c9a23a", "#7a3a8a", "#3a5ac9", "#c93a6a", "#e8d9b0"]), trim: "#e8e2d4", balcony: true, side: false, lite: true, maxFloors: 3, sign: rand() < 0.5 ? pick(["JAZZ", "VOODOO", "OYSTER BAR", "PRALINES", "PO' BOYS", "HOODOO", "BEIGNETS", "CAJUN GRILL"]) : null, signColor: pick([PINK, NEON, AMBER, "#c48bff"]) }),
     flats: (x, z, w, d, ry) => rand() < 0.5
       ? building({ x, z, w: w + 2, d: Math.min(d, 6), ry, h: 3.2, color: pick(["#e8e2d4", "#9fd8e6", "#d9c58a", "#c9d9c0"]), trim: "#888", side: false, lite: true, maxFloors: 1 })
       : building({ x, z, w: Math.min(w, 10), d: Math.min(d, 8), ry, h: 4.5, color: pick(["#7a6a4a", "#5a4a3a", "#6a7a5a"]), roof: "gable", roofColor: "#4a3a2a", side: false, lite: true, maxFloors: 1 })
@@ -803,13 +837,13 @@
       const g = grp({ x, z, ry });
       const words = style === "industry" ? ["BOAT WORKS", "ICE HOUSE", "DRY DOCK", "SHRIMP CO."] : ["JAZZ", "VOODOO", "OYSTER BAR", "PRALINES", "PO' BOYS", "HOODOO", "BEIGNETS", "CAJUN GRILL", "ZYDECO"];
       const word = pick(words);
-      text(word, { y: r2(top + 0.9), z: r2(s * 0.3), width: Math.min(s * 0.9, word.length * 0.62 + 1.2), height: 1.2, "font-size": 80, color: "#120d10", "font-color": pick([PINK, NEON, AMBER, "#c48bff"]), emissive: 0.9 }, g);
+      text(word, { y: r2(top + 0.9), z: r2(s * 0.3), width: Math.min(s * 0.9, word.length * 0.62 + 1.2), height: 1.2, "font-size": 80, color: "#120d10", "font-color": pick([PINK, NEON, AMBER, "#c48bff"]), emissive: 0.9, mount: "roof", drop: 0.3 }, g);
     }
     footBox(x, z, s, s, ry);
   }
   function park(cx, cz, w, d) {
-    box({ x: cx, y: 0.15, z: cz, width: w * 0.55, height: 0.04, depth: d * 0.45, color: "#2f4f3c", opacity: 0.9, collide: "false" });
-    box({ x: cx, y: 0.32, z: cz, width: 3, height: 0.2, depth: d * 0.6, color: WOOD });
+    box({ x: cx, y: 0.15, z: cz, width: w * 0.55, height: 0.04, depth: d * 0.45, color: "#2f4f3c", opacity: 0.9, collide: "false", mat: "water" });
+    box({ x: cx, y: 0.32, z: cz, width: 3, height: 0.2, depth: d * 0.6, color: WOOD, mat: "boardwalk" });
     for (let i = 0; i < 5; i++) {
       const x = cx + (rand() - 0.5) * w * 0.8, z = cz + (rand() - 0.5) * d * 0.8;
       if (Math.abs(x - cx) < 3) continue;
@@ -867,7 +901,7 @@
       natModel(rand() < 0.8 ? "grass-large" : "plant-flowers", x, 0.1, CZ + rz, 1.4 + rand() * 1.1, rand() * 360, false);
     }
     // district signs at the middle ring road
-    const dsign = (s, x, z, ry, c) => text(s, { x, y: 4.2, z, ry, width: 12, height: 1.1, "font-size": 80, color: "#120d10", "font-color": c, emissive: 1 });
+    const dsign = (s, x, z, ry, c) => text(s, { x, y: 4.2, z, ry, width: 12, height: 1.1, "font-size": 80, color: "#120d10", "font-color": c, emissive: 1, mount: "post", drop: 3.55 });
     dsign(DT ? "UPTOWN" : "CANNERY ROW", 0, CZ - 145.5, 180, AMBER);
     dsign("BAYOU VILLAGE", 0, CZ + 145.5, 0, "#7dff8a");
     dsign("VOODOO QUARTER", 145.5, CZ - 60, 90, "#c48bff");
@@ -1418,22 +1452,23 @@
   /* =========================================================================
      BUILD + START
      ========================================================================= */
-  buildGround();
-  buildRoads();
-  buildPlaza();
-  buildCasino();
-  buildArena();
-  buildDowntown();
-  buildNeonRow();
-  buildHideouts();
-  buildLandmarks();
-  buildNature();
-  buildAirboats();
+  if (BAKED) for (const n of BAKE_NAMES) natModel(n, 0, 0, 0, 1, 0, true); // the detailed textured city
+  stat(buildGround);
+  stat(buildRoads);
+  stat(buildPlaza);
+  stat(buildCasino);
+  stat(buildArena);
+  stat(buildDowntown);
+  stat(buildNeonRow);
+  stat(buildHideouts);
+  stat(buildLandmarks);
+  stat(buildNature);
+  stat(buildAirboats);
   buildClouds();
   buildCheckpoints();
   buildTags();
   buildCars();
-  buildOuter();
+  stat(buildOuter);
   buildOptional();
   hookPrompts();
   hookArena();

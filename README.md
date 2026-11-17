@@ -162,6 +162,34 @@ I removed the kit's built-in "wear mask" colors, because MML viewers showed them
 - **Fixed:** the medieval houses' side and back walls now face outward. Before, they were turned sideways or inward.
 - **Fixed:** every model now uses standard JPEG/PNG textures and no compression extensions, so it loads in Otherside and other MML viewers. The earlier WebP version showed up white there.
 
+## Detailed textures and real signs (update)
+
+Every static building block in the city is now **baked into five textured models** (`city-a` to `city-e`), so the blocky flat-colored boxes are gone:
+
+- **Buildings:** plaster, clapboard siding, red brick, stucco and concrete skins, with corner pilasters, stone plinths, floor bands and cornices. Windows have frames, mullions, sills, curtains and a warm lit interior. Shacks get wooden shake roofs; other houses get clay tile roofs. Doors are paneled wood; towers have glass curtain walls and glass entry doors.
+- **The bank:** cut limestone walls, fluted columns, a marble entry step, a carved stone cornice, an aged copper dome and gold vault doors.
+- **Casino:** patterned red carpet, art-deco wall panels, gold columns, felt card tables, polished wood, slot machine screens and a lit bulb border.
+- **Gator Pit:** a log palisade, wooden bleachers, sand floor and steel floodlight poles.
+- **Hideouts:** corrugated metal with ribbed roll-up shutters in the team color.
+- **Swamp:** muddy banks, stone embankments, rippled water, lily pads, plank boardwalks and bark-textured pilings.
+
+**Signs now belong to the world instead of floating:**
+
+| Sign | Looks like |
+|---|---|
+| Rooftop signs | Neon letter boards on steel legs with braces and three gooseneck lamps |
+| Bait shop, gumbo hut, pawn shop, farm, junk yard, cannery | Hand-painted wooden boards |
+| Tower and hideout signs | Framed boards bolted to the wall |
+| Casino and big-screen header | Marquee boxes ringed with lit bulbs |
+| Bank | Gold letters carved into a limestone panel with gold trim |
+| Gator Pit, district and airboat signs | Boards on two iron posts |
+| Swamp Fair | An entrance arch with striped pillars and gold balls |
+| Check-in sign | A wooden board hanging from chains |
+
+**Lighter for big groups:** the world now sends about half as many elements when players join (about 1,560 instead of 3,120).
+
+**When it turns on:** with `BAKED: true` and the asset pack hosted, *and* all the other add-ons on (`KENNEY`, `NATURE`, `MEDIEVAL`, `DOWNTOWN`, `STREETS`) at normal detail. In any other setup the world falls back to the primitive version, so it always works. Moving and clickable pieces (vehicles, airboats, the Ferris wheel, the vault, check-in stands, bet boards and turf walls) are still live MML elements, because they have to move or respond to clicks.
+
 ## Optional add-ons (top of the world file)
 
 - `CASTLE_BASE`: the folder URL holding your princess castle GLBs. The castle then appears on Queen's Isle, out in the swamp north of the city.
@@ -174,4 +202,4 @@ I removed the kit's built-in "wear mask" colors, because MML viewers showed them
 - **Riding vehicles:** whether players get carried on a moving buggy or airboat depends on the client. Test this in your viewer; if riders slide off, players can still drive the buggy while running beside it.
 - **Driving through checkpoints:** in Bayou Run, a driver gets credit for a checkpoint by driving through it, but passengers do not.
 - **Steering:** buggies turn in 22.5° steps, because MML has no held-key controls.
-- **Size:** the world has about 3,100 elements and a 650 KB snapshot on join, plus about 1.1 MB of models. Desktop is fine; on phones, try `DETAIL: "low"` first.
+- **Size:** with the baked city, the world has about 1,560 elements on join, plus about 8 MB of baked models (cached after the first load). Desktop is fine; on phones, try `DETAIL: "low"` first.
