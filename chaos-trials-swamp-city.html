@@ -141,7 +141,8 @@
   const ST_NAMES = ["road-seg-34", "road-seg-84", "road-seg-4", "road-cross", "ground-grass", "plaza-pavers"];
   const ST = !!CONFIG.STREETS && (!!CONFIG.ASSET_HOST || ST_NAMES.every(n => CONFIG.ASSET_URLS[n]));
   const BOAT_NAMES = ["yacht-1", "yacht-2", "sailboat", "airboat-1", "airboat-2", "airboat-3", "airboat-4", "airboat-prop",
-    "shrimpboat-1", "shrimpboat-2", "skiff-1", "skiff-2", "cloud-1", "cloud-2", "cloud-3", "gator", "gator-bronze"];
+    "shrimpboat-1", "shrimpboat-2", "skiff-1", "skiff-2", "cloud-1", "cloud-2", "cloud-3", "gator", "gator-bronze",
+    "pickup-red", "pickup-blue", "pickup-gold", "pickup-green"];
   const BOATS = !!CONFIG.BOATS && (!!CONFIG.ASSET_HOST || BOAT_NAMES.every(n => CONFIG.ASSET_URLS[n]));
   // separate random stream for boats and extra clouds, so the baked city layout never shifts
   let seed2 = 9871;
@@ -1370,12 +1371,12 @@
   // low invisible rails, boarding steps, and a big control panel that floats in front of the riders (driver only).
   //   floor: [top y, centre z, width, depth]   rails: side x, front z, back z (null = open back)   dash: panel y, z, width
   const VSPEC = {
-    truck:    { floor: [1.45, -1.8, 2.5, 1.95], rails: { x: 1.3, zf: -0.82, zb: null }, steps: "rear", dash: { y: 3.3, z: -0.62, w: 2.6 }, tag: 4.1, speed: 13, rev: -4, acc: 2.2, brake: 4, drag: 0.6, rate: 40, turn: 22.5, rad: 2.4, land: true },
-    airboat:  { floor: [0.62, 0.75, 2.2, 3.9], rails: { x: 1.15, zf: 2.75, zb: -1.25 }, dash: { y: 2.3, z: 1.95, w: 2.0 }, tag: 4.5, speed: 14, rev: -3, acc: 2.0, brake: 2.5, drag: 0.5, rate: 38, turn: 22.5, rad: 3 },
-    skiff:    { floor: [0.47, -0.1, 1.6, 4.4], rails: { x: 0.85, zf: 2.25, zb: -2.45 }, dash: { y: 2.1, z: 1.7, w: 1.7 }, tag: 3.2, speed: 9, rev: -3, acc: 1.6, brake: 2.2, drag: 0.5, rate: 38, turn: 22.5, rad: 2.4 },
-    yacht:    { floor: [1.6, -7.05, 4.2, 3.9], rails: { x: 2.15, zf: -5.0, zb: -9.05 }, steps: "sides", dash: { y: 3.35, z: -5.45, w: 2.6 }, tag: 9.2, speed: 9, rev: -2.5, acc: 0.9, brake: 1.2, drag: 0.25, rate: 16, turn: 15, rad: 8 },
-    sailboat: { floor: [1.15, -4.95, 3.2, 4.1], rails: { x: 1.75, zf: -2.85, zb: -7.0 }, steps: "sides", dash: { y: 2.9, z: -3.15, w: 2.4 }, tag: 4.4, speed: 6.5, rev: -2, acc: 0.8, brake: 1.0, drag: 0.25, rate: 16, turn: 15, rad: 6.5 },
-    shrimp:   { floor: [1.35, -3.6, 4.0, 6.6], rails: { x: 2.15, zf: -0.25, zb: -6.95 }, steps: "sides", dash: { y: 3.1, z: -1.05, w: 2.6 }, tag: 10.2, speed: 7.5, rev: -2.5, acc: 0.9, brake: 1.2, drag: 0.25, rate: 16, turn: 15, rad: 6.5 }
+    truck:    { floor: [1.0, -1.74, 1.7, 2.22], rails: { x: 0.9, zf: -0.68, zb: null }, steps: "rear", tag: 3.1, speed: 6, rev: -2.5, acc: 1.0, brake: 2.5, drag: 0.5, rate: 30, turn: 22.5, rad: 2.4, land: true },
+    airboat:  { floor: [0.62, 0.75, 2.2, 3.9], rails: { x: 1.15, zf: 2.75, zb: -1.25 }, tag: 4.5, speed: 7, rev: -2.5, acc: 1.0, brake: 1.8, drag: 0.4, rate: 30, turn: 22.5, rad: 3 },
+    skiff:    { floor: [0.47, -0.1, 1.6, 4.4], rails: { x: 0.85, zf: 2.25, zb: -2.45 }, tag: 3.2, speed: 5, rev: -2, acc: 0.8, brake: 1.6, drag: 0.4, rate: 30, turn: 22.5, rad: 2.4 },
+    yacht:    { floor: [1.6, -7.05, 4.2, 3.9], rails: { x: 2.15, zf: -5.0, zb: -9.05 }, steps: "sides", tag: 9.2, speed: 4.5, rev: -1.8, acc: 0.5, brake: 0.9, drag: 0.2, rate: 14, turn: 15, rad: 8 },
+    sailboat: { floor: [1.15, -4.95, 3.2, 4.1], rails: { x: 1.75, zf: -2.85, zb: -7.0 }, steps: "sides", tag: 4.4, speed: 3.5, rev: -1.5, acc: 0.45, brake: 0.8, drag: 0.2, rate: 14, turn: 15, rad: 6.5 },
+    shrimp:   { floor: [1.35, -3.6, 4.0, 6.6], rails: { x: 2.15, zf: -0.25, zb: -6.95 }, steps: "sides", dashZ: -0.95, tag: 10.2, speed: 4, rev: -1.8, acc: 0.5, brake: 0.9, drag: 0.2, rate: 14, turn: 15, rad: 6.5 }
   };
   const LABELS = { truck: "TRUCK", airboat: "AIRBOAT", skiff: "SKIFF", yacht: "YACHT", sailboat: "SAILBOAT", shrimp: "SHRIMP BOAT" };
   const ghost = (attrs, parent) => box(Object.assign({ color: "#ffffff", opacity: 0, "cast-shadows": "false" }, attrs), parent);   // invisible collider
@@ -1387,8 +1388,8 @@
     ghost({ y: r2(fy + rh / 2), z: r.zf, width: r2(r.x * 2), height: rh, depth: 0.12 }, g);
     if (r.zb != null) ghost({ y: r2(fy + rh / 2), z: r.zb, width: r2(r.x * 2), height: rh, depth: 0.12 }, g);
     if (s.steps === "rear") {   // two metal steps behind the tailgate to climb into the bed
-      box({ y: 0.5, z: r2(zb - 0.45), width: 1.4, height: 0.12, depth: 0.5, color: "#3a3d42", "cast-shadows": "false" }, g);
-      box({ y: 0.98, z: r2(zb - 0.12), width: 1.4, height: 0.12, depth: 0.3, color: "#3a3d42", "cast-shadows": "false" }, g);
+      box({ y: r2(fy * 0.34), z: r2(zb - 0.6), width: 1.3, height: 0.1, depth: 0.45, color: "#3a3d42", "cast-shadows": "false" }, g);
+      box({ y: r2(fy * 0.66), z: r2(zb - 0.3), width: 1.3, height: 0.1, depth: 0.3, color: "#3a3d42", "cast-shadows": "false" }, g);
     } else if (s.steps === "sides") {   // boarding steps on both sides, between pier height and the deck
       for (const sx of [-1, 1]) {
         box({ x: sx * r2(r.x + 0.55), y: r2(fy - 0.55), z: mid, width: 0.9, height: 0.12, depth: 1.6, color: "#6b4a2b", "cast-shadows": "false" }, g);
@@ -1406,35 +1407,45 @@
     const free = "CLICK TO DRIVE THE " + LABELS[kind];
     const tagAt = { y: s.tag, z: r2(s.floor[1]), width: 4.6, height: 0.46, "font-size": 24, color: "#120d10", "font-color": AMBER, emissive: 0.4 };
     const tagF = text(free, tagAt, g), tagB = text(free, Object.assign({}, tagAt, { ry: 180 }), g);
-    ANCHORS[id] = { parent: g, x: 0, y: r2(s.dash.y + 1.0), z: s.dash.z, ry: 180, w: 3.2 };
+    ANCHORS[id] = { parent: g, x: 0, y: r2(s.floor[0] + 2.3), z: r2(s.rails.zf - 0.4), ry: 180, w: 3.2 };
     const car = { id, kind, i: CARS.length, g, dash: null, tagF, tagB, free, x, z, y: baseY, ry, tRy: ry, tY: baseY, v: 0, throttle: 0, driver: null, last: 0, shown: "", home: { x, z, ry } };
     onClick(parts.concat([tagF, tagB]), cid => claim(car, cid));
     CARS.push(car);
     return car;
   }
   // the control panel is built only while someone is driving, and only that driver can see it
+  // Control console: waist-high at the front of the riding area, tilted up toward the driver like a dashboard,
+  // so it never blocks the view ahead. Big buttons; GO and STOP light up to show what the vehicle is doing.
   function makeDash(car, cid) {
-    const d = VSPEC[car.kind].dash, w = d.w, bw = r2((w - 0.3) / 3), bh = 0.44;
-    const dash = grp({ y: d.y, z: d.z, ry: 180, rx: -12, "visible-to": String(cid) }, car.g);
-    box({ y: 0.02, z: -0.06, width: r2(w + 0.16), height: 1.36, depth: 0.08, color: "#0b1a24", collide: "false" }, dash);
-    const head = text(LABELS[car.kind] + "  |  STOPPED", { y: 0.52, z: 0.0, width: w, height: 0.26, "font-size": 20, color: "#0b1a24", "font-color": "#9fd8e6" }, dash);
+    const s = VSPEC[car.kind], fy = s.floor[0], w = r2(Math.min(2.0, s.rails.x * 2 - 0.2));
+    const bw = r2((w - 0.16) / 3), bh = 0.34;
+    const dash = grp({ y: r2(fy + 0.92), z: r2(s.dashZ != null ? s.dashZ : s.rails.zf - 0.32), ry: 180, rx: 55, "visible-to": String(cid) }, car.g);
+    box({ y: 0.02, z: -0.05, width: r2(w + 0.12), height: 0.98, depth: 0.06, color: "#0b1a24", collide: "false" }, dash);
+    const head = text(LABELS[car.kind] + "  |  STOPPED", { y: 0.38, z: 0.0, width: w, height: 0.18, "font-size": 16, color: "#0b1a24", "font-color": "#9fd8e6" }, dash);
+    const btn = {};
     const ctl = (lbl, cx, cy, colr, act) => {
-      const b = box({ x: cx, y: cy, width: bw, height: bh, depth: 0.1, color: colr, collide: "false" }, dash);
-      const tl = text(lbl, { x: cx, y: cy, z: 0.06, width: r2(bw - 0.04), height: r2(bh - 0.08), "font-size": 22, color: colr, "font-color": INK }, dash);
+      const b = box({ x: cx, y: cy, width: bw, height: bh, depth: 0.08, color: colr, collide: "false" }, dash);
+      const tl = text(lbl, { x: cx, y: cy, z: 0.05, width: r2(bw - 0.03), height: r2(bh - 0.05), "font-size": 30, color: colr, "font-color": INK }, dash);
       onClick([b, tl], c => control(car, c, act));
+      btn[act] = { b, tl, colr };
     };
-    const cx = r2(bw + 0.1);
-    ctl("LEFT", -cx, 0.12, "#9fd8e6", "left"); ctl("GAS", 0, 0.12, "#4fe08f", "gas"); ctl("RIGHT", cx, 0.12, "#9fd8e6", "right");
-    ctl("REVERSE", -cx, -0.4, "#ffc857", "rev"); ctl("BRAKE", 0, -0.4, "#ff4d6a", "brake"); ctl("EXIT", cx, -0.4, "#f4ead8", "exit");
-    car.dash = dash; car.dashHead = head;
+    const cx = r2(bw + 0.04);
+    ctl("< LEFT", -cx, 0.08, "#9fd8e6", "left"); ctl("GO", 0, 0.08, "#4fe08f", "gas"); ctl("RIGHT >", cx, 0.08, "#9fd8e6", "right");
+    ctl("BACK", -cx, -0.3, "#ffc857", "rev"); ctl("STOP", 0, -0.3, "#ff4d6a", "brake"); ctl("EXIT", cx, -0.3, "#f4ead8", "exit");
+    car.dash = dash; car.dashHead = head; car.btn = btn; car.lit = null;
   }
-  function dropDash(car) { if (car.dash) { car.dash.remove(); car.dash = null; car.dashHead = null; } }
+  function dropDash(car) { if (car.dash) { car.dash.remove(); car.dash = null; car.dashHead = null; car.btn = null; car.lit = null; } }
   function dashStatus(car) {
     if (!car.dashHead) return;
     const sp = Math.round(Math.abs(car.v) * 3.6);
     const st = car.throttle > 0 ? "FORWARD" : car.throttle < 0 ? "REVERSE" : sp > 0 ? "SLOWING" : "STOPPED";
     const s = LABELS[car.kind] + "  |  " + st + (sp > 0 ? "  " + sp + " KM/H" : "");
     if (s !== car.shown) { car.shown = s; setT(car.dashHead, s); }
+    const on = car.throttle > 0 ? "gas" : car.throttle < 0 ? "rev" : "brake";
+    if (car.btn && car.lit !== on) {
+      for (const k of ["gas", "rev", "brake"]) { const b = car.btn[k]; b.b.setAttribute("color", k === on ? "#ffffff" : b.colr); b.b.setAttribute("emissive", k === on ? "0.8" : "0"); }
+      car.lit = on;
+    }
   }
   // swamp buggy / truck (kept as car-0 .. car-11 for the controller and tests)
   function buggy(i, x, z, ry) {
@@ -1443,7 +1454,8 @@
     vehicle("car-" + i, "truck", x, z, ry, g => {
       const parts = [];
       if (CONFIG.MODELS.buggy) parts.push(el("m-model", { src: CONFIG.MODELS.buggy, collide: "false" }, g));
-      else if (truck) parts.push(el("m-model", { src: asset(TRUCKS[i % TRUCKS.length]), sx: 2, sy: 2, sz: 2, collide: "false" }, g));   // wheels on the road
+      else if (BOATS) parts.push(el("m-model", { src: natURL(PICKUPS[i % PICKUPS.length]), collide: "false" }, g));   // modeled pickup, wheels on the road
+      else if (truck) parts.push(el("m-model", { src: asset(TRUCKS[i % TRUCKS.length]), sx: 2, sy: 2, sz: 2, collide: "false" }, g));
       else {
         parts.push(box({ y: 1.1, width: 2.8, height: 0.3, depth: 4.6, color, collide: "false" }, g));
         parts.push(box({ y: 1.5, z: 1.75, width: 2.6, height: 0.5, depth: 1.1, color, collide: "false" }, g));
@@ -1454,8 +1466,9 @@
     });
   }
   function setCarTag(car) {
-    const s = car.driver == null ? car.free : nameOf(car.driver).toUpperCase() + " IS DRIVING";
-    setT(car.tagF, s); setT(car.tagB, s);
+    const vis = car.driver == null ? "true" : "false";
+    setT(car.tagF, car.free); setT(car.tagB, car.free);
+    car.tagF.setAttribute("visible", vis); car.tagB.setAttribute("visible", vis);
   }
   function release(car) {
     car.driver = null; car.throttle = 0;   // it coasts to a stop
@@ -1556,6 +1569,7 @@
   }
   function resetCars() { for (const car of CARS) { release(car); car.x = car.home.x; car.z = car.home.z; car.ry = car.tRy = car.home.ry; car.v = 0; car.y = car.tY = VSPEC[car.kind].land ? GROUND : WATERLINE; setCar(car); } }
   // plaza and ring-road trucks cycle colours; hideout trucks match their team where Kenney has the colour
+  const PICKUPS = ["pickup-red", "pickup-blue", "pickup-gold", "pickup-green"];
   const TRUCKS = ["truck-red", "truck-yellow", "truck-green", "truck-purple", "truck-green", "truck-red", "truck-yellow", "truck-purple", "truck-red", "truck-yellow", "truck-green", "truck-purple"];
   function buildCars() {
     [-15, -5, 5, 15].forEach((x, k) => buggy(k, x, CZ + 38, 0)); // plaza, nose toward the south road
