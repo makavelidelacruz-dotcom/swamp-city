@@ -131,7 +131,9 @@
   const NAT = !!CONFIG.NATURE && (!!CONFIG.ASSET_HOST || NATURE_NAMES.every(n => CONFIG.ASSET_URLS[n]));
   function natURL(name) { return CONFIG.ASSET_URLS[name] || CONFIG.ASSET_HOST.replace(/\/?$/, "/") + name + ".glb"; }
   const MED_DIM = { "med-house": [8.4, 10], "med-townhouse": [5.8, 7.8], "med-hall": [10, 12.6], "med-cottage": [5.8, 5.8] }; // footprints incl. roof overhang
-  const MED_NAMES = Object.keys(MED_DIM).concat(["med-wagon", "med-crate", "med-fence", "med-ironfence"]);
+  // enterable versions (open doorway, wooden floor, ceiling): [door x, depth] in model space
+  const MED_DOOR = { "med-house": [0, 8], "med-townhouse": [1, 6], "med-hall": [1, 10], "med-cottage": [1, 4] };
+  const MED_NAMES = Object.keys(MED_DIM).map(n => n + "-v3").concat(["med-wagon", "med-crate", "med-fence", "med-ironfence"]);
   const MED = !!CONFIG.MEDIEVAL && (!!CONFIG.ASSET_HOST || MED_NAMES.every(n => CONFIG.ASSET_URLS[n]));
   const DT_DIM = { "dt-large": [20.6, 16.6], "dt-medium": [15.1, 13.1], "dt-small": [12.5, 14.5] };
   const DT_NAMES = Object.keys(DT_DIM).concat(["dt-acunit", "dt-bollard", "dt-planter", "dt-manhole"]);
@@ -204,16 +206,23 @@
      BUILDINGS
      ========================================================================= */
   const WINDOWS = ["#ffd98a", "#ffe9b8", "#8fd3ff", "#ffb36b", "#1d2a33"];
+  // Every block-built house sits on the ground and is hollow: walls with a doorway, a wooden floor, a ceiling and a lamp.
+  // The working door and the CLAIM button are added later (buildHouses) because they change during play.
+  const HOUSES = [];
   function building(o) {
     const g = grp({ x: o.x, y: 0, z: o.z, ry: o.ry || 0 });
-    const w = o.w, d = o.d, h = o.h, base = o.stilts ? 1.8 : 0.1;
-    if (o.stilts) {
-      for (const sx of [-1, 1]) for (const sz of [-1, 1])
-        cyl({ x: sx * (w / 2 - 0.5), y: (base - 1.1) / 2, z: sz * (d / 2 - 0.5), radius: 0.28, height: base + 1.1, color: WOOD_D, mat: "log" }, g);
-      box({ y: base - 0.1, z: d / 2 + 1.2, width: w * 0.7, height: 0.2, depth: 2.4, color: WOOD, mat: "planks" }, g); // porch
-      if (!o.lite) for (let s = 0; s < 3; s++) box({ y: 0.3 + s * 0.5, z: d / 2 + 2.9 + (2 - s) * 0.5, width: 2, height: 0.5, depth: 0.5, color: WOOD, mat: "planks" }, g); // steps
-    }
-    box({ y: base + h / 2, width: w, height: h, depth: d, color: o.color, mat: o.wall || (o.stilts ? "siding" : "plaster") }, g);
+    const w = o.w, d = o.d, h = o.h, base = 0.1, T = 0.3, DW = 1.6, DH = 2.6;
+    const mat = o.wall || (o.stilts ? "siding" : "plaster"), yc = base + h / 2, side = (w - DW) / 2;
+    box({ y: yc, z: -d / 2 + T / 2, width: w, height: h, depth: T, color: o.color, mat }, g);                                   // back wall
+    for (const s of [-1, 1]) box({ x: s * (w / 2 - T / 2), y: yc, width: T, height: h, depth: r2(d - 2 * T), color: o.color, mat }, g);   // side walls
+    for (const s of [-1, 1]) box({ x: r2(s * (DW / 2 + side / 2)), y: yc, z: d / 2 - T / 2, width: r2(side), height: h, depth: T, color: o.color, mat }, g); // front, beside the door
+    box({ y: r2(base + DH + (h - DH) / 2), z: d / 2 - T / 2, width: DW, height: r2(h - DH), depth: T, color: o.color, mat }, g);       // over the door
+    const ceil = r2(base + Math.min(h - 0.15, 3.5));
+    box({ y: base + 0.06, width: r2(w - 2 * T), height: 0.12, depth: r2(d - 2 * T), color: "#8a6a4a", mat: "planks" }, g);              // floor
+    box({ y: ceil, width: r2(w - 2 * T), height: 0.16, depth: r2(d - 2 * T), color: "#e8e2d4", mat: "plaster" }, g);                    // ceiling
+    glow({ y: r2(ceil - 0.09), rx: 90, width: 0.7, height: 0.7, color: "#fff2c8", emissive: 1, mat: "globe" }, g);                       // ceiling lamp
+    for (const s of [-1, 1]) box({ x: s * (DW / 2 + 0.06), y: base + DH / 2, z: d / 2 + 0.02, width: 0.12, height: DH, depth: 0.42, color: "#3a2a1c", collide: "false", mat: "planks" }, g);
+    box({ y: base + DH + 0.06, z: d / 2 + 0.02, width: DW + 0.24, height: 0.12, depth: 0.42, color: "#3a2a1c", collide: "false", mat: "planks" }, g);     // door frame
     box({ y: base + h + 0.15, width: w + 0.5, height: 0.3, depth: d + 0.5, color: o.trim || "#2b2b2b", collide: "false", mat: "cornice" }, g);
     if (o.roof === "gable") {
       const a = 24, half = w / 2 + 0.4, len = half / Math.cos(a * Math.PI / 180);
@@ -222,11 +231,13 @@
     }
     const floors = Math.min(o.maxFloors || 99, Math.max(1, Math.floor((h - 0.6) / 3.2)));
     for (let f = 0; f < floors; f++) {
-      const wc = WINDOWS[Math.floor(rand() * WINDOWS.length)];
-      glow({ y: base + 1.9 + f * 3.2, z: d / 2 + 0.03, width: w * 0.74, height: 1.1, color: wc, emissive: 0.55, mat: "window" }, g);
-      if (o.side !== false) glow({ x: w / 2 + 0.03, y: base + 1.9 + f * 3.2, ry: 90, width: d * 0.7, height: 1.1, color: wc, emissive: 0.55, mat: "window" }, g);
+      const wc = WINDOWS[Math.floor(rand() * WINDOWS.length)], wy = base + 1.9 + f * 3.2;
+      if (f === 0) {   // ground floor: a window on each side of the door
+        const sw = w * 0.37 - 1.25;
+        if (sw > 0.8) for (const s of [-1, 1]) glow({ x: r2(s * (1.25 + sw / 2)), y: wy, z: d / 2 + 0.03, width: r2(sw), height: 1.1, color: wc, emissive: 0.55, mat: "window" }, g);
+      } else glow({ y: wy, z: d / 2 + 0.03, width: w * 0.74, height: 1.1, color: wc, emissive: 0.55, mat: "window" }, g);
+      if (o.side !== false) glow({ x: w / 2 + 0.03, y: wy, ry: 90, width: d * 0.7, height: 1.1, color: wc, emissive: 0.55, mat: "window" }, g);
     }
-    box({ y: base + 1.35, z: d / 2 + 0.06, width: 1.8, height: 2.7, depth: 0.12, color: "#1c1410", collide: "false", mat: "door" }, g);
     if (o.balcony && floors >= 2) {
       box({ y: base + 3.25, z: d / 2 + 0.7, width: w * 0.8, height: 0.18, depth: 1.4, color: "#2b2b2b", mat: "iron" }, g);
       box({ y: base + 3.8, z: d / 2 + 1.38, width: w * 0.8, height: 0.9, depth: 0.06, color: "#151515", collide: "false", mat: "railing" }, g);
@@ -234,6 +245,7 @@
     if (o.sign) {
       text(o.sign, { y: base + h + 1.1, z: d / 2 - 0.2, width: Math.min(w * 0.95, o.sign.length * 0.62 + 1.2), height: 1.3, "font-size": 85, color: "#120d10", "font-color": o.signColor || PINK, emissive: 0.9, mount: "roof", drop: r2(1.1 - 0.65 - 0.3) }, g);
     }
+    HOUSES.push({ g, doorX: 0, doorZ: r2(d / 2 - T / 2), frontZ: r2(d / 2 + 0.05), backZ: r2(-d / 2 + T), base, dw: DW, dh: DH, signY: r2(base + DH + 0.42) });
     footBox(o.x, o.z, w, d, o.ry);
     return g;
   }
@@ -964,7 +976,11 @@
           if (rand() < (LOW ? 0.5 : 0.2)) { x += w + 3; continue; }
           const bx = x + w / 2, bz = side < 0 ? z1 + 3 + d / 2 : z2 - 3 - d / 2;
           if (!overlaps(bx, bz, w + 4, d + 4)) {
-            if (med) { natModel(med, bx, 0.1, bz, 1, side < 0 ? 180 : 0, true); footBox(bx, bz, w, d, 0); }
+            if (med) {
+              const mry = side < 0 ? 180 : 0, [dx, dd] = MED_DOOR[med];
+              natModel(med + "-v3", bx, 0.1, bz, 1, mry, true); footBox(bx, bz, w, d, 0);
+              HOUSES.push({ g: grp({ x: r2(bx), y: 0.1, z: r2(bz), ry: mry }), doorX: dx, doorZ: r2(dd / 2 - 0.1), frontZ: r2(dd / 2 + 0.12), backZ: r2(-dd / 2 + 0.31), base: 0.03, dw: 1.24, dh: 2.2, signY: 2.62 });
+            }
             else if (dt) {
               natModel(dt, bx, 0.1, bz, 1, side < 0 ? 180 : 0, true); footBox(bx, bz, w, d, 0);
               if (rand() < 0.4) natModel("dt-planter", bx + (rand() < 0.5 ? -1 : 1) * (w / 2 - 1.5), 0.1, side < 0 ? bz - d / 2 - 1.4 : bz + d / 2 + 1.4, 1, 0, false);
@@ -1095,7 +1111,7 @@
     race: { title: "BAYOU RUN", kind: "SOLO FOR YOUR CREW  |  5 MINUTES", what: "Hit all 15 checkpoints in order - run or drive. Top 3 score 10 / 8 / 6, finishers 3.", where: "Start: the road just south of the plaza. Your next gate glows for you." },
     arena: { title: "GATOR PIT", kind: "CREWS  |  3 MINUTES", what: "Stand on the gold throne. The crew with the most bodies on it scores every second.", where: "Gator Pit arena, west side of the city. Last 30 seconds score double." },
     casino: { title: "LUCKY WHEEL", kind: "CREWS  |  6 SPINS", what: "Click a bet board before each spin. GATOR, FROG or SKULL pay +2. CROWN pays +6.", where: "Lucky Gator Casino, east side of the city" },
-    turf: { title: "TURF WAR", kind: "CREWS  |  4 MINUTES", what: "Click turf walls to spray your crew's color. Every 5 seconds each wall you own scores 1.", where: "20 numbered walls all over the city - grab a buggy" }
+    turf: { title: "TURF WAR", kind: "CREWS  |  4 MINUTES", what: "Open any house door, go inside and click CLAIM THIS HOUSE. Every 10 seconds each house you own scores 1.", where: "Every house in the city - shacks, shops, bars and the Old Town houses. Grab a truck!" }
   };
   const BETS = { boards: [] };
   const show = (id, on) => document.querySelectorAll('[data-game="' + id + '"]').forEach(n => n.setAttribute("visible", on ? "true" : "false"));
@@ -1281,60 +1297,65 @@
     status(t) { return ACTIVE === "casino" ? "LUCKY WHEEL  |  SPIN " + Math.min(6, this.spins + (this.phase === "bet" ? 1 : 0)) + "/6  |  " + (this.phase === "bet" ? "BETS OPEN " + mmss(this.phaseEnd - t) + "  |  " + this.bets.size + " BETS" : this.phase === "spin" ? "SPINNING" : "LANDED ON " + this.last) : "Idle"; }
   };
 
-  // ---- TURF WAR ----------------------------------------------------------------------
-  const TAG_SPOTS = [
-    [-30, CZ - 36, 0], [30, CZ - 36, 0], [-38, CZ + 38, 90], [38, CZ + 38, -90], [-57, CZ + 28, 90], [57, CZ + 28, -90],
-    [0, CZ - 64, 0], [-62, CZ - 62, 0], [62, CZ - 62, 0], [-62, CZ + 60, 180], [62, CZ + 60, 180], [0, CZ + 72, 0],
-    // outer districts
-    [-30, CZ - 142, 180], [30, CZ + 142, 0], [-142, CZ - 30, -90], [142, CZ + 30, 90],
-    [-125, CZ - 192, 180], [125, CZ + 192, 0], [-192, CZ + 125, -90], [192, CZ - 125, 90]
-  ];
-  const TAGS = [];
+  // ---- TURF WAR: claim houses -------------------------------------------------------------
+  // Walk up to any house, open the door, go inside and click CLAIM THIS HOUSE. Every 10 s each house you own scores 1.
+  const TURF = [];
+  const DOOR_WOOD = "#5a3a22";
   const turf = {
     endAt: 0, cd: new Map(), sec: 0,
-    start() { this.endAt = now() + 240000; this.cd.clear(); this.sec = 0; TAGS.forEach(paintTag.bind(null, -1)); },
-    stop() { TAGS.forEach(paintTag.bind(null, -1)); },
+    start() { this.endAt = now() + 240000; this.cd.clear(); this.sec = 0; TURF.forEach(h => { h.lock = 0; paintHouse(-1, h); }); },
+    stop() { TURF.forEach(h => paintHouse(-1, h)); },
     leave(cid) { this.cd.delete(cid); },
-    tag(cid, k) {
-      const a = "tag-" + k;
+    claim(cid, k) {
+      const a = "house-" + k;
       if (!needTeam(cid, a)) return;
-      if (ACTIVE !== "turf") return say(cid, a, "Turf War isn't running", "bad");
-      const t = teamOf(cid), spot = TAGS[k];
-      if (spot.owner === t) return say(cid, a, "Already yours - defend it or move on", "info");
-      if (spot.lock > now()) return say(cid, a, "Paint's wet - locked " + Math.ceil((spot.lock - now()) / 1000) + "s", "bad");
-      if ((this.cd.get(cid) || 0) > now()) return say(cid, a, "Shake the can - 3 seconds", "bad");
-      paintTag(t, spot);
-      spot.lock = now() + 8000;
+      if (ACTIVE !== "turf") return say(cid, a, "Turf War isn't running - wait for the host", "bad");
+      const t = teamOf(cid), h = TURF[k];
+      if (h.owner === t) return say(cid, a, "Already yours - go claim another house", "info");
+      if (h.lock > now()) return say(cid, a, "Just claimed - locked " + Math.ceil((h.lock - now()) / 1000) + "s", "bad");
+      if ((this.cd.get(cid) || 0) > now()) return say(cid, a, "Catch your breath - 3 seconds", "bad");
+      paintHouse(t, h);
+      h.lock = now() + 8000;
       this.cd.set(cid, now() + 3000);
-      say(cid, a, "TAGGED for " + TEAMS[t].name + "!", "good");
+      say(cid, a, "CLAIMED for " + TEAMS[t].name + "!", "good");
     },
-    owned() { const c = [0, 0, 0, 0]; TAGS.forEach(s => { if (s.owner >= 0) c[s.owner]++; }); return c; },
+    owned() { const c = [0, 0, 0, 0]; TURF.forEach(h => { if (h.owner >= 0) c[h.owner]++; }); return c; },
     tick(t) {
-      if (++this.sec % 5 === 0) this.owned().forEach((n, i) => award(i, n));
+      if (++this.sec % 10 === 0) this.owned().forEach((n, i) => award(i, n));
       if (t >= this.endAt) finishRound();
     },
-    status(t) { return ACTIVE === "turf" ? "TURF WAR  |  " + mmss(this.endAt - t) + " LEFT  |  WALLS " + teamLine(this.owned()) : "Idle"; }
+    status(t) { return ACTIVE === "turf" ? "TURF WAR  |  " + mmss(this.endAt - t) + " LEFT  |  HOUSES " + teamLine(this.owned()) : "Idle"; }
   };
-  function paintTag(team, spot) {
-    spot.owner = team;
-    spot.face.setAttribute("color", team >= 0 ? TEAMS[team].color : "#3a3a3a");
-    spot.label.setAttribute("color", team >= 0 ? TEAMS[team].color : "#3a3a3a");
-    spot.label.setAttribute("font-color", team >= 0 ? INK : PAPER);
-    setT(spot.label, team >= 0 ? TEAMS[team].name : "UNCLAIMED");
+  function paintHouse(team, h) {
+    h.owner = team;
+    const c = team >= 0 ? TEAMS[team].color : "#3a3a3a";
+    h.sign.setAttribute("color", c); h.sign.setAttribute("font-color", team >= 0 ? INK : PAPER);
+    setT(h.sign, team >= 0 ? TEAMS[team].name : "UNCLAIMED");
+    h.btn.setAttribute("color", c); h.btn.setAttribute("font-color", team >= 0 ? INK : PAPER);
+    setT(h.btn, team >= 0 ? TEAMS[team].name + " TERRITORY - click to take it" : "CLAIM THIS HOUSE");
+    h.leaf.setAttribute("color", team >= 0 ? c : DOOR_WOOD);
   }
-  function buildTags() {
-    TAG_SPOTS.forEach(([x, z, ry], k) => {
-      const g = grp({ x, z, ry });
-      const slab = box({ y: 1.9, width: 6.4, height: 3.6, depth: 0.5, color: "#8a8478" }, g);
-      const face = glow({ y: 1.9, z: 0.27, width: 5.8, height: 3, color: "#3a3a3a", emissive: 0.4 }, g);
-      const label = text("UNCLAIMED", { y: 2.1, z: 0.29, width: 5.6, height: 0.9, "font-size": 70, color: "#3a3a3a", "font-color": PAPER, emissive: 0.6 }, g);
-      const small = text("TURF " + (k + 1) + "  |  click to tag", { y: 0.75, z: 0.29, width: 5.6, height: 0.42, "font-size": 26, color: "#111", "font-color": AMBER }, g);
-      onClick([slab, face, label, small], cid => turf.tag(cid, k));
-      const rad = ry * Math.PI / 180;
-      ANCHORS["tag-" + k] = { x: x + Math.sin(rad) * 0.35, y: 4.1, z: z + Math.cos(rad) * 0.35, ry, w: 6 };
-      TAGS.push({ owner: -1, lock: 0, face, label });
-      footBox(x, z, 7, 1.5, ry);
+  function setDoor(h, open) {
+    h.open = open; h.closeAt = open ? now() + 12000 : 0;
+    h.door.setAttribute("ry", open ? "-100" : "0");
+  }
+  // the working door and claim button for every house (block-built and Old Town)
+  function buildHouses() {
+    HOUSES.forEach((h, k) => {
+      const door = grp({ x: r2(h.doorX - h.dw / 2), y: h.base, z: h.doorZ, ry: 0 }, h.g);
+      el("m-attr-lerp", { attr: "ry", duration: 450 }, door);
+      const leaf = box({ x: r2(h.dw / 2), y: r2(h.dh / 2), width: r2(h.dw - 0.06), height: r2(h.dh - 0.04), depth: 0.08, color: DOOR_WOOD }, door);
+      const knob = sph({ x: r2(h.dw - 0.18), y: 1.05, z: 0.07, radius: 0.05, color: "#c9a24a" }, door);
+      const sign = text("UNCLAIMED", { x: h.doorX, y: h.signY, z: h.frontZ, width: 2.4, height: 0.42, "font-size": 24, color: "#3a3a3a", "font-color": PAPER, emissive: 0.5 }, h.g);
+      const btn = text("CLAIM THIS HOUSE", { y: r2(h.base + 1.55), z: r2(h.backZ + 0.06), width: 2.6, height: 0.62, "font-size": 30, color: "#3a3a3a", "font-color": PAPER, emissive: 0.6 }, h.g);
+      const hint = text("TURF WAR  |  click to claim for your crew", { y: r2(h.base + 1.05), z: r2(h.backZ + 0.06), width: 2.6, height: 0.26, "font-size": 16, color: "#111", "font-color": AMBER }, h.g);
+      ANCHORS["house-" + k] = { parent: h.g, x: 0, y: r2(h.base + 2.3), z: r2(h.backZ + 0.1), ry: 0, w: 3.2 };
+      const H = Object.assign({}, h, { k, door, leaf, sign, btn, open: false, closeAt: 0, owner: -1, lock: 0 });
+      onClick([leaf, knob], () => setDoor(H, !H.open));
+      onClick([btn, hint], cid => turf.claim(cid, k));
+      TURF.push(H);
     });
+    setInterval(() => { const t = now(); for (const h of TURF) if (h.open && t > h.closeAt) setDoor(h, false); }, 1000);
   }
 
   const GAMES = { heist, race, arena, casino, turf };
@@ -1617,10 +1638,10 @@
   stat(buildAirboats);
   buildClouds();
   buildCheckpoints();
-  buildTags();
   buildCars();
   stat(buildOuter);
   buildOptional();
+  buildHouses();   // doors + claim buttons, after every district has placed its houses
   hookPrompts();
   hookArena();
   hookHost();

@@ -52,7 +52,7 @@ Players click their team's stand and type a name. Clicking another stand switche
 | **Bayou Run** | 5 min | Hit 15 checkpoints in order, on foot or driving. 1st, 2nd and 3rd score 10, 8 and 6; every other finisher scores 3. Each player only sees a beam over their own next gate. |
 | **Gator Pit** | 3 min | The team with the most players on the throne scores +1 per second. A tie scores nothing. The last 30 s are worth double. |
 | **Lucky Wheel** | 6 spins | Bet on a board during the 20 s window. GATOR, FROG and SKULL pay +2; CROWN (1 slot in 10) pays +6. |
-| **Turf War** | 4 min | 20 walls across the city. Click a wall to tag it in your color. Every 5 s, each wall you own scores +1. A wall locks for 8 s after each tag. |
+| **Turf War** | 4 min | Walk up to any house, open the door, go inside and click **CLAIM THIS HOUSE** on the back wall. Every 10 s, each house you own scores +1. A house locks for 8 s after each claim, and a player can claim once every 3 s. Doors swing open when clicked and close on their own after 12 s. |
 
 Every point counts toward **series points**, which add up across all games until you press **Reset series points**. Use them for the weekly leaderboard. When a game's timer ends, the big screen shows the winner and returns to intermission.
 
@@ -210,6 +210,13 @@ Every static building block in the city is now **baked into five textured models
 
 - **Clouds:** three new puffy cloud models (`cloud-1` to `cloud-3`) with a sunlit top fading to a soft blue-grey underside, plus 10 big high clouds further out.
 - Turn these off with `BOATS: false`; the world then goes back to the old airboats and clouds.
+
+## Enterable houses (update)
+
+- **Every house can be entered and claimed:** 101 in all. That's every block-built house, shop, bar and shack, plus every Old Town (medieval) house. Each has a working wooden door, a room inside with a wooden floor, ceiling and lamp, and a **CLAIM THIS HOUSE** button on the back wall. The sign over the door and the door itself turn your crew's color when you own it.
+- **On the ground:** the stilt shacks now sit on the ground, and their porches and stairs are gone. Every house's floor is level with the street.
+- **Old Town houses** were rebuilt (`med-*-v3`) with an open doorway, a wooden floor and a ceiling, so you can walk inside.
+- The Kenney townhouses and garages and the downtown brick buildings are scenery and can't be entered.
 
 ## Optional add-ons (top of the world file)
 
