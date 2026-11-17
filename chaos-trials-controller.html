@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chaos Trials: Swamp City - Host Controller</title>
+<style>
+:root{--ink:#0b1a24;--ink2:#12283a;--ink3:#1b3850;--paper:#f4ead8;--muted:#9fb3c1;--amber:#ffc857;--brass:#c9a24a;--red:#ff4d6a;--green:#4fe08f;--sky:#9fd8e6}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(1200px 700px at 20% -10%,#17344b 0,var(--ink) 60%);color:var(--paper);font:15px/1.4 "Segoe UI",system-ui,-apple-system,Arial,sans-serif;min-height:100vh}
+header{display:flex;align-items:center;gap:16px;padding:18px 28px;border-bottom:1px solid #ffffff14;background:#0b1a24cc;position:sticky;top:0;backdrop-filter:blur(6px);z-index:5}
+h1{margin:0;font-size:20px;letter-spacing:.14em;font-weight:800}
+h1 span{color:var(--amber)}
+.sub{color:var(--muted);font-size:12px;letter-spacing:.2em;text-transform:uppercase}
+.pill{margin-left:auto;display:flex;align-items:center;gap:8px;padding:7px 14px;border-radius:99px;background:var(--ink2);border:1px solid #ffffff1c;font-weight:700;font-size:13px;letter-spacing:.06em}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--red);box-shadow:0 0 10px var(--red)}
+.pill.on .dot{background:var(--green);box-shadow:0 0 10px var(--green)}
+.pill.wait .dot{background:var(--amber);box-shadow:0 0 10px var(--amber)}
+main{max-width:1240px;margin:0 auto;padding:22px 28px 60px;display:grid;grid-template-columns:1fr 360px;gap:22px}
+.card{background:linear-gradient(180deg,var(--ink2),#0e2232);border:1px solid #ffffff17;border-radius:16px;padding:18px 20px;box-shadow:0 10px 30px #0006}
+.card h2{margin:0 0 12px;font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--brass)}
+.banner{display:none;grid-column:1/-1;background:#4a1424;border:1px solid var(--red);color:#ffd6dc;border-radius:12px;padding:12px 16px;font-weight:700}
+.banner.show{display:block}
+.now{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:end}
+.now .title{font-size:38px;font-weight:900;letter-spacing:.06em;line-height:1.05}
+.now .title.live{color:var(--amber);text-shadow:0 0 22px #ffc85755}
+.now .status{color:var(--sky);margin-top:6px;font-weight:600;min-height:20px}
+.big{font-size:44px;font-weight:900;text-align:right;line-height:1}
+.big small{display:block;font-size:11px;letter-spacing:.2em;color:var(--muted);font-weight:700}
+.crews{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:16px}
+.crew{border-radius:12px;padding:10px 12px;background:#0a1620;border:1px solid #ffffff12;position:relative;overflow:hidden}
+.crew b{display:block;font-size:13px;letter-spacing:.1em}
+.crew span{font-size:26px;font-weight:900}
+.crew small{display:block;font-size:12px;color:var(--amber);font-weight:800;letter-spacing:.06em;margin-top:2px}
+.tools{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.tools button{background:var(--ink3);color:var(--paper)}
+.tools button.confirm{background:var(--red);color:#fff}
+.crew i{position:absolute;left:0;top:0;bottom:0;width:5px}
+.crew em{display:block;font-style:normal;font-size:12px;color:var(--muted);margin-top:4px;line-height:1.35;max-height:96px;overflow:auto;word-break:break-word}
+.games{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+.game{border-radius:14px;padding:16px;background:#0a1620;border:1px solid #ffffff14;display:flex;flex-direction:column;gap:8px;transition:.2s}
+.game.live{border-color:var(--amber);box-shadow:0 0 0 1px var(--amber),0 0 30px #ffc85722;background:linear-gradient(180deg,#2a2510,#0a1620)}
+.game .gt{display:flex;justify-content:space-between;align-items:center;font-weight:900;letter-spacing:.08em;font-size:17px}
+.badge{font-size:11px;letter-spacing:.14em;padding:3px 8px;border-radius:99px;background:#ffffff12;color:var(--muted)}
+.game.live .badge{background:var(--amber);color:var(--ink)}
+.kind{font-size:12px;color:var(--brass);letter-spacing:.12em;font-weight:700}
+.what{color:#d8cfbf;font-size:13px}
+.where{color:var(--muted);font-size:12px}
+.gstat{font-family:ui-monospace,Consolas,monospace;font-size:12px;color:var(--sky);background:#06111a;border-radius:8px;padding:7px 9px;min-height:30px}
+button{font:inherit;cursor:pointer;border:0;border-radius:10px;padding:11px 14px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--ink);background:var(--paper);transition:.15s}
+button:hover{filter:brightness(1.08);transform:translateY(-1px)}
+button:disabled{opacity:.35;cursor:not-allowed;transform:none}
+button.go{background:var(--amber)}
+button.restart{background:var(--sky)}
+button.confirm{background:var(--red);color:#fff;animation:pulse .7s infinite alternate}
+@keyframes pulse{to{filter:brightness(1.25)}}
+button.stop{width:100%;background:var(--red);color:#fff;padding:16px;font-size:16px}
+.row{display:flex;gap:8px}
+input{font:inherit;width:100%;padding:10px 12px;border-radius:10px;border:1px solid #ffffff22;background:#06111a;color:var(--paper)}
+input:focus{outline:2px solid var(--amber);border-color:transparent}
+label{display:block;font-size:11px;letter-spacing:.18em;color:var(--muted);margin:10px 0 5px;text-transform:uppercase;font-weight:700}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.chip{background:#ffffff10;color:var(--paper);padding:7px 10px;font-size:11px;letter-spacing:.04em;text-transform:none;font-weight:600}
+.side{display:flex;flex-direction:column;gap:22px}
+.log{font-family:ui-monospace,Consolas,monospace;font-size:12px;color:var(--muted);max-height:260px;overflow:auto;display:flex;flex-direction:column;gap:4px}
+.log div b{color:var(--paper)}
+.hint{font-size:12px;color:var(--muted);margin-top:8px}
+.count{font-size:11px;color:var(--muted);text-align:right;margin-top:4px}
+@media(max-width:980px){main{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>SWAMP <span>CITY</span></h1>
+    <div class="sub">Chaos Trials - host controller</div>
+  </div>
+  <div class="pill" id="pill"><div class="dot"></div><span id="pillText">OFFLINE</span></div>
+</header>
+<main>
+  <div class="banner" id="banner"></div>
+  <section style="display:flex;flex-direction:column;gap:22px">
+    <div class="card">
+      <h2>Now playing</h2>
+      <div class="now">
+        <div>
+          <div class="title" id="nowTitle">-</div>
+          <div class="status" id="nowStatus">Connect to the world to take control.</div>
+        </div>
+        <div class="big"><small>CHECKED IN</small><span id="players">0</span></div>
+      </div>
+      <div class="crews" id="crews"></div>
+    </div>
+    <div class="card">
+      <h2>Games - one runs at a time</h2>
+      <div class="games" id="games"></div>
+    </div>
+    <div class="card">
+      <button class="stop" id="stopBtn" disabled>Stop game - back to intermission</button>
+      <div class="hint">Stopping ends the round for everyone and the big screen goes back to intermission.</div>
+      <div class="tools">
+        <button id="carsBtn" disabled>Reset all buggies</button>
+        <button id="resetBtn" disabled>Reset series points</button>
+      </div>
+      <div class="hint">Series points add up across every game until you reset them - use it for the week's Chaos Trial leaderboard.</div>
+    </div>
+  </section>
+  <aside class="side">
+    <div class="card">
+      <h2>Connection</h2>
+      <label for="url">World URL</label>
+      <input id="url" spellcheck="false">
+      <label for="key">Host code</label>
+      <input id="key" type="password" spellcheck="false" placeholder="Paste your host code">
+      <div class="row" style="margin-top:12px">
+        <button class="go" id="connectBtn" style="flex:1">Connect</button>
+        <button id="disconnectBtn">Disconnect</button>
+      </div>
+      <div class="hint" id="bootInfo">World session: -</div>
+    </div>
+    <div class="card">
+      <h2>Big screen message</h2>
+      <input id="note" maxlength="70" placeholder="e.g. Bayou Run starts in 30 seconds!">
+      <div class="count" id="noteCount">0 / 70</div>
+      <div class="row" style="margin-top:8px">
+        <button class="go" id="noteBtn" style="flex:1" disabled>Show 45s</button>
+        <button id="clearNoteBtn" disabled>Clear</button>
+      </div>
+      <div class="chips" id="chips"></div>
+    </div>
+    <div class="card">
+      <h2>Activity</h2>
+      <div class="log" id="log"></div>
+    </div>
+  </aside>
+</main>
+<script>
+(function () {
+  const GAMES = [
+    { id: "heist", title: "BANK JOB", kind: "CREWS - 4 MINUTES", what: "Grab a bag from the vault, run or drive it to your crew's hideout before the 75s dye pack pops.", where: "Bayou Savings vault (plaza) > hideouts out past the inner ring road" },
+    { id: "race", title: "BAYOU RUN", kind: "SOLO FOR YOUR CREW - 5 MINUTES", what: "15 checkpoints in order, on foot or in a buggy. Top 3 score 10 / 8 / 6, every finisher 3.", where: "Starts on the road south of the plaza, loops the middle ring road" },
+    { id: "arena", title: "GATOR PIT", kind: "CREWS - 3 MINUTES", what: "Crew with the most players on the gold throne scores every second. Last 30s double.", where: "Gator Pit arena, west side" },
+    { id: "casino", title: "LUCKY WHEEL", kind: "CREWS - 6 SPINS", what: "Bet before each spin. GATOR / FROG / SKULL pay +2, CROWN pays +6.", where: "Lucky Gator Casino, east side" },
+    { id: "turf", title: "TURF WAR", kind: "CREWS - 4 MINUTES", what: "Tag the 20 walls in your crew's color. Each wall you own scores 1 every 5 seconds.", where: "Numbered walls all over the city" }
+  ];
+  const CREWS = [["GATORS", "#4fe08f"], ["HERONS", "#3fd0ff"], ["BULLFROGS", "#ffc23d"], ["COTTONMOUTHS", "#c48bff"]];
+  const PRESETS = ["Check in at a team stand under the big screen!", "Next game starts in 30 seconds", "Everyone back to the plaza", "Grab a buggy - click the hood to drive", "Last round - give it everything!", "GG - stick around for the next Chaos Trial"];
+  const $ = id => document.getElementById(id);
+  const store = { get: k => { try { return localStorage.getItem(k); } catch (e) { return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} } };
+  $("url").value = store.get("swamp.url") || "";
+  $("url").placeholder = "wss://run.mmleditor.com/your-swamp-city-id";
+  $("key").value = store.get("swamp.key") || "";
+  let ws = null, want = false, retry = 0, retryTimer = null, ids = {}, stateNode = null, state = null, boot = null, armed = null, armedTimer = null, names = [[], [], [], []];
+
+  function log(msg, strong) {
+    const d = document.createElement("div");
+    const t = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+    d.innerHTML = t + "  " + (strong ? "<b></b>" : "");
+    if (strong) d.querySelector("b").textContent = msg; else d.append(msg);
+    $("log").prepend(d);
+    while ($("log").children.length > 80) $("log").lastChild.remove();
+  }
+  function pill(kind, text) {
+    $("pill").className = "pill " + kind;
+    $("pillText").textContent = text;
+  }
+  function crewsView() {
+    const counts = state ? state.crews : [0, 0, 0, 0];
+    const series = state && state.series ? state.series : [0, 0, 0, 0], round = state && state.round ? state.round : [0, 0, 0, 0];
+    $("crews").innerHTML = "";
+    CREWS.forEach(([name, col], i) => {
+      const c = document.createElement("div");
+      c.className = "crew";
+      c.innerHTML = "<i></i><b></b><span></span><small></small><em></em>";
+      c.querySelector("i").style.background = col;
+      c.querySelector("b").textContent = name;
+      c.querySelector("b").style.color = col;
+      c.querySelector("span").textContent = counts[i];
+      c.querySelector("small").textContent = series[i] + " PTS" + (state && state.active ? "  (+" + round[i] + " NOW)" : "");
+      c.querySelector("em").textContent = (names[i] || []).length ? names[i].join(", ") : "No players yet";
+      $("crews").append(c);
+    });
+  }
+  function gamesView() {
+    const host = $("games");
+    if (!host.children.length) {
+      for (const g of GAMES) {
+        const el = document.createElement("div");
+        el.className = "game";
+        el.id = "g-" + g.id;
+        el.innerHTML = '<div class="gt"><span></span><span class="badge">IDLE</span></div><div class="kind"></div><div class="what"></div><div class="where"></div><div class="gstat"></div><button class="go">Start</button>';
+        el.querySelector(".gt span").textContent = g.title;
+        el.querySelector(".kind").textContent = g.kind;
+        el.querySelector(".what").textContent = g.what;
+        el.querySelector(".where").textContent = "Where: " + g.where;
+        el.querySelector("button").onclick = () => press(g.id);
+        host.append(el);
+      }
+    }
+    for (const g of GAMES) {
+      const el = $("g-" + g.id);
+      const live = state && state.active === g.id;
+      el.classList.toggle("live", !!live);
+      el.querySelector(".badge").textContent = live ? "LIVE" : "IDLE";
+      el.querySelector(".gstat").textContent = state && state.games ? state.games[g.id] : "-";
+      const b = el.querySelector("button");
+      b.disabled = !connected();
+      if (armed === g.id) { b.className = "confirm"; b.textContent = live ? "Confirm restart" : "Confirm switch"; }
+      else { b.className = live ? "restart" : "go"; b.textContent = live ? "Restart round" : "Start"; }
+    }
+  }
+  function render() {
+    const live = state && state.active ? GAMES.find(g => g.id === state.active) : null;
+    $("nowTitle").textContent = state ? (live ? live.title : "INTERMISSION") : "-";
+    $("nowTitle").classList.toggle("live", !!live);
+    $("nowStatus").textContent = !connected() ? "Connect to the world to take control." : live ? state.games[live.id] : "Players are checking in. Pick a game when you're ready.";
+    $("players").textContent = state ? state.players : 0;
+    $("stopBtn").disabled = !connected() || !(state && state.active);
+    $("noteBtn").disabled = $("clearNoteBtn").disabled = $("carsBtn").disabled = $("resetBtn").disabled = !connected();
+    crewsView();
+    gamesView();
+  }
+  function connected() { return ws && ws.readyState === 1 && stateNode != null; }
+  function send(id, params) {
+    if (!connected() || ids[id] == null) { log("Not connected - command not sent", true); return false; }
+    const key = $("key").value.trim();
+    if (!key) { log("Enter the host code first", true); $("key").focus(); return false; }
+    ws.send(JSON.stringify({ type: "event", nodeId: ids[id], name: "click", bubbles: false, params: Object.assign({ key }, params || {}) }));
+    return true;
+  }
+  function press(id) {
+    const live = state && state.active;
+    const risky = live && live !== id || live === id;
+    if (risky && armed !== id) {
+      armed = id;
+      clearTimeout(armedTimer);
+      armedTimer = setTimeout(() => { armed = null; render(); }, 3500);
+      render();
+      return;
+    }
+    armed = null;
+    const g = GAMES.find(x => x.id === id);
+    if (send("hb-" + id)) log((live === id ? "Restarted " : "Started ") + g.title, true);
+    render();
+    setTimeout(verify, 2500, id);
+  }
+  function verify(id) {
+    if (state && state.active !== id) log("World did not switch - check the host code", true);
+  }
+  $("stopBtn").onclick = () => {
+    if (armed !== "stop") {
+      armed = "stop"; $("stopBtn").textContent = "Click again to stop"; $("stopBtn").classList.add("confirm");
+      clearTimeout(armedTimer);
+      armedTimer = setTimeout(() => { armed = null; $("stopBtn").textContent = "Stop game - back to intermission"; $("stopBtn").classList.remove("confirm"); }, 3500);
+      return;
+    }
+    armed = null; $("stopBtn").textContent = "Stop game - back to intermission"; $("stopBtn").classList.remove("confirm");
+    if (send("hb-stop")) log("Stopped - back to intermission", true);
+  };
+  function twoStep(btn, label, cmd, done) {
+    btn.onclick = () => {
+      if (armed !== cmd) {
+        armed = cmd; btn.textContent = "Click again to confirm"; btn.classList.add("confirm");
+        clearTimeout(armedTimer);
+        armedTimer = setTimeout(() => { armed = null; btn.textContent = label; btn.classList.remove("confirm"); }, 3500);
+        return;
+      }
+      armed = null; btn.textContent = label; btn.classList.remove("confirm");
+      if (send(cmd)) log(done, true);
+    };
+  }
+  twoStep($("carsBtn"), "Reset all buggies", "hb-cars", "All buggies sent back to their parking spots");
+  twoStep($("resetBtn"), "Reset series points", "hb-reset", "Series points reset to zero");
+  const ascii = s => s.replace(/[^ -~]/g, "").slice(0, 70);
+  $("note").oninput = () => { $("note").value = ascii($("note").value); $("noteCount").textContent = $("note").value.length + " / 70"; };
+  $("noteBtn").onclick = () => { const t = ascii($("note").value.trim()); if (t && send("hb-note", { text: t })) log("Big screen: " + t, true); };
+  $("clearNoteBtn").onclick = () => { if (send("hb-note", { text: "" })) log("Big screen message cleared"); };
+  PRESETS.forEach(p => { const b = document.createElement("button"); b.className = "chip"; b.textContent = p; b.onclick = () => { $("note").value = p; $("note").oninput(); }; $("chips").append(b); });
+  $("key").onchange = () => store.set("swamp.key", $("key").value.trim());
+  $("url").onchange = () => store.set("swamp.url", $("url").value.trim());
+
+  function walk(n) {
+    if (!n) return;
+    if (n.attributes && n.attributes.id) ids[n.attributes.id] = n.nodeId;
+    if (n.attributes && n.attributes.id === "hb-state") { applyRoster(n.attributes["data-roster"]); applyState(n.attributes["data-state"]); }
+    (n.children || []).forEach(walk);
+  }
+  function applyRoster(raw) {
+    try { const r = JSON.parse(raw); if (Array.isArray(r) && r.length === 4) { names = r; render(); } } catch (e) {}
+  }
+  function applyState(raw) {
+    let s;
+    try { s = JSON.parse(raw); } catch (e) { return; }
+    if (!s || !s.boot) return;
+    if (boot && s.boot !== boot) {
+      $("banner").textContent = "The world restarted (new session " + s.boot + "). Any running game was reset - start it again if needed.";
+      $("banner").classList.add("show");
+      log("World restarted - session " + s.boot, true);
+    }
+    if (state && state.active !== s.active) log(s.active ? "LIVE: " + GAMES.find(g => g.id === s.active).title : "Back to intermission");
+    boot = s.boot;
+    state = s;
+    $("bootInfo").textContent = "World session: " + s.boot;
+    render();
+  }
+  function connect() {
+    want = true;
+    clearTimeout(retryTimer);
+    if (ws) { try { ws.onclose = null; ws.close(); } catch (e) {} }
+    const url = $("url").value.trim();
+    store.set("swamp.url", url);
+    store.set("swamp.key", $("key").value.trim());
+    ids = {}; stateNode = null;
+    pill("wait", "CONNECTING");
+    try { ws = new WebSocket(url, ["networked-dom-v0.1"]); } catch (e) { log("Bad URL: " + url, true); pill("", "OFFLINE"); return; }
+    ws.onopen = () => { retry = 0; log("Connected to " + url); };
+    ws.onmessage = ev => {
+      let msgs;
+      try { msgs = JSON.parse(ev.data); } catch (e) { return; }
+      if (!Array.isArray(msgs)) msgs = [msgs];
+      for (const m of msgs) {
+        if (m.type === "snapshot") {
+          ids = {}; walk(m.snapshot); stateNode = ids["hb-state"] != null ? ids["hb-state"] : null;
+          if (stateNode == null) { pill("wait", "NO GAME FOUND"); log("Connected, but this world has no Swamp City host bank", true); }
+          else pill("on", "CONNECTED");
+          render();
+        } else if (m.type === "attributeChange") {
+          const list = m.attributes || [{ attribute: m.attribute, newValue: m.newValue }];
+          if (m.nodeId === stateNode) for (const a of list) { if (a.attribute === "data-state") applyState(a.newValue); else if (a.attribute === "data-roster") applyRoster(a.newValue); }
+        } else if (m.type === "childrenChanged") {
+          (m.addedNodes || []).forEach(walk);
+        } else if (m.type === "ping") {
+          ws.send(JSON.stringify({ type: "pong", pong: m.ping }));
+        } else if (m.type === "error" || m.type === "warning") {
+          log("World says: " + (m.message || m.type));
+        }
+      }
+    };
+    ws.onclose = () => {
+      stateNode = null;
+      render();
+      if (!want) { pill("", "OFFLINE"); return; }
+      retry = Math.min(retry + 1, 6);
+      const wait = Math.min(1000 * 2 ** (retry - 1), 15000);
+      pill("wait", "RECONNECTING");
+      retryTimer = setTimeout(connect, wait);
+    };
+    ws.onerror = () => {};
+  }
+  $("connectBtn").onclick = connect;
+  $("disconnectBtn").onclick = () => { want = false; clearTimeout(retryTimer); if (ws) ws.close(); pill("", "OFFLINE"); log("Disconnected"); };
+  render();
+  if ($("key").value) connect();
+})();
+</script>
+</body>
+</html>

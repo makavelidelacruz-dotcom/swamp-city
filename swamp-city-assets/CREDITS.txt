@@ -1,0 +1,24 @@
+Swamp City asset pack
+All 3D models in this folder are by Kenney (https://kenney.nl) and are CC0 1.0 licensed
+(https://creativecommons.org/publicdomain/zero/1.0/). No attribution is required; credit is appreciated.
+
+Source repositories (textures embedded into each GLB with gltf-transform):
+- KenneyNL/starter-kit-racing        @ 2f2e5f2646dda89cb21d4e8539bab60c6e955dc8  (trucks, motorcycle, tents)
+- KenneyNL/starter-kit-city-builder  @ 4535092b740b378b700efd9df9e27a631815b84a  (buildings, garage, fountain)
+- KenneyNL/starter-kit-3d-platformer @ 3fa8a04b1c01ab23db43123d4ce814a34c3fc7f0  (cloud, coin, flag)
+
+Nature models (deadtree-*, normaltree-*, bush*, plant-flowers, grass-large, rock-*):
+from "Ultimate Stylized Nature" by Quaternius (https://quaternius.com), CC0 1.0, taken from the
+AllModels.blend file supplied by the world owner. Converted to GLB in Blender 5.3, textures reduced
+to 512 px. Textures that were not packed in the .blend were replaced: dead trees and rocks use flat
+colours, and the leafy trees reuse the pack's bush-leaf texture.
+
+Medieval models (med-house, med-townhouse, med-hall, med-cottage, med-wagon, med-crate, med-fence, med-ironfence):
+from the "Medieval Village MegaKit [Standard]" by Quaternius (https://quaternius.com), CC0 1.0, supplied by the
+world owner. The four houses were assembled from the kit's modular pieces in Blender 5.3; normal and roughness
+maps were removed and textures reduced to 512 px WebP to keep downloads small.
+
+Downtown models (dt-large, dt-medium, dt-small, dt-acunit, dt-bollard, dt-planter, dt-manhole):
+from the "Downtown City MegaKit [Standard]" by Quaternius (https://quaternius.com), CC0 1.0, supplied by the
+world owner. Ready-made buildings were simplified in Blender 5.3 (coplanar faces merged, 25-42% fewer
+triangles), the kit's wear-mask vertex colours removed, textures reduced to 512 px WebP and geometry quantized.

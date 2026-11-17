@@ -1,0 +1,169 @@
+# Chaos Trials: Swamp City
+
+A Grand Theft Auto style MML world for 4 teams and 50+ players. It uses the same setup as Grand Theft Dino: players check in at team stands, and the host runs one game at a time from the controller page.
+
+## Files
+
+| File | What it is |
+|---|---|
+| `chaos-trials-swamp-city.html` | The world. Paste it into the MML editor (or any MML server) and run it. |
+| `chaos-trials-controller.html` | The host controller. Open it in a browser on your own computer. |
+
+## Before the event
+
+1. **Change the host code.** Open the world file and edit `HOST_KEY` near the top. Use a long random string, and keep the file private.
+2. **Run the world** in the MML editor and copy its `wss://` address.
+3. **Open the controller**, paste the address and your host code, and press Connect. The pill turns green when it finds the game.
+4. **Do a test run** with a few people: check in, drive a buggy, and run one round of each game.
+
+## The city
+
+- **Plaza (spawn):** Bayou Savings bank with the big screen on its front, the 4 team check-in stands, and 4 buggies.
+- **Bank vault:** inside the bank, with doors on the north and south sides.
+- **Lucky Gator Casino:** east side, with the Lucky Wheel inside. The Gator Grand Hotel is behind it.
+- **Gator Pit arena:** west side, with the gold throne in the middle.
+- **Bayou Heights:** downtown towers and Bayou PD to the north.
+- **Neon Row:** bars and shops to the south, with stilt shacks behind them.
+- **Outer districts (new):** a second ring of blocks around downtown, about 430 m across in total.
+  - **Cannery Row (north):** warehouses and the Bayou Cannery with its smokestacks.
+  - **Bayou Village (south):** stilt shacks and the Swamp Fair with a turning Ferris wheel.
+  - **Voodoo Quarter (east):** colorful balcony buildings and the KGTR radio tower.
+  - **Gator Flats (west):** shacks, trailers and the Gator Junk yard.
+  - Small marsh parks with ponds and cypress trees are scattered through the blocks.
+- **Team hideouts:** one in each outer corner, each with a buggy parked beside it. All four are the same distance from the bank vault (about 175 m), so the Bank Job is fair and buggies really help.
+- **The swamp:** players can wade anywhere around the island. Four airboats circle the city, and players board them from the long east and west piers.
+
+## Teams
+
+| Team | Color | Hideout |
+|---|---|---|
+| GATORS | Green | North-east |
+| HERONS | Blue | South-west |
+| BULLFROGS | Gold | South-east |
+| COTTONMOUTHS | Purple | North-west |
+
+Players click their team's stand and type a name. Clicking another stand switches teams.
+
+## Games
+
+| Game | Length | How it scores |
+|---|---|---|
+| **Bank Job** | 4 min | Grab a bag at the vault and deliver it to your own hideout's DROP LOOT board for +1. A bag explodes after 75 s. |
+| **Bayou Run** | 5 min | Hit 15 checkpoints in order, on foot or driving. 1st, 2nd and 3rd score 10, 8 and 6; every other finisher scores 3. Each player only sees a beam over their own next gate. |
+| **Gator Pit** | 3 min | The team with the most players on the throne scores +1 per second. A tie scores nothing. The last 30 s are worth double. |
+| **Lucky Wheel** | 6 spins | Bet on a board during the 20 s window. GATOR, FROG and SKULL pay +2; CROWN (1 slot in 10) pays +6. |
+| **Turf War** | 4 min | 20 walls across the city. Click a wall to tag it in your color. Every 5 s, each wall you own scores +1. A wall locks for 8 s after each tag. |
+
+Every point counts toward **series points**, which add up across all games until you press **Reset series points**. Use them for the weekly leaderboard. When a game's timer ends, the big screen shows the winner and returns to intermission.
+
+## Buggies
+
+There are 12 (Kenney pickup trucks): four at the plaza, one at each hideout, and four on the middle ring road. Top speed is 14 m/s.
+
+- Click a truck to claim it. Only the driver sees the dashboard (GAS, LEFT, RIGHT, REVERSE, BRAKE, EXIT).
+- Jump in the bed to ride along. Anyone else in the bed rides too.
+- Buggies stop when they hit a building. They're amphibious, so they can drive out into the swamp.
+- A buggy is released if its driver leaves, or sits idle for 2 minutes. **Reset all buggies** in the controller parks them all back home.
+
+## Kenney models (CC0)
+
+The world is dressed with free CC0 models by [Kenney](https://kenney.nl), taken from his official starter kits on GitHub:
+
+- **Trucks:** pickup trucks replace the buggies. Ride in the bed; the dashboard sits at the back of the cab.
+- **Voodoo Quarter and Gator Flats:** townhouses.
+- **Cannery Row:** garages and warehouses.
+- **Plaza:** two fountains.
+- **Bank Job:** spinning gold coins at the vault.
+- **Swamp Fair:** fair tents.
+- **Neon Row:** parked motorcycles.
+- **Sky:** drifting clouds.
+
+**Where they load from**
+
+| Setting | What happens |
+|---|---|
+| Default | Models load straight from Kenney's public GitHub repos, pinned to a fixed version. Nothing to upload. |
+| `ASSET_HOST` | Upload the `swamp-city-assets` folder (54 GLBs, about 9 MB, textures built in) to your own host and put the folder URL here. |
+| `ASSET_URLS` | Paste one URL per file, for example `"truck-red": "https://mmlstorage.com/..."`, if your host gives each file its own link. |
+| `KENNEY: false` | Turns the models off and goes back to the all-primitive look. |
+
+For a live event, hosting the pack yourself is safer than relying on GitHub staying up.
+
+## Swamp nature models (from your AllModels.blend)
+
+The file is Quaternius's "Ultimate Stylized Nature" pack (CC0). I converted 24 of its models:
+
+- **10 dead trees:** dark snags and pale ghost trees, standing in the swamp shallows and replacing some of the cypresses.
+- **3 leafy trees:** these replace the primitive trees in the plaza, parks and city blocks.
+- **Bushes and flowering plants:** around the plaza, the pond, the hideouts and the outer blocks.
+- **Tall grass clumps:** along the shoreline, in place of the old reed sticks.
+- **5 rocks:** on the shoreline, in the junk yard and in the outer blocks.
+
+Most of the textures in the .blend weren't packed, so the dead trees and rocks use flat swampy colors and the leafy trees borrow the pack's bush-leaf texture. The pine, palm and birch trees were left out because they don't fit a swamp, and the maple was too heavy for what it adds.
+
+**These only show up once you host the asset pack.** Unlike the Kenney models, they aren't online anywhere yet. Until you set `ASSET_HOST` (or every nature entry in `ASSET_URLS`), the world keeps its primitive trees, so it always works.
+
+**Easiest hosting:** put the `swamp-city-assets` folder in a public GitHub repo, like your Spire, then set:
+
+```
+ASSET_HOST: "https://raw.githubusercontent.com/YOUR-NAME/YOUR-REPO/main/swamp-city-assets/",
+```
+
+That one setting loads the Kenney, nature, Old Town and Uptown models from your copy.
+
+## Old Town models (from your Medieval Village MegaKit)
+
+The kit is CC0 (Quaternius's free Standard version). It's a set of modular pieces, so I assembled four houses from its walls, roofs, balconies, doors, chimneys and vines, and saved each one as a single light model:
+
+| Model | What it is |
+|---|---|
+| `med-house` | 2-floor half-timbered house, brick ground floor, balcony, chimney, vines |
+| `med-townhouse` | Narrow 3-floor townhouse with balcony |
+| `med-hall` | Long brick hall with a wagon out front |
+| `med-cottage` | Small 1-floor cottage |
+
+Props: wagon, crate, wooden fence and wrought-iron railing.
+
+**Where they appear**
+- **Old Town (west, formerly Gator Flats):** about two-thirds of the buildings are now these houses.
+- **Bayou Village:** a few cottages mixed in with the stilt shacks.
+- **Plaza pond:** wrought-iron railings on both sides, New Orleans style.
+- **Wagons and crates:** at the Cannery docks, the Swamp Fair, Gator Junk and the Gator Farm (which also gets a wooden fence).
+
+Each house is about 0.6 MB, with textures shrunk to 512 px WebP. Like the nature models, they turn on once the asset pack is hosted (`MEDIEVAL: true` plus `ASSET_HOST`); otherwise the world keeps its other buildings.
+
+## Uptown models (from your Downtown City MegaKit)
+
+The kit is CC0 (Quaternius's free Standard version). It came with three finished brick buildings, which I simplified to cut 25 to 42% of their triangles and compressed to 0.7 to 1.2 MB each:
+
+| Model | Size |
+|---|---|
+| `dt-large` | 9-story office block, 21 by 17 m, 28 m tall |
+| `dt-medium` | Ornate brick hotel, 15 by 13 m, 25 m tall |
+| `dt-small` | Brick walk-up, 12 by 15 m, 17 m tall |
+
+Props: bollards, planters, rooftop AC units and manhole covers.
+
+**Where they appear**
+- **Uptown (north, formerly Cannery Row):** almost half the buildings are now these brick blocks, some with planters out front. The Bayou Cannery itself stays.
+- **Voodoo Quarter:** a few brick walk-ups mixed in with the townhouses.
+- **Tower rooftops:** AC units.
+- **Bollards:** along the casino front and the plaza's south edge.
+- **Neon Row:** planters out front.
+- **Streets:** about 40 manhole covers.
+
+I removed the kit's built-in "wear mask" colors, because MML viewers showed them as red smears. Like the other add-ons, these turn on once the pack is hosted (`DOWNTOWN: true` plus `ASSET_HOST`).
+
+## Optional add-ons (top of the world file)
+
+- `CASTLE_BASE`: the folder URL holding your princess castle GLBs. The castle then appears on Queen's Isle, out in the swamp north of the city.
+- `FRAMES`: embed other MML documents, such as the Spire, with `m-frame` at a position you choose.
+- `MODELS`: swap in CC0 GLBs for the buggy, airboat or gators.
+- `DETAIL: "low"`: cuts trees, reeds, lily pads, street lamps and outer-district buildings for weaker devices.
+
+## Known limits
+
+- **Riding vehicles:** whether players get carried on a moving buggy or airboat depends on the client. Test this in your viewer; if riders slide off, players can still drive the buggy while running beside it.
+- **Driving through checkpoints:** in Bayou Run, a driver gets credit for a checkpoint by driving through it, but passengers do not.
+- **Steering:** buggies turn in 22.5° steps, because MML has no held-key controls.
+- **Size:** the world has about 3,100 elements and a 650 KB snapshot on join, plus about 1.1 MB of models. Desktop is fine; on phones, try `DETAIL: "low"` first.
