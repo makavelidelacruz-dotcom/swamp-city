@@ -203,6 +203,8 @@ Every static building block in the city is now **baked into five textured models
 | `airboat-prop` | The wooden fan, which spins on every airboat | |
 | `shrimpboat-1`, `shrimpboat-2` | 14 m bayou shrimp trawler with wheelhouse, outrigger booms and hanging nets | Moored off the north and south shores, and cruising an outer loop |
 | `skiff-1`, `skiff-2` | Aluminum jon boat with outboard motor | Beside the piers, along the shoreline and on the outer loop |
+| `gator`, `gator-bronze` | 4 m American alligator: armored back scutes, pebbly flanks, cream belly plates, yellow eyes with slit pupils, teeth along both jaws, back and tail crests, bent legs with clawed toes. The bronze version is for the statues | 12 swimming around the city, 12 basking in the shallows, 4 at the Gator Farm, and the bronze statues in the plaza fountain and the Gator Pit |
+
 
 - **Clouds:** three new puffy cloud models (`cloud-1` to `cloud-3`) with a sunlit top fading to a soft blue-grey underside, plus 10 big high clouds further out.
 - Turn these off with `BOATS: false`; the world then goes back to the old airboats and clouds.

@@ -139,7 +139,7 @@
   const ST_NAMES = ["road-seg-34", "road-seg-84", "road-seg-4", "road-cross", "ground-grass", "plaza-pavers"];
   const ST = !!CONFIG.STREETS && (!!CONFIG.ASSET_HOST || ST_NAMES.every(n => CONFIG.ASSET_URLS[n]));
   const BOAT_NAMES = ["yacht-1", "yacht-2", "sailboat", "airboat-1", "airboat-2", "airboat-3", "airboat-4", "airboat-prop",
-    "shrimpboat-1", "shrimpboat-2", "skiff-1", "skiff-2", "cloud-1", "cloud-2", "cloud-3"];
+    "shrimpboat-1", "shrimpboat-2", "skiff-1", "skiff-2", "cloud-1", "cloud-2", "cloud-3", "gator", "gator-bronze"];
   const BOATS = !!CONFIG.BOATS && (!!CONFIG.ASSET_HOST || BOAT_NAMES.every(n => CONFIG.ASSET_URLS[n]));
   // separate random stream for boats and extra clouds, so the baked city layout never shifts
   let seed2 = 9871;
@@ -618,6 +618,7 @@
   function gatorModel(x, y, z, ry, s, color, mat) {
     const g = grp({ x, y, z, ry, sx: s, sy: s, sz: s });
     if (CONFIG.MODELS.gator) { el("m-model", { src: CONFIG.MODELS.gator, collide: "false" }, g); return g; }
+    if (BOATS) { el("m-model", { src: natURL(mat === "bronze" ? "gator-bronze" : "gator"), collide: "false" }, g); return g; }
     const c = color || "#4b5e37", m = mat || "gatorskin";
     box({ width: 0.9, height: 0.35, depth: 2.4, color: c, collide: "false", mat: m }, g);
     box({ z: 1.55, y: -0.02, width: 0.6, height: 0.28, depth: 0.9, color: c, collide: "false", mat: m }, g);
@@ -665,7 +666,30 @@
       const x = Math.cos(a) * r, z = CZ + Math.sin(a) * r;
       const g = gatorModel(x, -0.42, z, (a * 180 / Math.PI) % 360, 1.2);
       el("m-attr-anim", { attr: "x", start: r2(x - 6), end: r2(x + 6), duration: 22000 + i * 3000, loop: "true", "ping-pong": "true", easing: "easeInOutSine" }, g);
-    } });
+    }
+    if (BOATS) buildMoreGators();
+    });
+  }
+
+  // extra gators with the modeled alligator: basking in the shallows, lounging at the Gator Farm, cruising further out
+  function buildMoreGators() {
+    const gm = (x, y, z, ry, s) => el("m-model", { src: natURL("gator"), x: r2(x), y: r2(y), z: r2(z), ry: r2(ry), sx: r2(s), sy: r2(s), sz: r2(s), collide: "false" });
+    // Gator Farm yard, just past the fence
+    for (const [x, ry, s] of [[-92, 160, 0.9], [-88.5, 210, 0.8], [-84, 175, 1.0], [-80.5, 120, 0.85]]) gm(x, 0.1 + 0.27 * s, CZ - 23.5 + (x % 2), ry, s);
+    if (LOW) return;
+    // basking in the shallows, heads toward the shore
+    for (let k = 0; k < 12; k++) {
+      const side = k % 4, along = -190 + rnd2() * 380, off = HALF + 3 + rnd2() * 5, s = 0.9 + rnd2() * 0.5;
+      if (Math.abs(along) < 14) continue;   // keep clear of the piers and boat ramps
+      const [x, z, ry] = side === 0 ? [along, CZ - off, 0] : side === 1 ? [along, CZ + off, 180] : side === 2 ? [off, CZ + along, -90] : [-off, CZ + along, 90];
+      gm(x, -0.36, z, ry + (rnd2() - 0.5) * 50, s);
+    }
+    // a second ring of swimmers further out, drifting slowly
+    for (let i = 0; i < 6; i++) {
+      const a = rnd2() * Math.PI * 2, r = 330 + rnd2() * 70, x = Math.cos(a) * r, z = CZ + Math.sin(a) * r;
+      const g = gm(x, -0.42, z, 0, 1.1 + rnd2() * 0.3);
+      el("m-attr-anim", { attr: "z", start: r2(z - 8), end: r2(z + 8), duration: 26000 + i * 2500, loop: "true", "ping-pong": "true", easing: "easeInOutSine" }, g);
+    }
   }
 
   /* =========================================================================
