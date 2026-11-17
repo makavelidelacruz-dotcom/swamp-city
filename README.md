@@ -190,6 +190,23 @@ Every static building block in the city is now **baked into five textured models
 
 **When it turns on:** with `BAKED: true` and the asset pack hosted, *and* all the other add-ons on (`KENNEY`, `NATURE`, `MEDIEVAL`, `DOWNTOWN`, `STREETS`) at normal detail. In any other setup the world falls back to the primitive version, so it always works. Moving and clickable pieces (vehicles, airboats, the Ferris wheel, the vault, check-in stands, bet boards and turf walls) are still live MML elements, because they have to move or respond to clicks.
 
+## Boats, a smaller swamp and new clouds (update)
+
+- **Smaller swamp:** the water around the city is about half as wide (980 m across instead of 1,500 m). The city, buildings and streets are the same size.
+- **Original boat models** (modeled in Blender for this build, CC0):
+
+| Model | What it is | Where |
+|---|---|---|
+| `yacht-1`, `yacht-2` | 18 m motor yacht: teak decks, tinted saloon windows, flybridge with hardtop, radar arch, chrome rails, swim platform, fenders | Tied up along the east and west piers |
+| `sailboat` | 14 m sailing yacht with mast, rigging, furled sails and wheel | One at each pier |
+| `airboat-1` to `airboat-4` | Airboat with raised driver's seat, V8 engine, prop cage, twin rudders and a flag, in four colors | **8** on the Bayou Loop (up from 4), still rideable from the piers |
+| `airboat-prop` | The wooden fan, which spins on every airboat | |
+| `shrimpboat-1`, `shrimpboat-2` | 14 m bayou shrimp trawler with wheelhouse, outrigger booms and hanging nets | Moored off the north and south shores, and cruising an outer loop |
+| `skiff-1`, `skiff-2` | Aluminum jon boat with outboard motor | Beside the piers, along the shoreline and on the outer loop |
+
+- **Clouds:** three new puffy cloud models (`cloud-1` to `cloud-3`) with a sunlit top fading to a soft blue-grey underside, plus 10 big high clouds further out.
+- Turn these off with `BOATS: false`; the world then goes back to the old airboats and clouds.
+
 ## Optional add-ons (top of the world file)
 
 - `CASTLE_BASE`: the folder URL holding your princess castle GLBs. The castle then appears on Queen's Isle, out in the swamp north of the city.
