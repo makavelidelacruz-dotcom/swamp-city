@@ -1370,12 +1370,12 @@
   // low invisible rails, boarding steps, and a big control panel that floats in front of the riders (driver only).
   //   floor: [top y, centre z, width, depth]   rails: side x, front z, back z (null = open back)   dash: panel y, z, width
   const VSPEC = {
-    truck:    { floor: [1.45, -1.8, 2.5, 1.95], rails: { x: 1.3, zf: -0.82, zb: null }, steps: "rear", dash: { y: 3.3, z: -0.62, w: 2.6 }, tag: 4.1, speed: 14, rev: -5, turn: 22.5, rad: 2.4, land: true },
-    airboat:  { floor: [0.62, 0.75, 2.2, 3.9], rails: { x: 1.15, zf: 2.75, zb: -1.25 }, dash: { y: 2.3, z: 1.95, w: 2.0 }, tag: 4.5, speed: 15, rev: -4, turn: 22.5, rad: 3 },
-    skiff:    { floor: [0.47, -0.1, 1.6, 4.4], rails: { x: 0.85, zf: 2.25, zb: -2.45 }, dash: { y: 2.1, z: 1.7, w: 1.7 }, tag: 3.2, speed: 10, rev: -3, turn: 22.5, rad: 2.4 },
-    yacht:    { floor: [1.6, -7.05, 4.2, 3.9], rails: { x: 2.15, zf: -5.0, zb: -9.05 }, steps: "sides", dash: { y: 3.35, z: -5.45, w: 2.6 }, tag: 9.2, speed: 10, rev: -3, turn: 15, rad: 8 },
-    sailboat: { floor: [1.15, -4.95, 3.2, 4.1], rails: { x: 1.75, zf: -2.85, zb: -7.0 }, steps: "sides", dash: { y: 2.9, z: -3.15, w: 2.4 }, tag: 4.4, speed: 7, rev: -3, turn: 15, rad: 6.5 },
-    shrimp:   { floor: [1.35, -3.6, 4.0, 6.6], rails: { x: 2.15, zf: -0.25, zb: -6.95 }, steps: "sides", dash: { y: 3.1, z: -1.05, w: 2.6 }, tag: 10.2, speed: 8, rev: -3, turn: 15, rad: 6.5 }
+    truck:    { floor: [1.45, -1.8, 2.5, 1.95], rails: { x: 1.3, zf: -0.82, zb: null }, steps: "rear", dash: { y: 3.3, z: -0.62, w: 2.6 }, tag: 4.1, speed: 13, rev: -4, acc: 2.2, brake: 4, drag: 0.6, rate: 40, turn: 22.5, rad: 2.4, land: true },
+    airboat:  { floor: [0.62, 0.75, 2.2, 3.9], rails: { x: 1.15, zf: 2.75, zb: -1.25 }, dash: { y: 2.3, z: 1.95, w: 2.0 }, tag: 4.5, speed: 14, rev: -3, acc: 2.0, brake: 2.5, drag: 0.5, rate: 38, turn: 22.5, rad: 3 },
+    skiff:    { floor: [0.47, -0.1, 1.6, 4.4], rails: { x: 0.85, zf: 2.25, zb: -2.45 }, dash: { y: 2.1, z: 1.7, w: 1.7 }, tag: 3.2, speed: 9, rev: -3, acc: 1.6, brake: 2.2, drag: 0.5, rate: 38, turn: 22.5, rad: 2.4 },
+    yacht:    { floor: [1.6, -7.05, 4.2, 3.9], rails: { x: 2.15, zf: -5.0, zb: -9.05 }, steps: "sides", dash: { y: 3.35, z: -5.45, w: 2.6 }, tag: 9.2, speed: 9, rev: -2.5, acc: 0.9, brake: 1.2, drag: 0.25, rate: 16, turn: 15, rad: 8 },
+    sailboat: { floor: [1.15, -4.95, 3.2, 4.1], rails: { x: 1.75, zf: -2.85, zb: -7.0 }, steps: "sides", dash: { y: 2.9, z: -3.15, w: 2.4 }, tag: 4.4, speed: 6.5, rev: -2, acc: 0.8, brake: 1.0, drag: 0.25, rate: 16, turn: 15, rad: 6.5 },
+    shrimp:   { floor: [1.35, -3.6, 4.0, 6.6], rails: { x: 2.15, zf: -0.25, zb: -6.95 }, steps: "sides", dash: { y: 3.1, z: -1.05, w: 2.6 }, tag: 10.2, speed: 7.5, rev: -2.5, acc: 0.9, brake: 1.2, drag: 0.25, rate: 16, turn: 15, rad: 6.5 }
   };
   const LABELS = { truck: "TRUCK", airboat: "AIRBOAT", skiff: "SKIFF", yacht: "YACHT", sailboat: "SAILBOAT", shrimp: "SHRIMP BOAT" };
   const ghost = (attrs, parent) => box(Object.assign({ color: "#ffffff", opacity: 0, "cast-shadows": "false" }, attrs), parent);   // invisible collider
@@ -1400,14 +1400,14 @@
   function vehicle(id, kind, x, z, ry, buildLook) {
     const s = VSPEC[kind], baseY = s.land ? GROUND : WATERLINE;
     const g = grp({ id, x: r2(x), y: baseY, z: r2(z), ry: r2(ry) });
-    el("m-attr-lerp", { attr: "x,y,z,ry", duration: 220 }, g);
+    el("m-attr-lerp", { attr: "x,y,z,ry", duration: 120 }, g);
     const parts = buildLook(g);
     rideBits(kind, g);
     const free = "CLICK TO DRIVE THE " + LABELS[kind];
     const tagAt = { y: s.tag, z: r2(s.floor[1]), width: 4.6, height: 0.46, "font-size": 24, color: "#120d10", "font-color": AMBER, emissive: 0.4 };
     const tagF = text(free, tagAt, g), tagB = text(free, Object.assign({}, tagAt, { ry: 180 }), g);
     ANCHORS[id] = { parent: g, x: 0, y: r2(s.dash.y + 1.0), z: s.dash.z, ry: 180, w: 3.2 };
-    const car = { id, kind, i: CARS.length, g, dash: null, tagF, tagB, free, x, z, y: baseY, ry, v: 0, throttle: 0, driver: null, last: 0, home: { x, z, ry } };
+    const car = { id, kind, i: CARS.length, g, dash: null, tagF, tagB, free, x, z, y: baseY, ry, tRy: ry, tY: baseY, v: 0, throttle: 0, driver: null, last: 0, shown: "", home: { x, z, ry } };
     onClick(parts.concat([tagF, tagB]), cid => claim(car, cid));
     CARS.push(car);
     return car;
@@ -1431,8 +1431,10 @@
   function dropDash(car) { if (car.dash) { car.dash.remove(); car.dash = null; car.dashHead = null; } }
   function dashStatus(car) {
     if (!car.dashHead) return;
-    const st = car.throttle > 0 ? "FORWARD" : car.throttle < 0 ? "REVERSE" : "STOPPED";
-    setT(car.dashHead, LABELS[car.kind] + "  |  " + st);
+    const sp = Math.round(Math.abs(car.v) * 3.6);
+    const st = car.throttle > 0 ? "FORWARD" : car.throttle < 0 ? "REVERSE" : sp > 0 ? "SLOWING" : "STOPPED";
+    const s = LABELS[car.kind] + "  |  " + st + (sp > 0 ? "  " + sp + " KM/H" : "");
+    if (s !== car.shown) { car.shown = s; setT(car.dashHead, s); }
   }
   // swamp buggy / truck (kept as car-0 .. car-11 for the controller and tests)
   function buggy(i, x, z, ry) {
@@ -1456,8 +1458,8 @@
     setT(car.tagF, s); setT(car.tagB, s);
   }
   function release(car) {
-    car.driver = null; car.throttle = 0; car.v = 0;
-    dropDash(car);
+    car.driver = null; car.throttle = 0;   // it coasts to a stop
+    dropDash(car); car.shown = "";
     setCarTag(car);
   }
   function claim(car, cid) {
@@ -1476,8 +1478,8 @@
     if (act === "gas") car.throttle = 1;
     else if (act === "rev") car.throttle = -1;
     else if (act === "brake") car.throttle = 0;
-    else if (act === "left") { car.ry += turn; setCar(car); }
-    else if (act === "right") { car.ry -= turn; setCar(car); }
+    else if (act === "left") car.tRy += turn;     // the vehicle eases round to the new heading
+    else if (act === "right") car.tRy -= turn;
     else if (act === "exit") { release(car); say(cid, car.id, "Parked. Click it to drive again", "info"); return; }
     dashStatus(car);
   }
@@ -1507,28 +1509,52 @@
     for (const o of CARS) if (o !== car && Math.hypot(o.x - x, o.z - z) < (r1 + VSPEC[o.kind].rad) * 0.7 && Math.hypot(o.x - x, o.z - z) < Math.hypot(o.x - car.x, o.z - car.z)) return true;
     return false;
   }
+  // Smooth driving: 10 updates a second, a gentle start that builds up speed, gradual braking and coasting,
+  // and turns that ease round to the new heading instead of snapping.
+  const STEP = 0.1;
   function carTick() {
     const t = now();
     for (const car of CARS) {
       if (car.driver != null && car.throttle === 0 && t - car.last > 120000) release(car);
-      if (!car.throttle) { car.v = 0; continue; }
       const s = VSPEC[car.kind];
-      const target = car.throttle > 0 ? s.speed : s.rev;
-      car.v += (target - car.v) * 0.3;
-      const rad = car.ry * Math.PI / 180, dt = 0.2;
-      const nx = car.x + Math.sin(rad) * car.v * dt, nz = car.z + Math.cos(rad) * car.v * dt;
-      if ((s.land ? blocked(nx, nz) : boatBlocked(nx, nz, s.rad)) || bumps(car, nx, nz)) {
-        car.throttle = 0; car.v = 0; dashStatus(car);
-        if (car.driver != null) say(car.driver, car.id, s.land ? "BONK! Steer away, then GAS" : "Too shallow - steer for open water", "bad");
-        continue;
+      const turning = Math.abs(car.tRy - car.ry) > 0.05, sinking = Math.abs(car.tY - car.y) > 0.01;
+      if (!car.throttle && Math.abs(car.v) < 0.05 && !turning && !sinking) { car.v = 0; continue; }
+      // speed: ease in from a standstill (starts very slow), then build to top speed
+      if (car.throttle) {
+        const target = car.throttle > 0 ? s.speed : s.rev;
+        const same = Math.sign(target) === Math.sign(car.v) || Math.abs(car.v) < 0.05;
+        if (same) {
+          const ease = 0.2 + 0.8 * Math.min(1, Math.abs(car.v) / (s.speed * 0.35));
+          const step = s.acc * ease * STEP;
+          car.v = target > 0 ? Math.min(target, car.v + step) : Math.max(target, car.v - step);
+        } else car.v -= Math.sign(car.v) * Math.min(Math.abs(car.v), s.brake * STEP);   // slow down before changing direction
+      } else {
+        const dec = (car.driver != null ? s.brake : s.drag) * STEP;                     // BRAKE (or coasting when parked)
+        car.v -= Math.sign(car.v) * Math.min(Math.abs(car.v), dec);
       }
-      car.x = nx; car.z = nz;
-      if (s.land) car.y = onIsland(nx, nz) ? GROUND : -0.5;
+      // steering: turn toward the target heading; slower when barely moving
+      if (turning) {
+        const k = 0.35 + 0.65 * Math.min(1, Math.abs(car.v) / s.speed), d = car.tRy - car.ry, m = s.rate * k * STEP;
+        car.ry = Math.abs(d) <= m ? car.tRy : car.ry + Math.sign(d) * m;
+      }
+      const rad = car.ry * Math.PI / 180;
+      const nx = car.x + Math.sin(rad) * car.v * STEP, nz = car.z + Math.cos(rad) * car.v * STEP;
+      if (Math.abs(car.v) > 0.01) {
+        if ((s.land ? blocked(nx, nz) : boatBlocked(nx, nz, s.rad)) || bumps(car, nx, nz)) {
+          car.throttle = 0; car.v = 0; car.tRy = car.ry; dashStatus(car);
+          if (car.driver != null) say(car.driver, car.id, s.land ? "BONK! Steer away, then GAS" : "Too shallow - steer for open water", "bad");
+          setCar(car);
+          continue;
+        }
+        car.x = nx; car.z = nz;
+      }
+      if (s.land) { car.tY = onIsland(car.x, car.z) ? GROUND : -0.5; car.y += Math.sign(car.tY - car.y) * Math.min(Math.abs(car.tY - car.y), 0.06); }
       setCar(car);
+      dashStatus(car);
       if (car.driver != null && s.land) race.driveCheck(car.driver, car.x, car.z);
     }
   }
-  function resetCars() { for (const car of CARS) { release(car); car.x = car.home.x; car.z = car.home.z; car.ry = car.home.ry; car.y = VSPEC[car.kind].land ? GROUND : WATERLINE; setCar(car); } }
+  function resetCars() { for (const car of CARS) { release(car); car.x = car.home.x; car.z = car.home.z; car.ry = car.tRy = car.home.ry; car.v = 0; car.y = car.tY = VSPEC[car.kind].land ? GROUND : WATERLINE; setCar(car); } }
   // plaza and ring-road trucks cycle colours; hideout trucks match their team where Kenney has the colour
   const TRUCKS = ["truck-red", "truck-yellow", "truck-green", "truck-purple", "truck-green", "truck-red", "truck-yellow", "truck-purple", "truck-red", "truck-yellow", "truck-green", "truck-purple"];
   function buildCars() {
@@ -1647,7 +1673,7 @@
   hookHost();
   onClick(document.getElementById("vault"), cid => heist.grab(cid));
 
-  setInterval(carTick, 200);
+  setInterval(carTick, 100);
   setInterval(() => {
     const t = now();
     if (ACTIVE) GAMES[ACTIVE].tick(t);
