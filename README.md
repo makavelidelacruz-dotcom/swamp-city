@@ -192,7 +192,7 @@ Every static building block in the city is now **baked into five textured models
 
 ## Boats, a smaller swamp and new clouds (update)
 
-- **Smaller swamp:** the water around the city is about half as wide (980 m across instead of 1,500 m). The city, buildings and streets are the same size.
+- **Smaller, round swamp:** the swamp is now a circle 720 m across (radius 360 m), which cuts the open water by about 70% from the 980 m square. The city, buildings, streets and piers are the same size, and the airboat loop, work-boat loop and outer gators all sit inside the new shoreline.
 - **Original boat models** (modeled in Blender for this build, CC0):
 
 | Model | What it is | Where |

@@ -282,10 +282,10 @@
   /* =========================================================================
      GROUND, WATER, ROADS
      ========================================================================= */
-  const SWAMP = 980;   // swamp around the city (was 1500): about half as much water past the shoreline
+  const SWAMP_R = 360;   // round swamp around the city, 720 m across (was a 980 m square): about 70% less open water
   function buildGround() {
-    box({ y: -1.3, z: CZ, width: SWAMP, height: 0.4, depth: SWAMP, color: "#2b2418", mat: "mud" });                         // swamp mud (walkable)
-    box({ y: -0.45, z: CZ, width: SWAMP, height: 0.08, depth: SWAMP, color: "#2d4a3a", opacity: 0.82, collide: "false", mat: "water" }); // water
+    cyl({ y: -1.3, z: CZ, radius: SWAMP_R, height: 0.4, color: "#2b2418", mat: "mud" });                         // swamp mud (walkable)
+    cyl({ y: -0.45, z: CZ, radius: SWAMP_R, height: 0.08, color: "#2d4a3a", opacity: 0.82, collide: "false", mat: "water" }); // water
     box({ y: ST ? -0.58 : -0.5, z: CZ, width: ISLAND.x2 - ISLAND.x1, height: 1.2, depth: ISLAND.z2 - ISLAND.z1, color: "#3d4a2c", mat: "bank" }); // island
     if (ST) natModel("ground-grass", 0, 0.11, CZ, 1, 0, true);                                                                // grass lawn
     // boardwalk rim around the island
@@ -686,7 +686,7 @@
     }
     // a second ring of swimmers further out, drifting slowly
     for (let i = 0; i < 6; i++) {
-      const a = rnd2() * Math.PI * 2, r = 330 + rnd2() * 70, x = Math.cos(a) * r, z = CZ + Math.sin(a) * r;
+      const a = rnd2() * Math.PI * 2, r = 312 + rnd2() * 30, x = Math.cos(a) * r, z = CZ + Math.sin(a) * r;
       const g = gm(x, -0.42, z, 0, 1.1 + rnd2() * 0.3);
       el("m-attr-anim", { attr: "z", start: r2(z - 8), end: r2(z + 8), duration: 26000 + i * 2500, loop: "true", "ping-pong": "true", easing: "easeInOutSine" }, g);
     }
@@ -771,7 +771,7 @@
     const loop2 = grp({ z: CZ });
     el("m-attr-anim", { attr: "ry", start: 360, end: 0, duration: 420000, loop: "true" }, loop2);
     ["shrimpboat-1", "skiff-1", "shrimpboat-2", "skiff-2", "shrimpboat-1", "skiff-2"].forEach((name, i) => {
-      const phi = i * 60 + 20, rad = phi * Math.PI / 180, R2 = 405;
+      const phi = i * 60 + 20, rad = phi * Math.PI / 180, R2 = 342;
       el("m-model", { src: natURL(name), x: r2(Math.cos(rad) * R2), y: W, z: r2(-Math.sin(rad) * R2), ry: phi, collide: "false" }, loop2);
     });
   }
@@ -782,8 +782,8 @@
   function buildOptional() {
     if (CONFIG.CASTLE_BASE) {
       const base = CONFIG.CASTLE_BASE.replace(/\/?$/, "/");
-      const ix = 0, iz = CZ - 430;
-      cyl({ x: ix, y: -0.6, z: iz, radius: 55, height: 1.4, color: "#4a5a34" });
+      const ix = 0, iz = CZ - 335;
+      cyl({ x: ix, y: -0.6, z: iz, radius: 22, height: 1.4, color: "#4a5a34" });
       text("QUEEN'S ISLE - wade out through the swamp", { x: 0, y: 3, z: ISLAND.z1 - 4, ry: 180, width: 12, height: 0.7, "font-size": 40, "font-color": "#ff9ad5" });
       const c = grp({ x: ix, y: 0.1, z: iz });
       for (const f of ["citadel_grounds", "citadel_walls", "citadel_keep"]) el("m-model", { src: base + f + ".glb" }, c);
