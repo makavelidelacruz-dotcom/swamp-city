@@ -580,8 +580,8 @@
     });
     if (DT) for (let z = z1 + 1; z <= z2 - 1; z += 3) natModel("dt-bollard", x1 - 2.2, 0.1, z, 1.2, 0, true);
     // casino block: hotel tower to the north, stilt motel to the south
-    tower({ x: 75, z: CZ - 35, w: 24, d: 12, h: 24, ry: 0, color: "#5a2f4a", glass: "#d9a3c7", band: "#2a1830", sign: "GATOR GRAND HOTEL", signColor: PINK });
-    building({ x: 75, z: CZ + 36, w: 26, d: 9, h: 5, ry: 180, stilts: true, color: "#3f7a7a", roof: "flat", sign: "PELICAN MOTEL", signColor: NEON, side: false });
+    tower({ x: 75, z: CZ - 35, w: 24, d: 12, h: 24, ry: 180, color: "#5a2f4a", glass: "#d9a3c7", band: "#2a1830", sign: "GATOR GRAND HOTEL", signColor: PINK });
+    building({ x: 75, z: CZ + 36, w: 26, d: 9, h: 5, ry: 0, stilts: true, color: "#3f7a7a", roof: "flat", sign: "PELICAN MOTEL", signColor: NEON, side: false });
     el("m-light", { type: "point", x: 76, y: 7.5, z: CZ - 10, color: "#ff8ae6", intensity: 900, distance: 28, "cast-shadows": "false" });
     el("m-light", { type: "point", x: 76, y: 7.5, z: CZ + 10, color: "#8ae6ff", intensity: 900, distance: 28, "cast-shadows": "false" });
     FOOT.push({ x1: x1 - 1, x2: x2 + 1, z1: z1 - 1, z2: z2 + 1 });
@@ -623,9 +623,9 @@
     });
     ANCHORS.arena = { x: x + 16.3, y: 3.1, z, ry: 90, w: 9 };
     // arena block: gator farm shacks north, bait shack south
-    building({ x: -86, z: CZ - 36, w: 10, d: 8, h: 5, ry: 0, stilts: true, color: "#6a7a4a", roof: "gable", sign: "GATOR FARM", signColor: "#7dff8a", side: false });
-    building({ x: -64, z: CZ - 36, w: 9, d: 8, h: 4.5, ry: 0, stilts: true, color: "#7a5a3a", roof: "gable", side: false });
-    building({ x: -84, z: CZ + 34, w: 10, d: 8, h: 4.5, ry: 180, stilts: true, color: "#4a6a7a", roof: "gable", sign: "LIVE BAIT", signColor: AMBER, side: false });
+    building({ x: -86, z: CZ - 36, w: 10, d: 8, h: 5, ry: 180, stilts: true, color: "#6a7a4a", roof: "gable", sign: "GATOR FARM", signColor: "#7dff8a", side: false });
+    building({ x: -64, z: CZ - 36, w: 9, d: 8, h: 4.5, ry: 90, stilts: true, color: "#7a5a3a", roof: "gable", side: false });
+    building({ x: -84, z: CZ + 34, w: 10, d: 8, h: 4.5, ry: 0, stilts: true, color: "#4a6a7a", roof: "gable", sign: "LIVE BAIT", signColor: AMBER, side: false });
     for (const [tx, tz] of [[-92, CZ + 22], [-58, CZ - 40], [-66, CZ + 40]]) { tree(tx, tz, 0.8, false); FOOT.push({ cx: tx, cz: tz, r: 1 }); }
     if (MED) { for (let k = 0; k < 7; k++) natModel("med-fence", -93 + k * 2.05, 0.1, CZ - 27, 1, 0, true); natModel("med-wagon", -70, 0.1, CZ - 29, 1.1, 75, true); }
     el("m-light", { type: "point", x, y: 12, z, color: "#ffe9b8", intensity: 1500, distance: 36, "cast-shadows": "false" });
@@ -643,10 +643,10 @@
     tower({ x: 12, z: CZ - 77, w: 14, d: 14, h: 42, color: "#5c4a3d", glass: "#9cc4b0", sign: "MARSH TOWER", signColor: AMBER });
     tower({ x: 32, z: CZ - 80, w: 12, d: 12, h: 26, color: "#45514a", glass: "#86a8c4" });
     // NW and NE corners: one tower each behind the hideouts
-    tower({ x: -88, z: CZ - 90, w: 10, d: 10, h: 22, color: "#4b4f3e" });
-    tower({ x: 88, z: CZ - 90, w: 10, d: 10, h: 28, color: "#3e4a52", glass: "#a7d0e0" });
-    building({ x: -62, z: CZ - 89, w: 9, d: 8, h: 7, color: "#7a3f3a", roof: "gable" });
-    building({ x: 62, z: CZ - 89, w: 9, d: 8, h: 7, color: "#3f6a7a", roof: "gable" });
+    tower({ x: -88, z: CZ - 90, w: 10, d: 10, h: 22, ry: 180, color: "#4b4f3e" });
+    tower({ x: 88, z: CZ - 90, w: 10, d: 10, h: 28, ry: 180, color: "#3e4a52", glass: "#a7d0e0" });
+    building({ x: -62, z: CZ - 89, w: 9, d: 8, h: 7, ry: 180, color: "#7a3f3a", roof: "gable" });
+    building({ x: 62, z: CZ - 89, w: 9, d: 8, h: 7, ry: 180, color: "#3f6a7a", roof: "gable" });
   }
 
   function buildNeonRow() {
@@ -655,10 +655,10 @@
       ["BAIT & TACKLE", "#2f6a5a", NEON], ["SWAMP PAWN", "#6a2f2f", "#ffd98a"]
     ];
     shops.forEach(([name, colr, sc], i) => building({ x: -36 + i * 18, z: CZ + 62, w: 14, d: 10, h: 7 + (i % 2) * 3, color: colr, ry: 180, balcony: true, sign: name, signColor: sc, roof: i % 2 ? "gable" : "flat", side: false }));
-    for (let i = 0; i < 4; i++) building({ x: -27 + i * 18, z: CZ + 82, w: 9, d: 8, h: 5, color: ["#6f8a5a", "#8a6f5a", "#5a6f8a", "#8a5a7a"][i], ry: 180, stilts: true, roof: "gable", side: false });
+    for (let i = 0; i < 4; i++) building({ x: -27 + i * 18, z: CZ + 82, w: 9, d: 8, h: 5, color: ["#6f8a5a", "#8a6f5a", "#5a6f8a", "#8a5a7a"][i], ry: 0, stilts: true, roof: "gable", side: false });   // doors face the road to the south
     // stilt shacks in the hideout blocks
     for (const [x, z, c] of [[-89, CZ + 88, "#5f7a8a"], [-61, CZ + 88, "#8a7a5f"], [61, CZ + 88, "#7a5f8a"], [89, CZ + 88, "#5f8a6f"]])
-      building({ x, z, w: 9, d: 8, h: 5, color: c, ry: 180, stilts: true, roof: "gable", side: false });
+      building({ x, z, w: 9, d: 8, h: 5, color: c, ry: 0, stilts: true, roof: "gable", side: false });   // doors face the road to the south
     if (DT) for (const x of [-40, -14, 14, 40]) natModel("dt-planter", x, 0.1, CZ + 56.2, 1, 0, false);
     if (KEN) [-30, -26, 6, 10, 26].forEach((x, i) => el("m-model", { src: asset("motorcycle"), x, y: 0.5, z: CZ + 54.5, ry: 80 + i * 7, sx: 1.6, sy: 1.6, sz: 1.6, collide: "false", "cast-shadows": "false" }));
     el("m-light", { type: "point", y: 8, z: CZ + 54, color: "#ff9ad5", intensity: 1000, distance: 40, "cast-shadows": "false" });
@@ -1193,7 +1193,7 @@
       cyl({ x: sx, y: 12, z: CZ - 186, radius: 1.3, height: 24, color: "#7a3a2a", mat: "brick" });
       cyl({ x: sx, y: 24.2, z: CZ - 186, radius: 1.45, height: 0.5, color: "#222", collide: "false", mat: "iron" });
     }
-    box({ y: 0.7, z: CZ - 166.5, width: 30, height: 1.2, depth: 3, color: "#5a5047", mat: "concrete" });
+    for (const s of [-1, 1]) box({ x: s * 9, y: 0.7, z: CZ - 166.5, width: 12, height: 1.2, depth: 3, color: "#5a5047", mat: "concrete" });   // loading docks either side of the front door
     for (let i = 0; i < 6; i++) {
       if (MED) { natModel("med-crate", -24 + i * 9.5, 0.1, CZ - 162.5, 1.3, rand() * 30, true); if (i % 2) natModel("med-crate", -24 + i * 9.5 + 0.3, 1.5, CZ - 162.6, 1.3, rand() * 40, false); }
       else box({ x: -24 + i * 9.5, y: 0.7, z: CZ - 162.5, ry: rand() * 30, width: 1.4, height: 1.4, depth: 1.4, color: "#8a6a3a", collide: "false" });

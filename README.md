@@ -237,6 +237,13 @@ Every static building block in the city is now **baked into five textured models
 - `MODELS`: swap in CC0 GLBs for the buggy, airboat or gators.
 - `DETAIL: "low"`: cuts trees, reeds, lily pads, street lamps and outer-district buildings for weaker devices.
 
+## Every door faces its street (update)
+
+- All 142 buildings with a door (101 houses you can claim in Turf War, 6 towers and 35 model buildings) were checked by tracing a 1.8 m wide path straight out of each door: every one now reaches a street or the plaza without passing between other buildings.
+- Turned to face their street: Gator Grand Hotel (it faced the back of the casino), Pelican Motel (also faced the casino), Gator Farm, Live Bait and the shack next to the farm, the two corner towers and two houses north of downtown, and the eight stilt houses behind Neon Row.
+- The cannery's loading dock was split in two so its front door opens straight onto the street.
+- `tools/doorcheck.py` is the check (it reads a door dump from a debug run of the world).
+
 ## A smaller build: no outside water (update)
 
 - The round swamp is gone. The world now ends at the city's stone seawall (430 m square), so the whole build is much smaller.
