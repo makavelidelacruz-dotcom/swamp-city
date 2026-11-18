@@ -31,7 +31,14 @@ A Grand Theft Auto style MML world for 4 teams and 50+ players. It uses the same
 - **Neon Row:** bars and shops to the south, with stilt shacks behind them.
 - **Outer districts (new):** a second ring of blocks around downtown, about 430 m across in total.
   - **Cannery Row (north):** warehouses and the Bayou Cannery with its smokestacks.
-  - **Bayou Village (south):** stilt shacks and the Swamp Fair with a turning Ferris wheel.
+  - **Bayou Village (south):** stilt shacks and the Swamp Fair.
+- **Swamp Fair** (south of the city, through the striped gate). Every ride carries players on hidden floors that move with it:
+  - **Bayou Eye:** a 14 m Ferris wheel with 12 lit gondolas that stay level. It never stops (one loop every 2 minutes): climb the platform stairs and hop into a gondola as it passes the bottom.
+  - **Gator-Go-Round:** a carousel with 16 bobbing gators and frogs under a striped canopy. It turns slowly all the time; step on from the boarding ring.
+  - **Gator Drop:** a 32 m tower topped with a giant gator head. Hop on the ring while it says BOARDING; it climbs 26 m, hangs, then drops. The sign counts down to the next drop.
+  - **Whack-a-Gator:** click the counter to play. Gators pop up for 20 seconds; bop as many as you can. The booth shows the high score.
+  - **Test Your Bite:** a high striker. Click SWING! when the needle is far right; ring the bell for GATOR!
+  - Food stands (Funnel Cakes, Boudin Balls, Snowballs, Gator on a Stick), a sawdust promenade and string lights.
   - **Voodoo Quarter (east):** colorful balcony buildings and the KGTR radio tower.
   - **Gator Flats (west):** shacks, trailers and the Gator Junk yard.
   - Small marsh parks with ponds and cypress trees are scattered through the blocks.
@@ -82,7 +89,6 @@ The world is dressed with free CC0 models by [Kenney](https://kenney.nl), taken 
 - **Cannery Row:** garages and warehouses.
 - **Plaza:** two fountains.
 - **Bank Job:** spinning gold coins at the vault.
-- **Swamp Fair:** fair tents.
 - **Neon Row:** parked motorcycles.
 - **Sky:** drifting clouds.
 
@@ -191,7 +197,7 @@ Every static building block in the city is now **baked into five textured models
 | Casino and big-screen header | Marquee boxes ringed with lit bulbs |
 | Bank | Gold letters carved into a limestone panel with gold trim |
 | Gator Pit, district and airboat signs | Boards on two iron posts |
-| Swamp Fair | An entrance arch with striped pillars and gold balls |
+| Swamp Fair | The name panel on the modeled entrance arch |
 | Check-in sign | A wooden board hanging from chains |
 
 **Lighter for big groups:** the world now sends about half as many elements when players join (about 1,560 instead of 3,120).

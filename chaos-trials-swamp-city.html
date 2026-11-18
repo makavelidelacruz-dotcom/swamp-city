@@ -144,7 +144,10 @@
     "shrimpboat-1", "shrimpboat-2", "skiff-1", "skiff-2", "cloud-1", "cloud-2", "cloud-3", "gator", "gator-bronze",
     "pickup-red", "pickup-blue", "pickup-gold", "pickup-green",
     "wheel-spin", "wheel-frame", "slot-purple", "slot-teal", "slot-red", "slot-mega", "slot-reel", "slot-lever", "dice",
-    "bet-crown", "bet-gator", "bet-frog", "bet-skull"];
+    "bet-crown", "bet-gator", "bet-frog", "bet-skull",
+    "ferris-frame", "ferris-rim", "gondola-pink", "gondola-teal", "gondola-gold", "gondola-purple", "carousel", "carousel-base", "carousel-gator", "carousel-frog",
+    "drop-tower", "drop-ring", "whack-booth", "whack-gator", "striker", "striker-puck", "fair-arch", "fair-pole", "fair-garland",
+    "stand-funnel", "stand-boudin", "stand-snowball", "stand-gatorstick"];
   const BOATS = !!CONFIG.BOATS && (!!CONFIG.ASSET_HOST || BOAT_NAMES.every(n => CONFIG.ASSET_URLS[n]));
   // separate random stream for boats and extra clouds, so the baked city layout never shifts
   let seed2 = 9871;
@@ -852,6 +855,225 @@
   }
 
   /* =========================================================================
+     SWAMP FAIR: Bayou Eye Ferris wheel, Gator-Go-Round carousel, Gator Drop tower,
+     Whack-a-Gator, Test Your Bite high striker, food stands and string lights.
+     Rides carry players on hidden floors that move with them (same idea as the vehicles).
+     ========================================================================= */
+  const FAIR = { whack: null, striker: null, drop: null };
+  function buildFair() {
+    if (MED) { rand(); rand(); rand(); }   // keep the random sequence the old fair used, so the rest of the city stays put
+    const G0 = GROUND, PATHC = "#c9a46a";
+    // sawdust promenade from the gate to the wheel, and pads under the rides
+    box({ x: 0, y: 0.17, z: 147, width: 7.5, height: 0.06, depth: 21, color: PATHC, mat: "sand", collide: "false" });
+    box({ x: 0, y: 0.17, z: 132.2 + 4.8, width: 14, height: 0.06, depth: 2.5, color: PATHC, mat: "sand", collide: "false" });
+    // entrance arch with its sign
+    el("m-model", { src: natURL("fair-arch"), x: 0, y: G0, z: 137 });
+    text("SWAMP FAIR", { x: 0, y: G0 + 5.2, z: 136.86, ry: 180, width: 8.6, height: 1.2, "font-size": 92, color: "#2a1238", "font-color": PINK, emissive: 1, mount: "wall", back: 0.05 });
+    footBox(0, 137, 14, 2.5, 0);
+    // food stands along the promenade, facing the path
+    for (const [key, x, z, ry] of [["funnel", -10, 140, -90], ["boudin", -10, 155, -90], ["snowball", 10, 140, 90], ["gatorstick", 10, 155, 90]]) {
+      el("m-model", { src: natURL("stand-" + key), x, y: G0, z, ry });
+      footBox(x + (x < 0 ? -1.1 : 1.1), z, 2.4, 3.4, 0);
+    }
+    // light poles and string lights over the promenade
+    footBox(-11.2, 148, 3, 5, 0); footBox(10.6, 147, 2.6, 2.6, 0);   // Whack-a-Gator and Test Your Bite
+    for (const z of [141, 147, 153]) for (const s of [-1, 1]) el("m-model", { src: natURL("fair-pole"), x: s * 4.5, y: G0, z, collide: "false" });
+    for (const z of [141, 147, 153]) el("m-model", { src: natURL("fair-garland"), x: -4.5, y: G0 + 5.6, z, sx: 0.75, collide: "false", "cast-shadows": "false" });
+    for (const s of [-1, 1]) for (const [z1, z2] of [[141, 147], [147, 153]])
+      el("m-model", { src: natURL("fair-garland"), x: s * 4.5, y: G0 + 5.6, z: z1, ry: -90, sx: (z2 - z1) / 12, collide: "false", "cast-shadows": "false" });
+    for (const [x, z] of [[-22, 147], [-34, 147], [22, 149], [36, 150], [-20, 168], [20, 170]]) el("m-model", { src: natURL("fair-pole"), x, y: G0, z, collide: "false" });
+    // ride name signs: hung from a bar between two gold posts (painted into the city model when baked)
+    const rideSign = (name, sub, x, z, w, y, bg, fg) => {
+      text(name, { x, y: GROUND + y, z, ry: 180, width: w, height: 0.75, "font-size": 60, color: bg, "font-color": fg, emissive: 1, mount: "hang" });
+      live(() => text(sub, { x, y: GROUND + y - 0.62, z: r2(z - 0.02), ry: 180, width: w + 0.8, height: 0.36, "font-size": 19, color: bg, "font-color": "#fff2c8", emissive: 0.7 }));   // stays a live label so its words show
+      const top = y + 0.375 + 0.8;
+      for (const s of [-1, 1]) cyl({ x: r2(x + s * (w / 2 + 0.45)), y: GROUND + top / 2, z: z + 0.07, radius: 0.07, height: r2(top), color: "#d9a33a", collide: "false", mat: "gold" });
+    };
+    rideSign("BAYOU EYE", "HOP IN AT THE BOTTOM  |  2 MIN LOOP", 0, 156.1, 4.2, 3.4, "#123a3a", "#7dfff0");
+    rideSign("GATOR-GO-ROUND", "STEP ON WHILE IT TURNS", -28, 149.4, 4.6, 3.0, "#4a0f22", "#ffd27a");
+    rideSign("GATOR DROP", "HOP ON WHILE IT'S BOARDING", 28, 153.8, 4.0, 3.6, "#2a1238", "#ff6ec7");
+    live(() => { buildFerris(); buildCarousel(); buildDropTower(); buildWhack(); buildStriker(); });
+    el("m-light", { type: "point", x: 0, y: 12, z: 156, color: "#ff9ad5", intensity: 1600, distance: 45, "cast-shadows": "false" });
+    el("m-light", { type: "point", x: -28, y: 9, z: 158, color: "#ffd27a", intensity: 900, distance: 24, "cast-shadows": "false" });
+  }
+
+  // BAYOU EYE: 12 gondolas on a 14 m wheel, one loop every 2 minutes. Board at the bottom from the platform.
+  function buildFerris() {
+    const X = 0, Z = 163, HUB = GROUND + 18.2, R = 14, LOOP = 120000;
+    el("m-model", { src: natURL("ferris-frame"), x: X, y: GROUND, z: Z });
+    const spin = grp({ x: X, y: HUB, z: Z });
+    el("m-attr-anim", { attr: "rz", start: 0, end: 360, duration: LOOP, loop: "true" }, spin);
+    el("m-model", { src: natURL("ferris-rim"), collide: "false" }, spin);
+    const cols = ["gondola-pink", "gondola-teal", "gondola-gold", "gondola-purple"];
+    for (let k = 0; k < 12; k++) {
+      const a = (270 + k * 30) * Math.PI / 180;
+      const g = grp({ x: r2(Math.cos(a) * R), y: r2(Math.sin(a) * R) }, spin);
+      el("m-attr-anim", { attr: "rz", start: 0, end: -360, duration: LOOP, loop: "true" }, g);   // stays level
+      el("m-model", { src: natURL(cols[k % 4]), collide: "false" }, g);
+      ghost({ y: -3.06, width: 2.3, height: 0.12, depth: 1.7 }, g);                              // floor
+      for (const s of [-1, 1]) ghost({ x: s * 1.2, y: -2.45, width: 0.12, height: 1.1, depth: 1.8 }, g);
+      ghost({ y: -2.45, z: 0.9, width: 2.4, height: 1.1, depth: 0.12 }, g);
+      ghost({ y: -2.72, z: -0.9, width: 2.4, height: 0.55, depth: 0.12 }, g);                    // low front lip: hop in
+    }
+    footBox(X, Z - 1.5, 18, 11, 0);
+  }
+
+  // GATOR-GO-ROUND: always turning slowly. Step onto the deck from the boarding ring.
+  function buildCarousel() {
+    const X = -28, Z = 158, LOOP = 45000;
+    el("m-model", { src: natURL("carousel-base"), x: X, y: GROUND, z: Z });
+    const rot = grp({ x: X, y: GROUND, z: Z });
+    el("m-attr-anim", { attr: "ry", start: 0, end: 360, duration: LOOP, loop: "true" }, rot);
+    el("m-model", { src: natURL("carousel"), collide: "false" }, rot);
+    cyl({ y: 0.45, radius: 6.5, height: 0.3, color: "#ffffff", opacity: 0 }, rot);         // the deck you stand on
+    cyl({ y: 2.85, radius: 1.1, height: 4.5, color: "#ffffff", opacity: 0 }, rot);          // centre column
+    let k = 0;
+    for (const [rr, off] of [[3.2, 0], [5.0, 22.5]]) for (let i = 0; i < 8; i++, k++) {
+      const deg = i * 45 + off, a = deg * Math.PI / 180;
+      const seat = grp({ x: r2(Math.cos(a) * rr), y: 0.6, z: r2(Math.sin(a) * rr), ry: r2(90 - deg) }, rot);
+      const bob = grp({}, seat);
+      el("m-attr-anim", { attr: "y", start: 0, end: 0.35, duration: 2600, loop: "true", "ping-pong": "true", easing: "easeInOutSine", "start-time": (k * 330) % 2600 }, bob);
+      el("m-model", { src: natURL((i + (rr > 4 ? 1 : 0)) % 2 ? "carousel-gator" : "carousel-frog"), collide: "false" }, bob);
+    }
+    footBox(X, Z, 17, 17, 0);
+  }
+
+  // GATOR DROP: the ring climbs 26 m, hangs, then drops. Step on during BOARDING.
+  function buildDropTower() {
+    const X = 28, Z = 160, REST = GROUND + 0.55, TOP = 26;
+    el("m-model", { src: natURL("drop-tower"), x: X, y: GROUND, z: Z, collide: "false" });
+    box({ x: X, y: GROUND + 16.5, z: Z, width: 2.4, height: 33, depth: 2.4, color: "#ffffff", opacity: 0 });     // the tower itself
+    cyl({ x: X, y: GROUND + 0.15, z: Z, radius: 4.8, height: 0.3, color: "#ffffff", opacity: 0 });               // plinth
+    const ring = grp({ x: X, y: REST, z: Z });
+    el("m-model", { src: natURL("drop-ring"), collide: "false" }, ring);
+    for (let k = 0; k < 12; k++) {          // floor sectors between the collar and the lip
+      const deg = k * 30 + 15, a = deg * Math.PI / 180, rr = 2.78;
+      ghost({ x: r2(Math.cos(a) * rr), y: -0.1, z: r2(Math.sin(a) * rr), ry: r2(90 - deg), width: 1.62, height: 0.2, depth: 1.9 }, ring);
+    }
+    for (let k = 0; k < 16; k++) {          // the low lip round the outside (hop over it to board)
+      const deg = k * 22.5, a = deg * Math.PI / 180;
+      ghost({ x: r2(Math.cos(a) * 3.75), y: 0.27, z: r2(Math.sin(a) * 3.75), ry: r2(90 - deg), width: 1.5, height: 0.55, depth: 0.12 }, ring);
+    }
+    cyl({ y: 0.95, radius: 1.85, height: 1.9, color: "#ffffff", opacity: 0 }, ring);
+    const status = text("GATOR DROP - STARTING UP", { x: X, y: GROUND + 2.35, z: Z - 6.25, ry: 180, width: 5.0, height: 0.4, "font-size": 22, color: "#2a1238", "font-color": "#fff2c8", emissive: 0.8 });
+    footBox(X, Z, 11, 13, 0);
+    FAIR.drop = { ring, status, REST, TOP, phase: "board", until: now() + 15000 };
+  }
+  function dropTick() {
+    const d = FAIR.drop; if (!d) return;
+    const t = now(), left = Math.max(0, Math.ceil((d.until - t) / 1000));
+    if (t >= d.until) {
+      if (d.phase === "board") { d.phase = "lift"; d.until = t + 16000; playAnim(d.ring, "y", d.REST, d.REST + d.TOP, 16000, "easeInOutSine"); }
+      else if (d.phase === "lift") { d.phase = "hold"; d.until = t + 2500 + Math.floor(Math.random() * 3500); }
+      else if (d.phase === "hold") {
+        d.phase = "drop"; d.until = t + 4200;
+        playAnim(d.ring, "y", d.REST + d.TOP, d.REST + 1.6, 2600, "easeInQuad");                                  // a little slower than free fall, so riders stay on
+        setTimeout(() => { if (FAIR.drop.phase === "drop") playAnim(d.ring, "y", d.REST + 1.6, d.REST, 1300, "easeOutQuad"); }, 2600);
+      } else { d.phase = "board"; d.until = t + 15000; }
+    }
+    setT(d.status, d.phase === "board" ? "BOARDING - HOP ON THE RING  |  DROP IN " + left + "s" : d.phase === "lift" ? "GOING UP... HOLD ON" : d.phase === "hold" ? "HANG ON..." : "GATOR DROP!!!");
+  }
+
+  // WHACK-A-GATOR: one player at a time, 20 seconds, bop the gators as they pop up
+  function buildWhack() {
+    const X = -10, Z = 148, RY = 90;   // the booth model opens toward +z; turned to face the promenade
+    const g = grp({ x: X, y: GROUND, z: Z, ry: RY });
+    el("m-model", { src: natURL("whack-booth") }, g);
+    const holes = [];
+    for (let k = 0; k < 5; k++) {
+      const h = grp({ x: r2(-1.4 + k * 0.7), y: 1.0, z: -0.45 }, g);
+      const pop = grp({ y: -0.5 }, h);
+      const gator = el("m-model", { src: natURL("whack-gator"), collide: "false" }, pop);
+      holes.push({ k, pop, gator, upUntil: 0, hit: false });
+    }
+    const start = text("CLICK HERE TO PLAY", { y: 0.6, z: 0.03, width: 2.8, height: 0.42, "font-size": 26, color: "#0e2a18", "font-color": "#7dff8a", emissive: 0.9 }, g);
+    const score = text("HIGH SCORE  -", { y: 3.32, z: -2.05, width: 3.6, height: 0.34, "font-size": 22, color: "#0e2a18", "font-color": "#ffd27a", emissive: 0.9 }, g);
+    ANCHORS.whack = { parent: g, x: 0, y: 4.1, z: 0.9, ry: 0, w: 3.6 };
+    const w = { g, holes, start, score, player: null, endAt: 0, points: 0, best: 0, bestName: "", timers: [] };
+    FAIR.whack = w;
+    onClick(start, cid => whackStart(cid));
+    holes.forEach(h => onClick(h.gator, cid => whackHit(h, cid)));
+  }
+  function whackStart(cid) {
+    const w = FAIR.whack;
+    if (w.player != null && now() < w.endAt) return say(cid, "whack", w.player === cid ? "You're playing - bop the gators!" : nameOf(w.player) + " is playing - you're next in a few seconds", "info");
+    w.player = cid; w.points = 0; w.endAt = now() + 20000; w.timers.forEach(clearTimeout); w.timers = [];
+    say(cid, "whack", "GO! Bop the gators as they pop up", "good");
+    let at = 900;
+    while (at < 19400) {   // gators pop faster as the clock runs down
+      const when = at, upFor = Math.round(1100 - (at / 19400) * 450);
+      w.timers.push(setTimeout(() => {
+        const free = w.holes.filter(h => h.upUntil < now());
+        if (!free.length) return;
+        const h = free[Math.floor(Math.random() * free.length)];
+        h.hit = false; h.upUntil = now() + upFor;
+        playAnim(h.pop, "y", -0.5, 0, 180, "easeOutBack");
+        w.timers.push(setTimeout(() => { if (!h.hit) playAnim(h.pop, "y", 0, -0.5, 180, "easeInQuad"); }, upFor));
+      }, when));
+      at += 520 + Math.floor(Math.random() * 380) - Math.floor(at / 100);
+    }
+    const tick = () => { if (w.player !== cid) return; const left = Math.max(0, Math.ceil((w.endAt - now()) / 1000)); setT(w.start, nameOf(cid).toUpperCase().slice(0, 14) + "  " + w.points + "  |  " + left + "s"); if (left > 0) w.timers.push(setTimeout(tick, 500)); };
+    tick();
+    w.timers.push(setTimeout(() => {
+      const pts = w.points, name = nameOf(cid);
+      say(cid, "whack", "TIME! You bopped " + pts + (pts === 1 ? " gator" : " gators") + (pts > w.best ? " - NEW HIGH SCORE!" : ""), pts > w.best ? "good" : "info");
+      if (pts > w.best) { w.best = pts; w.bestName = name; setT(w.score, "HIGH SCORE  " + pts + "  " + name.toUpperCase().slice(0, 16)); }
+      setT(w.start, "LAST: " + name.toUpperCase().slice(0, 14) + " " + pts + "  |  CLICK TO PLAY");
+      w.player = null;
+    }, 20200));
+  }
+  function whackHit(h, cid) {
+    const w = FAIR.whack;
+    if (w.player !== cid || now() > w.endAt || h.hit || h.upUntil < now() - 150) return;   // a little grace for lag
+    h.hit = true; h.upUntil = now(); w.points++;
+    playAnim(h.pop, "y", 0, -0.5, 120, "easeInQuad");                                         // bonk!
+    setT(w.start, nameOf(cid).toUpperCase().slice(0, 14) + "  " + w.points + "  |  " + Math.max(0, Math.ceil((w.endAt - now()) / 1000)) + "s");
+  }
+
+  // TEST YOUR BITE: click SWING when the needle is far right. The puck flies up the scale; ring the bell for GATOR!
+  function buildStriker() {
+    const X = 10, Z = 147, RY = -90, METER = 1400;
+    const g = grp({ x: X, y: GROUND, z: Z, ry: RY });
+    el("m-model", { src: natURL("striker") }, g);
+    const puck = grp({ y: 0.9, z: -0.15 }, g);
+    el("m-model", { src: natURL("striker-puck"), collide: "false" }, puck);
+    // power meter on a little stand in front: needle sweeps left to right and back
+    const mg = grp({ x: -0.9, y: 1.25, z: 0.95 }, g);
+    box({ y: -0.6, width: 0.08, height: 1.2, depth: 0.08, color: "#d9a33a", collide: "false" }, mg);
+    glow({ width: 1.5, height: 0.22, color: "#2f7fd6", emissive: 0.5 }, mg);
+    glow({ x: 0.55, z: 0.005, width: 0.4, height: 0.22, color: "#ff3b3b", emissive: 0.9 }, mg);
+    const needle = box({ y: 0, z: 0.03, width: 0.05, height: 0.34, depth: 0.03, color: "#fff2c8", collide: "false", emissive: 0.8 }, mg);
+    el("m-attr-anim", { attr: "x", start: -0.72, end: 0.72, duration: METER, loop: "true", "ping-pong": "true", "start-time": 0 }, needle);
+    const swing = text("SWING!", { y: 0.3, z: 0.01, width: 1.1, height: 0.3, "font-size": 24, color: "#8a1c3a", "font-color": "#ffffff", emissive: 0.8 }, mg);
+    const title = text("TEST YOUR BITE", { y: 8.75, z: -0.3, width: 2.6, height: 0.45, "font-size": 34, color: "#8a1c3a", "font-color": "#ffd27a", emissive: 1 }, g);
+    const result = text("STOP THE NEEDLE IN THE RED", { y: 0.62, z: 0.85, width: 2.0, height: 0.26, "font-size": 16, color: "#1a1418", "font-color": "#ffd27a", emissive: 0.8 }, g);
+    ANCHORS.striker = { parent: g, x: 0, y: 2.6, z: 1.2, ry: 0, w: 3.2 };
+    FAIR.striker = { g, puck, result, busy: 0, METER, best: 0, cd: new Map() };
+    onClick([swing, needle, title, result], cid => strikerSwing(cid));
+    void mg;
+  }
+  function strikerSwing(cid) {
+    const s = FAIR.striker, t = now();
+    if (s.busy > t) return;
+    if ((s.cd.get(cid) || 0) > t) return say(cid, "striker", "Catch your breath - try again in a moment", "bad");
+    s.cd.set(cid, t + 4000); s.busy = t + 2600;
+    // where the needle was when they clicked (allow ~150 ms for the click to reach us)
+    const dt = docNow(), r = dt == null ? Math.random() : (((dt - 150) % s.METER) + s.METER) % s.METER / s.METER;
+    const power = r < 0.5 ? r * 2 : 2 - r * 2;   // 0 at the left end, 1 at the right
+    const bell = power >= 0.9, h = bell ? 7.45 : 0.9 + Math.pow(power, 1.3) * 6.0;
+    const up = 450 + Math.round((h - 0.9) * 70);
+    playAnim(s.puck, "y", 0.9, h, up, "easeOutQuad");
+    setTimeout(() => playAnim(s.puck, "y", h, 0.9, 700, "easeInQuad"), up + (bell ? 350 : 80));
+    const ranks = ["SKEETER", "TADPOLE", "CATFISH", "BULLFROG", "GATOR!"];
+    const rank = bell ? "GATOR!" : ranks[Math.min(3, Math.floor(((h - 0.9) / 6.5) * 5))];
+    setTimeout(() => {
+      setT(s.result, nameOf(cid).toUpperCase().slice(0, 12) + ": " + rank + (bell ? " DING!" : ""));
+      say(cid, "striker", bell ? "DING DING! You rang the bell - GATOR strength!" : "You hit " + rank + " - stop the needle further right", bell ? "good" : "info");
+      if (bell) flash(nameOf(cid).toUpperCase() + " RANG THE BELL AT THE SWAMP FAIR!");
+    }, up);
+  }
+
+  /* =========================================================================
      LANDMARKS (new businesses on the old hideout lots + outer-ring set pieces)
      ========================================================================= */
   function buildLandmarks() {
@@ -860,42 +1082,45 @@
     building({ x: -75, z: CZ + 75, w: 12, d: 10, h: 9, ry: 180, color: "#e8e2d4", sign: "ST. GATOR CHAPEL", signColor: AMBER, roof: "gable", roofColor: "#7a2f2f", side: false });
     building({ x: 75, z: CZ + 75, w: 16, d: 10, h: 6, ry: 180, color: "#b0402e", sign: "CRAWFISH KING", signColor: AMBER, roof: "gable", side: false });
 
-    // SWAMP FAIR - Ferris wheel (south outer block)
-    const fx = 0, fz = CZ + 178, R = 16, hub = R + 3, a = 18, ar = a * Math.PI / 180;
-    for (const zz of [-1.8, 1.8]) for (const s of [-1, 1])
-      box({ x: fx + s * hub * Math.tan(ar) / 2, y: hub / 2, z: fz + zz, rz: s * a, width: 0.6, height: r2(hub / Math.cos(ar)), depth: 0.6, color: "#d9d2c0", mat: "truss" });
-    live(() => {
-    const wheel = grp({ x: fx, y: hub, z: fz });
-    const spin = grp({}, wheel);
-    el("m-attr-anim", { attr: "rz", start: 0, end: 360, duration: 90000, loop: "true" }, spin);
-    for (let k = 0; k < 16; k++) {
-      const th = (k + 0.5) * 22.5, rad = th * Math.PI / 180, rr = R * Math.cos(Math.PI / 16);
-      box({ x: r2(Math.cos(rad) * rr), y: r2(Math.sin(rad) * rr), rz: th + 90, width: r2(2 * R * Math.sin(Math.PI / 16) + 0.2), height: 0.35, depth: 0.35, color: k % 2 ? PINK : NEON, collide: "false" }, spin);
+    // SWAMP FAIR (south outer block): modeled rides when the model pack is there, the old primitive fair otherwise
+    if (BOATS) buildFair();
+    else {
+      const fx = 0, fz = CZ + 178, R = 16, hub = R + 3, a = 18, ar = a * Math.PI / 180;
+      for (const zz of [-1.8, 1.8]) for (const s of [-1, 1])
+        box({ x: fx + s * hub * Math.tan(ar) / 2, y: hub / 2, z: fz + zz, rz: s * a, width: 0.6, height: r2(hub / Math.cos(ar)), depth: 0.6, color: "#d9d2c0", mat: "truss" });
+      live(() => {
+      const wheel = grp({ x: fx, y: hub, z: fz });
+      const spin = grp({}, wheel);
+      el("m-attr-anim", { attr: "rz", start: 0, end: 360, duration: 90000, loop: "true" }, spin);
+      for (let k = 0; k < 16; k++) {
+        const th = (k + 0.5) * 22.5, rad = th * Math.PI / 180, rr = R * Math.cos(Math.PI / 16);
+        box({ x: r2(Math.cos(rad) * rr), y: r2(Math.sin(rad) * rr), rz: th + 90, width: r2(2 * R * Math.sin(Math.PI / 16) + 0.2), height: 0.35, depth: 0.35, color: k % 2 ? PINK : NEON, collide: "false" }, spin);
+      }
+      for (let k = 0; k < 8; k++) {
+        const th = k * 45, rad = th * Math.PI / 180;
+        box({ x: r2(Math.cos(rad) * R / 2), y: r2(Math.sin(rad) * R / 2), rz: th - 90, width: 0.2, height: R, depth: 0.2, color: "#e8e2d4", collide: "false" }, spin);
+      }
+      for (let k = 0; k < 12; k++) {
+        const rad = k * 30 * Math.PI / 180;
+        const gnd = grp({ x: r2(Math.cos(rad) * R), y: r2(Math.sin(rad) * R) }, spin);
+        el("m-attr-anim", { attr: "rz", start: 0, end: -360, duration: 90000, loop: "true" }, gnd);
+        box({ y: -1.3, width: 1.8, height: 1.5, depth: 1.6, color: ["#d6452f", "#2f7fd6", "#e0b23a", "#6fbf4a"][k % 4], collide: "false" }, gnd);
+      }
+      sph({ radius: 1, color: AMBER }, wheel);
+      });
+      text("SWAMP FAIR", { x: fx, y: 2.8, z: fz - 9, ry: 180, width: 10, height: 1.4, "font-size": 100, color: "#120d10", "font-color": PINK, emissive: 1, mount: "arch", drop: 2.1 });
+      for (const [sx, c] of [[-30, "#d6452f"], [-20, "#2f7fd6"], [20, "#e0b23a"], [30, "#6fbf4a"]]) {
+        box({ x: sx, y: 1.1, z: CZ + 168, width: 5, height: 2, depth: 3, color: "#e8e2d4", mat: "booth" });
+        box({ x: sx, y: 2.6, z: CZ + 168, width: 5.6, height: 0.3, depth: 3.6, color: c, collide: "false", mat: "awning" });
+      }
+      footBox(fx, fz, 2 * hub * Math.tan(ar) + 2, 6, 0);
+      if (MED) { natModel("med-wagon", -12, 0.1, CZ + 164, 1.1, 100, true); natModel("med-wagon", 13, 0.1, CZ + 190, 1.1, -70, true); for (const [x, z] of [[-24, CZ + 165], [-23, CZ + 166.4], [24, CZ + 165]]) natModel("med-crate", x, 0.1, z, 1.2, rand() * 45, true); }
+      if (KEN) for (const s of [-1, 1]) {
+        el("m-model", { src: asset("tents"), x: s * 33, z: CZ + 185, ry: s > 0 ? 180 : 0, "cast-shadows": "false" });
+        footBox(s * 33, CZ + 185, 10, 10, 0);
+      }
+      el("m-light", { type: "point", x: fx, y: hub, z: fz - 6, color: "#ff9ad5", intensity: 1600, distance: 45, "cast-shadows": "false" });
     }
-    for (let k = 0; k < 8; k++) {
-      const th = k * 45, rad = th * Math.PI / 180;
-      box({ x: r2(Math.cos(rad) * R / 2), y: r2(Math.sin(rad) * R / 2), rz: th - 90, width: 0.2, height: R, depth: 0.2, color: "#e8e2d4", collide: "false" }, spin);
-    }
-    for (let k = 0; k < 12; k++) {
-      const rad = k * 30 * Math.PI / 180;
-      const gnd = grp({ x: r2(Math.cos(rad) * R), y: r2(Math.sin(rad) * R) }, spin);
-      el("m-attr-anim", { attr: "rz", start: 0, end: -360, duration: 90000, loop: "true" }, gnd);
-      box({ y: -1.3, width: 1.8, height: 1.5, depth: 1.6, color: ["#d6452f", "#2f7fd6", "#e0b23a", "#6fbf4a"][k % 4], collide: "false" }, gnd);
-    }
-    sph({ radius: 1, color: AMBER }, wheel);
-    });
-    text("SWAMP FAIR", { x: fx, y: 2.8, z: fz - 9, ry: 180, width: 10, height: 1.4, "font-size": 100, color: "#120d10", "font-color": PINK, emissive: 1, mount: "arch", drop: 2.1 });
-    for (const [sx, c] of [[-30, "#d6452f"], [-20, "#2f7fd6"], [20, "#e0b23a"], [30, "#6fbf4a"]]) {
-      box({ x: sx, y: 1.1, z: CZ + 168, width: 5, height: 2, depth: 3, color: "#e8e2d4", mat: "booth" });
-      box({ x: sx, y: 2.6, z: CZ + 168, width: 5.6, height: 0.3, depth: 3.6, color: c, collide: "false", mat: "awning" });
-    }
-    footBox(fx, fz, 2 * hub * Math.tan(ar) + 2, 6, 0);
-    if (MED) { natModel("med-wagon", -12, 0.1, CZ + 164, 1.1, 100, true); natModel("med-wagon", 13, 0.1, CZ + 190, 1.1, -70, true); for (const [x, z] of [[-24, CZ + 165], [-23, CZ + 166.4], [24, CZ + 165]]) natModel("med-crate", x, 0.1, z, 1.2, rand() * 45, true); }
-    if (KEN) for (const s of [-1, 1]) {
-      el("m-model", { src: asset("tents"), x: s * 33, z: CZ + 185, ry: s > 0 ? 180 : 0, "cast-shadows": "false" });
-      footBox(s * 33, CZ + 185, 10, 10, 0);
-    }
-    el("m-light", { type: "point", x: fx, y: hub, z: fz - 6, color: "#ff9ad5", intensity: 1600, distance: 45, "cast-shadows": "false" });
 
     // BAYOU CANNERY (north outer block)
     building({ x: 0, z: CZ - 179, w: 56, d: 20, h: 10, ry: 0, color: "#6a4a3a", roof: "gable", roofColor: "#4a3a32", sign: "BAYOU CANNERY CO.", signColor: AMBER, side: false, maxFloors: 2, wall: "brick" });
@@ -1571,6 +1796,7 @@
       TURF.push(H);
     });
     setInterval(() => { const t = now(); for (const h of TURF) if (h.open && t > h.closeAt) setDoor(h, false); }, 1000);
+    setInterval(dropTick, 1000);
   }
 
   const GAMES = { heist, race, arena, casino, turf };

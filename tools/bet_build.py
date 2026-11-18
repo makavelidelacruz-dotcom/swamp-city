@@ -23,10 +23,10 @@ def kiosk(sym):
     # back cabinet and the sign face
     part('cabinet', (3.1, 2.2, 0.22), (0, 1.45, -0.04), DK, 0.05, 3)
     face = part('face', (2.9, 2.0, 0.02), (0, 1.45, 0.085), FACE, 0.0)
-    me = face.data; uv = me.uv_layers.active.data
+    me = face.data; uv = me.uv_layers.active.data; mw = face.matrix_world
     for p in me.polygons:
         for li in p.loop_indices:
-            v = me.vertices[me.loops[li].vertex_index].co          # Blender coords: x, -z, y
+            v = mw @ me.vertices[me.loops[li].vertex_index].co    # world Blender coords: x, -z, y
             uv[li].uv = (v.x / 2.9 + 0.5, (v.z - 1.45) / 2.0 + 0.5)
     # gold frame bars around the face
     part('frame-t', (3.16, 0.1, 0.12), (0, 2.5, 0.06), GOLD, 0.03); part('frame-b', (3.16, 0.1, 0.12), (0, 0.4, 0.06), GOLD, 0.03)
