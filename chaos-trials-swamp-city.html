@@ -2527,7 +2527,7 @@
     if (ACTIVE) { show(ACTIVE, false); GAMES[ACTIVE].stop(); }
     ACTIVE = id;
     ROUND = [0, 0, 0, 0];
-    if (id) { show(id, true); GAMES[id].start(); }
+    if (id) { celebEnd(); show(id, true); GAMES[id].start(); }
     paintScores(); paintScreen(); pushState();
   }
   function finishRound() {
@@ -2537,8 +2537,36 @@
     const result = top <= 0 ? "NO POINTS SCORED" : winners.length > 1 ? "TIE: " + winners.map(i => TEAMS[i].name).join(" + ") : TEAMS[winners[0]].name + " WIN " + INFO[id].title + "!";
     const line = teamLine(ROUND);
     setActive(null);
+    if (top > 0) celebrate(winners);
     NOTE = result + "  |  " + line; NOTE_UNTIL = now() + 30000;
     paintScreen(); pushState();
+  }
+  // ---- winner celebration: five GTA-style wanted stars light up one by one high over the city centre,
+  // while giant mascots of the winning crew (both crews on a tie) float and spin in a ring around them. 30 seconds.
+  const CELEB = { g: null, t: [] };
+  function celebEnd() { CELEB.t.forEach(clearTimeout); CELEB.t = []; if (CELEB.g) { CELEB.g.remove(); CELEB.g = null; } }
+  function celebrate(win) {
+    celebEnd();
+    const g = CELEB.g = grp({ z: CZ, y: 34 }), row = grp({}, g), R = 3, P = k => (90 + 72 * k) * Math.PI / 180;
+    el("m-attr-anim", { attr: "ry", start: 0, end: 360, duration: 12000, loop: "true" }, row);
+    for (let i = 0; i < 5; i++) {   // each star: a pentagram of five glowing bars
+      const st = grp({ x: (i - 2) * 7.5 }, row), bars = [];
+      for (let k = 0; k < 5; k++) {
+        const x1 = R * Math.cos(P(k)), y1 = R * Math.sin(P(k)), x2 = R * Math.cos(P(k + 2)), y2 = R * Math.sin(P(k + 2));
+        bars.push(box({ x: r2((x1 + x2) / 2), y: r2((y1 + y2) / 2), width: r2(Math.hypot(x2 - x1, y2 - y1) + 0.4), height: 0.5, depth: 0.5, rz: r2(Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI), color: "#2a2a2a", collide: "false" }, st));
+      }
+      CELEB.t.push(setTimeout(() => bars.forEach(b => { b.setAttribute("color", "#ffd23f"); b.setAttribute("emissive", "1"); }), 800 * (i + 1)));
+    }
+    if (BOATS) {
+      const orbit = grp({}, g);
+      el("m-attr-anim", { attr: "ry", start: 0, end: -360, duration: 24000, loop: "true" }, orbit);
+      for (let k = 0; k < 8; k++) {
+        const a = k * Math.PI / 4, m = el("m-model", { src: natURL(ICON_NAMES[win[k % win.length]]), x: r2(Math.cos(a) * 28), z: r2(Math.sin(a) * 28), sx: 9, sy: 9, sz: 9, collide: "false", "cast-shadows": "false" }, orbit);
+        el("m-attr-anim", { attr: "y", start: -12, end: -3, duration: 2200 + k * 200, loop: "true", "ping-pong": "true", easing: "easeInOutSine" }, m);
+        el("m-attr-anim", { attr: "ry", start: 0, end: 360, duration: 5000, loop: "true" }, m);
+      }
+    }
+    CELEB.t.push(setTimeout(celebEnd, 30000));
   }
   function paintScreen() {
     const t = now(), note = NOTE_UNTIL > t ? NOTE : "";
