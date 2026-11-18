@@ -50,7 +50,7 @@ const P = [];
 for (let i = 0; i < 8; i++) { P.push(client("P" + i)); }
 await Promise.all(P.map(p => p.ready));
 
-// check in: P0,P4 GATORS  P1,P5 HERONS  P2,P6 BULLFROGS  P3,P7 COTTONMOUTHS
+// check in: P0,P4 GATORS  P1,P5 MUNYONS  P2,P6 BULLFROGS  P3,P7 COTTONMOUTHS
 P.forEach((p, i) => send(p, p.ids["join-" + (i % 4)], "prompt", { value: "Player " + i }));
 await sleep(600);
 const r = roster(ctl);
@@ -74,8 +74,8 @@ send(P[0], vault, "click", {});
 await sleep(300);
 check(mine(P[0], "BAG GRABBED").length >= 1, "P0 grabs a bag");
 // find hideout drop faces
-const dropFace = (c, team) => find(c, n => n.tag === "m-label" && n.attributes.x === "6.3" && n.attributes.content === "")[["GATORS", "HERONS", "BULLFROGS", "COTTONMOUTHS"].indexOf(team)];
-send(P[0], dropFace(P[0], "HERONS").nodeId, "click", {});
+const dropFace = (c, team) => find(c, n => n.tag === "m-label" && n.attributes.x === "6.3" && n.attributes.content === "")[["GATORS", "MUNYONS", "BULLFROGS", "COTTONMOUTHS"].indexOf(team)];
+send(P[0], dropFace(P[0], "MUNYONS").nodeId, "click", {});
 await sleep(300);
 check(mine(P[0], "Wrong hideout").length >= 1, "wrong hideout rejected");
 send(P[0], dropFace(P[0], "GATORS").nodeId, "click", {});
@@ -95,7 +95,7 @@ send(P[1], pads[3], "collisionstart", {}); // out of order: ignored
 await sleep(150);
 for (const id of pads) { send(P[1], id, "collisionstart", {}); await sleep(60); }
 await sleep(400);
-check(state(ctl).round[1] === 10, "P1 finished first: +10 HERONS " + JSON.stringify(state(ctl).round));
+check(state(ctl).round[1] === 10, "P1 finished first: +10 MUNYONS " + JSON.stringify(state(ctl).round));
 
 // arena
 host("arena");
@@ -104,7 +104,7 @@ const throne = find(P[0], n => n.tag === "m-cylinder" && n.attributes["collision
 send(P[0], throne, "collisionstart", {}); send(P[4], throne, "collisionstart", {}); send(P[1], throne, "collisionstart", {});
 await sleep(3200);
 const ar = state(ctl).round;
-check(ar[0] >= 2 && ar[1] === 0, "GATORS (2 on throne) out-hold HERONS (1): " + JSON.stringify(ar));
+check(ar[0] >= 2 && ar[1] === 0, "GATORS (2 on throne) out-hold MUNYONS (1): " + JSON.stringify(ar));
 send(P[4], throne, "collisionend", {});
 await sleep(2200);
 check(state(ctl).games.arena.includes("CONTESTED"), "1 v 1 is contested: " + state(ctl).games.arena);

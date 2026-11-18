@@ -258,6 +258,10 @@ Every static building block in the city is now **baked into five textured models
 - **Carried bags** use an MML position probe (only while the Bank Job runs) to put a money bag on each carrier's back.
 - **Signs** are broader and each business has its own GTA-style look: script neon for bars and the motel, bold billboards for the pawn shop and fast food, a police badge sign, stencil hideout signs and green highway-exit signs for the districts. Fonts: Anton, Bungee, Bebas Neue, Pacifico, Lobster, Monoton, Black Ops One, Alfa Slab One, Racing Sans One, Permanent Marker, Oswald (SIL Open Font License).
 
+## Renames (update)
+
+From the names sheet: the blue crew HERONS is now **MUNYONS** (hideout, stand, screen and controller; their mascot is still the heron), Lucky Gator Casino is now **TOKEN GATOR CASINO**, Bayou Savings & Trust is now **YUPPIE APE SAVINGS & TRUST**, and the JAZZ shop signs now read **CURTIS**. `city-c` was re-baked for the new signs.
+
 ## Visitor Center, spawn at the edge, crew mascots and lit hideouts (update)
 
 - **Visitor Center on the east edge.** Everyone arrives here and checks in. It has a stucco hall with a clock tower and copper dome, a porch with a neon edge, and the big intermission screen (moved off the bank). The four crew check-in stands sit in front, each with its mascot turning on top. A "WELCOME TO SWAMP CITY" arch leads out to the street, and four trucks are parked on the plaza. The KGTR radio mast that stood on this block is gone.

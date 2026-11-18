@@ -48,9 +48,9 @@ FT = '/home/claude/fonts/ttf/'
 FONTS = {k: FT + k + '.ttf' for k in ['anton', 'bungee', 'bebas-neue', 'pacifico', 'monoton', 'black-ops-one', 'alfa-slab-one', 'racing-sans-one', 'lobster', 'permanent-marker', 'oswald']}
 # GTA-style brand looks for Swamp City: (style, font, background, letters, tagline)
 STYLE = {
-    'BAYOU SAVINGS & TRUST': ('bank', None, '#13233f', '#f2c94c', 'EST. 1899  -  MEMBER FDIC'),
+    'YUPPIE APE SAVINGS & TRUST': ('bank', None, '#13233f', '#f2c94c', 'EST. 1899  -  MEMBER FDIC'),
     'CHAOS TRIALS  |  SWAMP CITY': ('marquee', 'bungee', '#120d10', '#ff4fa3', None),
-    'LUCKY GATOR CASINO': ('marquee', 'bungee', '#160a1a', '#ff4fa3', 'SLOTS  -  LUCKY WHEEL  -  GATOR DICE  -  OPEN 24/7'),
+    'TOKEN GATOR CASINO': ('marquee', 'bungee', '#160a1a', '#ff4fa3', 'SLOTS  -  LUCKY WHEEL  -  GATOR DICE  -  OPEN 24/7'),
     'GATOR GRAND HOTEL': ('billboard', 'bebas-neue', '#2a1238', '#f2c94c', 'SUITES  -  ROOFTOP POOL  -  CASINO NEXT DOOR'),
     'PELICAN MOTEL': ('script', 'lobster', '#0e1c24', '#3ff2e0', 'VACANCY'),
     'GATOR PIT': ('billboard', 'bungee', '#0b0f0b', '#7dff8a', 'FRIDAY NIGHT FIGHTS  -  LIVE'),
@@ -81,7 +81,7 @@ STYLE = {
     'ZYDECO': ('script', 'pacifico', '#140812', '#ff6ec7', None), 'BEIGNETS': ('script', 'lobster', '#160c08', '#ffe08a', None),
     'FISH MARKET': ('billboard', 'bungee', '#0e3a52', '#ffffff', None), 'BOAT WORKS': ('stencil', 'black-ops-one', '#2b2a26', '#ffffff', None),
     'ROPE & NET': ('painted', 'alfa-slab-one', None, '#f2e6c8', None), 'PRALINES': ('script', 'pacifico', '#1a0c10', '#ff9ad5', None),
-    'JAZZ': ('script', 'monoton', '#0a0a18', '#5fb6ff', None), 'HOODOO': ('script', 'permanent-marker', '#120a18', '#9be15d', None),
+    'CURTIS': ('script', 'monoton', '#0a0a18', '#5fb6ff', None), 'HOODOO': ('script', 'permanent-marker', '#120a18', '#9be15d', None),
     'CAJUN GRILL': ('billboard', 'alfa-slab-one', '#c0241e', '#ffe08a', None), 'DRY DOCK': ('stencil', 'black-ops-one', '#2b2a26', '#ffd21f', None),
     'SHRIMP CO.': ('billboard', 'bungee', '#ff7a5c', '#ffffff', None),
     'WELCOME TO SWAMP CITY': ('billboard', 'bungee', '#0e3a52', '#ffffff', 'DOWNTOWN  -  BANK  -  CASINO  -  SWAMP FAIR'),

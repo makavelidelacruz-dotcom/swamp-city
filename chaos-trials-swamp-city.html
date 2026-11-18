@@ -6,7 +6,7 @@
   game running at a time.
 
   Games:   BANK JOB (heist) | BAYOU RUN (race) | GATOR PIT (arena) | LUCKY WHEEL (casino) | TURF WAR (turf)
-  Teams:   GATORS (green) | HERONS (blue) | BULLFROGS (gold) | COTTONMOUTHS (purple)
+  Teams:   GATORS (green) | MUNYONS (blue) | BULLFROGS (gold) | COTTONMOUTHS (purple)
   Rides:   8 drivable swamp buggies (amphibious) + 3 airboats on a loop around the city
 
   Everything is built from MML primitives, so this one file runs on its own.
@@ -83,7 +83,7 @@
   const KIND = { info: "#0b1a24", good: "#0f3b2c", bad: "#4a1424" };
   const TEAMS = [
     { name: "GATORS", color: "#4fe08f", tone: "GREEN" },
-    { name: "HERONS", color: "#3fd0ff", tone: "BLUE" },
+    { name: "MUNYONS", color: "#3fd0ff", tone: "BLUE" },
     { name: "BULLFROGS", color: "#ffc23d", tone: "GOLD" },
     { name: "COTTONMOUTHS", color: "#c48bff", tone: "PURPLE" }
   ];
@@ -100,7 +100,7 @@
   const ROAD_Z = ROAD_X.map(v => CZ + v);
   const HIDEOUTS = [ // team index -> centre and facing (front faces the road toward downtown)
     { x: 125, z: CZ - 125, ry: 0 },    // GATORS - north-east
-    { x: -125, z: CZ + 125, ry: 180 }, // HERONS - south-west
+    { x: -125, z: CZ + 125, ry: 180 }, // MUNYONS - south-west
     { x: 125, z: CZ + 125, ry: 180 },  // BULLFROGS - south-east
     { x: -125, z: CZ - 125, ry: 0 }    // COTTONMOUTHS - north-west
   ];
@@ -380,7 +380,7 @@
     const bx = 13, bz1 = CZ - 12, bz2 = CZ + 12, H = 12, col = "#d8cbb0";
     if (BOATS) {   // modeled neoclassical bank: rusticated stone, columned front, pediment, copper dome, marble hall, tellers
       el("m-model", { src: natURL("bank"), y: 0, z: CZ });
-      text("BAYOU SAVINGS & TRUST", { y: 11.65, z: r2(CZ - 14.92), ry: 180, width: 20, height: 1.05, "font-size": 80, color: "#2b2418", "font-color": "#f2d48a", emissive: 0.5, mount: "engraved" });
+      text("YUPPIE APE SAVINGS & TRUST", { y: 11.65, z: r2(CZ - 14.92), ry: 180, width: 20, height: 1.05, "font-size": 80, color: "#2b2418", "font-color": "#f2d48a", emissive: 0.5, mount: "engraved" });
       footBox(0, CZ - 2, 2 * bx + 4, 34, 0);
     } else {
       const bx = 13, bz1 = CZ - 12, bz2 = CZ + 12, H = 12, col = "#d8cbb0";
@@ -397,7 +397,7 @@
       }
       box({ y: H + 0.3, z: CZ, width: 2 * bx + 1, height: 0.6, depth: 25, color: "#bfb39a", mat: "cornice-stone" });
       sph({ y: H + 0.6, z: CZ, radius: 8, sy: 0.55, color: "#7fae9b", collide: "true", mat: "copper" });
-      text("BAYOU SAVINGS & TRUST", { y: H - 1, z: bz1 - 0.05, ry: 180, width: 16, height: 1.2, "font-size": 80, color: "#2b2418", "font-color": "#f2d48a", emissive: 0.5, mount: "engraved" });
+      text("YUPPIE APE SAVINGS & TRUST", { y: H - 1, z: bz1 - 0.05, ry: 180, width: 16, height: 1.2, "font-size": 80, color: "#2b2418", "font-color": "#f2d48a", emissive: 0.5, mount: "engraved" });
       footBox(0, CZ, 2 * bx + 4, 30, 0);
     }
     // vault (the heist loot cage)
@@ -495,7 +495,7 @@
     for (let z = z1 + 2; z <= z2 - 2; z += 8) cyl({ x: x1, y: H / 2, z, radius: 0.5, height: H, color: "#c9a24a", mat: "gold" });
     // facade + marquee
     box({ x: x1 - 0.3, y: H + 2.2, z: CZ, width: 0.5, height: 3.6, depth: z2 - z1, color: "#160a1a", collide: "false", mat: "marqueebox" });
-    text("LUCKY GATOR CASINO", { x: x1 - 0.6, y: H + 2.4, z: CZ, ry: -90, width: 30, height: 2.4, "font-size": 170, color: "#160a1a", "font-color": PINK, emissive: 1, mount: "marquee" });
+    text("TOKEN GATOR CASINO", { x: x1 - 0.6, y: H + 2.4, z: CZ, ry: -90, width: 30, height: 2.4, "font-size": 170, color: "#160a1a", "font-color": PINK, emissive: 1, mount: "marquee" });
     glow({ x: x1 - 0.6, y: H + 0.55, z: CZ, ry: -90, width: 42, height: 0.22, color: AMBER, mat: "bulbs" });
     glow({ x: x1 - 0.6, y: H + 4.0, z: CZ, ry: -90, width: 42, height: 0.22, color: NEON, mat: "bulbs" });
     // slot machines along the side walls, card tables in the middle
@@ -1318,7 +1318,7 @@
   const STYLE = {
     industry: (x, z, w, d, ry) => building({ wall: "brick", x, z, w, d, ry, h: 6 + rand() * 4, color: pick(["#6a4a3a", "#5a5047", "#7a5a3a", "#4a5a5a", "#6a3a32"]), roof: rand() < 0.6 ? "gable" : "flat", roofColor: "#4a3a32", side: false, lite: true, maxFloors: 1, sign: rand() < 0.35 ? pick(["SHRIMP CO.", "ROPE & NET", "DRY DOCK", "ICE HOUSE", "BOAT WORKS", "FISH MARKET"]) : null, signColor: pick([AMBER, NEON, "#ffd98a"]) }),
     village: (x, z, w, d, ry) => building({ x, z, w: Math.min(w, 10), d: Math.min(d, 9), ry, h: 4.2 + rand() * 1.8, color: pick(["#6f8a5a", "#8a6f5a", "#5a6f8a", "#8a5a7a", "#7a8a5a", "#5f8a8a"]), stilts: true, roof: "gable", roofColor: pick(["#5a3b2a", "#3f4a3a", "#6a2f2f"]), side: false, lite: true, maxFloors: 1 }),
-    quarter: (x, z, w, d, ry) => building({ wall: "stucco", x, z, w, d, ry, h: 7 + rand() * 3.5, color: pick(["#c9643a", "#3a8a7a", "#c9a23a", "#7a3a8a", "#3a5ac9", "#c93a6a", "#e8d9b0"]), trim: "#e8e2d4", balcony: true, side: false, lite: true, maxFloors: 3, sign: rand() < 0.5 ? pick(["JAZZ", "VOODOO", "OYSTER BAR", "PRALINES", "PO' BOYS", "HOODOO", "BEIGNETS", "CAJUN GRILL"]) : null, signColor: pick([PINK, NEON, AMBER, "#c48bff"]) }),
+    quarter: (x, z, w, d, ry) => building({ wall: "stucco", x, z, w, d, ry, h: 7 + rand() * 3.5, color: pick(["#c9643a", "#3a8a7a", "#c9a23a", "#7a3a8a", "#3a5ac9", "#c93a6a", "#e8d9b0"]), trim: "#e8e2d4", balcony: true, side: false, lite: true, maxFloors: 3, sign: rand() < 0.5 ? pick(["CURTIS", "VOODOO", "OYSTER BAR", "PRALINES", "PO' BOYS", "HOODOO", "BEIGNETS", "CAJUN GRILL"]) : null, signColor: pick([PINK, NEON, AMBER, "#c48bff"]) }),
     flats: (x, z, w, d, ry) => rand() < 0.5
       ? building({ x, z, w: w + 2, d: Math.min(d, 6), ry, h: 3.2, color: pick(["#e8e2d4", "#9fd8e6", "#d9c58a", "#c9d9c0"]), trim: "#888", side: false, lite: true, maxFloors: 1 })
       : building({ x, z, w: Math.min(w, 10), d: Math.min(d, 8), ry, h: 4.5, color: pick(["#7a6a4a", "#5a4a3a", "#6a7a5a"]), roof: "gable", roofColor: "#4a3a2a", side: false, lite: true, maxFloors: 1 })
@@ -1336,7 +1336,7 @@
     const top = (kind === "garage" ? 0.55 * 1.2 : KB_H[kind]) * s;
     if (rand() < (style === "quarter" ? 0.55 : 0.3)) {
       const g = grp({ x, z, ry });
-      const words = style === "industry" ? ["BOAT WORKS", "ICE HOUSE", "DRY DOCK", "SHRIMP CO."] : ["JAZZ", "VOODOO", "OYSTER BAR", "PRALINES", "PO' BOYS", "HOODOO", "BEIGNETS", "CAJUN GRILL", "ZYDECO"];
+      const words = style === "industry" ? ["BOAT WORKS", "ICE HOUSE", "DRY DOCK", "SHRIMP CO."] : ["CURTIS", "VOODOO", "OYSTER BAR", "PRALINES", "PO' BOYS", "HOODOO", "BEIGNETS", "CAJUN GRILL", "ZYDECO"];
       const word = pick(words);
       text(word, { y: r2(top + 1.2), z: r2(s * 0.3), width: r2(Math.min(s * 0.96, Math.max(s * 0.75, word.length * 0.72 + 2.2))), height: 1.7, "font-size": 80, color: "#120d10", "font-color": pick([PINK, NEON, AMBER, "#c48bff"]), emissive: 0.9, mount: "roof", drop: 0.35 }, g);
     }
@@ -1512,10 +1512,10 @@
      GAMES
      ========================================================================= */
   const INFO = {
-    heist: { title: "BANK JOB", kind: "CREWS  |  4 MINUTES", what: "Grab a bag from the vault, get it to YOUR hideout before the dye pack pops (75s).", where: "Vault inside Bayou Savings > your hideout out past the inner ring road - take a buggy!" },
-    race: { title: "BAYOU RUN", kind: "SOLO FOR YOUR CREW  |  5 MINUTES", what: "Hit all 15 checkpoints in order - run or drive. Top 3 score 10 / 8 / 6, finishers 3.", where: "Start: the road just south of Bayou Savings, downtown. Your next gate glows for you." },
+    heist: { title: "BANK JOB", kind: "CREWS  |  4 MINUTES", what: "Grab a bag from the vault, get it to YOUR hideout before the dye pack pops (75s).", where: "Vault inside Yuppie Ape Savings > your hideout out past the inner ring road - take a buggy!" },
+    race: { title: "BAYOU RUN", kind: "SOLO FOR YOUR CREW  |  5 MINUTES", what: "Hit all 15 checkpoints in order - run or drive. Top 3 score 10 / 8 / 6, finishers 3.", where: "Start: the road just south of Yuppie Ape Savings, downtown. Your next gate glows for you." },
     arena: { title: "GATOR PIT", kind: "CREWS  |  3 MINUTES", what: "Stand on the gold throne. The crew with the most bodies on it scores every second.", where: "Gator Pit arena, west side of the city. Last 30 seconds score double." },
-    casino: { title: "LUCKY WHEEL", kind: "CREWS  |  6 SPINS", what: "Click a bet board before each spin: GATOR, FROG or SKULL pay +2, CROWN pays +6. Swamp Slots, the Mega Gator jackpot and Gator Dice pay too.", where: "Lucky Gator Casino, east side of the city" },
+    casino: { title: "LUCKY WHEEL", kind: "CREWS  |  6 SPINS", what: "Click a bet board before each spin: GATOR, FROG or SKULL pay +2, CROWN pays +6. Swamp Slots, the Mega Gator jackpot and Gator Dice pay too.", where: "Token Gator Casino, east side of the city" },
     turf: { title: "TURF WAR", kind: "CREWS  |  4 MINUTES", what: "Open any house door, go inside and click CLAIM THIS HOUSE. Every 10 seconds each house you own scores 1.", where: "Every house in the city - shacks, shops, bars and the Old Town houses. Grab a truck!" }
   };
   const BETS = { boards: [], count: {} };
@@ -1542,7 +1542,7 @@
     PROBE.el.addEventListener("positionmove", onMove);
     PROBE.el.addEventListener("positionleave", e => { const d = e.detail || {}; if (d.connectionId == null) return; PROBE.pos.delete(d.connectionId); iconHide(d.connectionId); });
   }
-  // ---- crew mascots over players' heads: gator, heron, bullfrog, cottonmouth ---------
+  // ---- crew mascots over players' heads: gator, heron (MUNYONS), bullfrog, cottonmouth ---------
   const ICONS = new Map();   // connectionId -> { g, team, x, y, z }
   const ICON_Y = 2.2, ICON_S = 0.75;
   function iconHide(cid) { const b = ICONS.get(cid); if (b) { b.g.remove(); ICONS.delete(cid); } }
