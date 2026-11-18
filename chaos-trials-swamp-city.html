@@ -154,7 +154,7 @@
     "ferris-frame", "ferris-rim", "gondola-pink", "gondola-teal", "gondola-gold", "gondola-purple", "carousel", "carousel-base", "carousel-gator", "carousel-frog",
     "drop-tower", "drop-ring", "whack-booth", "whack-gator", "striker", "striker-puck", "fair-arch", "fair-pole", "fair-garland",
     "stand-funnel", "stand-boudin", "stand-snowball", "stand-gatorstick", "bank", "bank-vault", "money-bag",
-    "team-gator", "team-heron", "team-frog", "team-snake", "beam-gator", "beam-heron", "beam-frog", "beam-snake"];
+    "team-gator", "team-heron", "team-frog", "team-snake", "beam-gator", "beam-heron", "beam-frog", "beam-snake", "gator-junk"];
   const ICON_NAMES = ["team-gator", "team-heron", "team-frog", "team-snake"];   // crew mascots, same order as TEAMS
   const BOATS = !!CONFIG.BOATS && (!!CONFIG.ASSET_HOST || BOAT_NAMES.every(n => CONFIG.ASSET_URLS[n]));
   // separate random stream for boats and extra clouds, so the baked city layout never shifts
@@ -1301,12 +1301,21 @@
     const jx = -175, jz = CZ;
     for (const [x, z, w, d] of [[jx, jz - 17, 34, 0.3], [jx, jz + 17, 34, 0.3], [jx - 17, jz, 0.3, 34], [jx + 17, jz - 11, 0.3, 12], [jx + 17, jz + 11, 0.3, 12]])
       box({ x, y: 1.3, z, width: w, height: 2.6, depth: d, color: "#6a6a64", opacity: 0.85, mat: "chainlink" });
-    for (let i = 0; i < 16; i++)
-      box({ x: jx - 13 + rand() * 24, y: 0.5 + (i % 3) * 1, z: jz - 13 + rand() * 26, ry: rand() * 90, width: 2.4, height: 1, depth: 4.2, color: CAR_COLORS[i % CAR_COLORS.length], collide: i % 3 === 0 ? "true" : "false", mat: "rustcar" });
-    cyl({ x: jx - 8, y: 7, z: jz - 8, radius: 0.5, height: 14, color: "#d6a52f", mat: "crane" });
-    box({ x: jx - 2, y: 13.8, z: jz - 8, width: 14, height: 0.6, depth: 0.6, color: "#d6a52f", collide: "false", mat: "crane" });
-    if (NAT) for (let i = 0; i < 6; i++) natModel("rock-" + (1 + (i % 5)), jx - 14 + rand() * 26, 0.1, jz - 14 + rand() * 28, 1.4 + rand(), rand() * 360, false);
-    if (MED) { natModel("med-wagon", jx + 8, 0.1, jz + 9, 1.1, 30, true); natModel("med-wagon", jx - 4, 0.1, jz + 12, 1.1, 160, true); }
+    if (BOATS) {
+      // the yard itself is one model: stacks of rusted wrecks, a crane lifting a car on its magnet, a car crusher and
+      // its bales, tire towers, oil drums, a scrap heap, the office trailer, a burn barrel and floodlights
+      natModel("gator-junk", jx, 0.12, jz, 1, 0, true);
+      for (let i = 0; i < 16; i++) { rand(); rand(); rand(); }   // the old boxes' random draws, so every later placement stays put
+      if (NAT) for (let i = 0; i < 6; i++) { rand(); rand(); rand(); rand(); }
+    } else {
+      for (let i = 0; i < 16; i++)
+        box({ x: jx - 13 + rand() * 24, y: 0.5 + (i % 3) * 1, z: jz - 13 + rand() * 26, ry: rand() * 90, width: 2.4, height: 1, depth: 4.2, color: CAR_COLORS[i % CAR_COLORS.length], collide: i % 3 === 0 ? "true" : "false", mat: "rustcar" });
+      cyl({ x: jx - 8, y: 7, z: jz - 8, radius: 0.5, height: 14, color: "#d6a52f", mat: "crane" });
+      box({ x: jx - 2, y: 13.8, z: jz - 8, width: 14, height: 0.6, depth: 0.6, color: "#d6a52f", collide: "false", mat: "crane" });
+      if (NAT) for (let i = 0; i < 6; i++) natModel("rock-" + (1 + (i % 5)), jx - 14 + rand() * 26, 0.1, jz - 14 + rand() * 28, 1.4 + rand(), rand() * 360, false);
+      if (MED) { natModel("med-wagon", jx + 8, 0.1, jz + 9, 1.1, 30, true); natModel("med-wagon", jx - 4, 0.1, jz + 12, 1.1, 160, true); }
+    }
+    el("m-light", { type: "point", x: jx + 6.6, y: 1.6, z: jz + 2.6, color: "#ff9a40", intensity: 1, distance: 10, "cast-shadows": "false" });   // the burn barrel's glow
     text("GATOR JUNK", { x: jx + 17.3, y: 3.9, z: jz, ry: 90, width: 9, height: 1.8, "font-size": 90, color: "#120d10", "font-color": AMBER, emissive: 1, mount: "post", drop: 3.0 });
     FOOT.push({ x1: jx - 17.5, x2: jx + 17.5, z1: jz - 17.5, z2: jz + 17.5 });
 

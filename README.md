@@ -257,6 +257,17 @@ Every static building block in the city is now **baked into five textured models
 - **Carried bags** use an MML position probe (only while the Bank Job runs) to put a money bag on each carrier's back.
 - **Signs** are broader and each business has its own GTA-style look: script neon for bars and the motel, bold billboards for the pawn shop and fast food, a police badge sign, stencil hideout signs and green highway-exit signs for the districts. Fonts: Anton, Bungee, Bebas Neue, Pacifico, Lobster, Monoton, Black Ops One, Alfa Slab One, Racing Sans One, Permanent Marker, Oswald (SIL Open Font License).
 
+## Gator Junk redressed (update)
+
+The junkyard is now a real wrecking yard, built as one model (`gator-junk`, CC0):
+
+- Rusted wrecks in six faded colors with cracked glass, open hoods, missing doors and missing wheels propped on cinder blocks. They're stacked two and three high along the fences, with one on its roof and one tipped up on a tire pile.
+- A crawler crane lifting a wreck on its electromagnet, and a car crusher with a flattened car and a pyramid of crushed bales beside it.
+- Tire towers, oil drums, a scrap heap bristling with bars and panels, engine blocks on a pallet, and the office trailer up on blocks.
+- A burn barrel with a glowing fire, two floodlights, a dirt yard with oil stains, and fence posts with barbed wire. The gates swing open onto the street.
+
+Players can climb on the wrecks.
+
 ## Placed in front of you (update)
 
 When you place the build, you now stand just **outside** it, on solid ground at the foot of the east dock, with the whole city straight ahead of you. A boardwalk with two lamps runs from your feet onto the marina pier and leads straight to the Visitor Center. The Visitor Center was turned around to face the dock, so its big screen, check-in stands and the "WELCOME TO SWAMP CITY" arch greet you as you walk in.
