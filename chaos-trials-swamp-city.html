@@ -183,9 +183,14 @@
       if (BAKE_EXPORT) { e.setAttribute("data-bake", "1"); if (hints) for (const k in hints) if (hints[k] != null) e.setAttribute("data-" + k, String(hints[k])); }
       else if (BAKED) return e; // drawn by the textured city models instead
     }
-    (parent || W).appendChild(e);
+    (parent || (OFFSTAGE ? VOID : W)).appendChild(e);
     return e;
   }
+  // Built "offstage": made but never added to the world. Used for the old swamp scenery, so every later
+  // random placement (and the baked city) stays exactly where it was.
+  let OFFSTAGE = false;
+  const VOID = document.createElement("m-group");
+  const offstage = fn => { const p = OFFSTAGE; OFFSTAGE = true; try { return fn(); } finally { OFFSTAGE = p; } };
   let STATIC = false;
   const BAKEABLE = { "m-cube": 1, "m-cylinder": 1, "m-sphere": 1, "m-label": 1, "m-plane": 1 };
   const HINT_KEYS = { mat: 1, mount: 1, drop: 1, back: 1 };
@@ -313,15 +318,14 @@
      ========================================================================= */
   const SWAMP_R = 360;   // round swamp around the city, 720 m across (was a 980 m square): about 70% less open water
   function buildGround() {
-    cyl({ y: -1.3, z: CZ, radius: SWAMP_R, height: 0.4, color: "#2b2418", mat: "mud" });                         // swamp mud (walkable)
-    cyl({ y: -0.45, z: CZ, radius: SWAMP_R, height: 0.08, color: "#2d4a3a", opacity: 0.82, collide: "false", mat: "water" }); // water
+    // no open water any more: the city ends at a stone seawall; boats sit in small slips against it (buildBoats)
+    box({ y: -2.6, z: CZ, width: ISLAND.x2 - ISLAND.x1, height: 2.84, depth: ISLAND.z2 - ISLAND.z1, color: "#6a6a64", mat: "stone" });   // seawall
     box({ y: ST ? -0.58 : -0.5, z: CZ, width: ISLAND.x2 - ISLAND.x1, height: 1.2, depth: ISLAND.z2 - ISLAND.z1, color: "#3d4a2c", mat: "bank" }); // island
     if (ST) natModel("ground-grass", 0, 0.11, CZ, 1, 0, true);                                                                // grass lawn
     // boardwalk rim around the island
     const rim = (x, z, w, d) => box({ x, y: 0.16, z, width: w, height: 0.12, depth: d, color: WOOD, mat: "boardwalk" });
     rim(0, ISLAND.z1 + 1.5, 2 * HALF, 3); rim(0, ISLAND.z2 - 1.5, 2 * HALF, 3);
     rim(ISLAND.x1 + 1.5, CZ, 3, 2 * HALF); rim(ISLAND.x2 - 1.5, CZ, 3, 2 * HALF);
-    for (let i = 0; i < Math.floor(2 * HALF / 5.4); i++) cyl({ x: ISLAND.x1 + 2 + i * 5.4, y: -0.4, z: ISLAND.z2 + 0.3, radius: 0.2, height: 1.4, color: WOOD_D, collide: "false", mat: "log" });
   }
 
   function buildRoads() {
@@ -707,7 +711,8 @@
     return g;
   }
 
-  function buildNature() {
+  function buildNature() { offstage(buildSwampScenery); }
+  function buildSwampScenery() {   // cypress, lily pads, reeds, rocks and swimming gators that used to fill the swamp
     const nTrees = LOW ? 35 : 65;
     for (let i = 0; i < nTrees; i++) {
       const a = rand() * Math.PI * 2, r = 232 + rand() * 170;
@@ -744,7 +749,7 @@
       const g = gatorModel(x, -0.42, z, (a * 180 / Math.PI) % 360, 1.2);
       el("m-attr-anim", { attr: "x", start: r2(x - 6), end: r2(x + 6), duration: 22000 + i * 3000, loop: "true", "ping-pong": "true", easing: "easeInOutSine" }, g);
     }
-    if (BOATS) buildMoreGators();
+    if (BOATS) OFFSTAGE = false, buildMoreGators(), OFFSTAGE = true;
     });
   }
 
@@ -753,7 +758,12 @@
     const gm = (x, y, z, ry, s) => el("m-model", { src: natURL("gator"), x: r2(x), y: r2(y), z: r2(z), ry: r2(ry), sx: r2(s), sy: r2(s), sz: r2(s), collide: "false" });
     // Gator Farm yard, just past the fence
     for (const [x, ry, s] of [[-92, 160, 0.9], [-88.5, 210, 0.8], [-84, 175, 1.0], [-80.5, 120, 0.85]]) gm(x, 0.1 + 0.27 * s, CZ - 23.5 + (x % 2), ry, s);
-    if (LOW) return;
+    offstage(() => { if (!LOW) moreGatorsInWater(gm); });
+    // basking on the quay next to the boat slips
+    for (const [x, z, ry, s] of [[-206, CZ - 52, 80, 1.0], [206, CZ + 22, -100, 0.9], [-95, CZ + 211, 170, 1.1], [52, CZ - 211, 10, 0.95], [-130, CZ - 211, -20, 0.9], [150, CZ + 211, 200, 1.0]])
+      gm(x, 0.15 + 0.27 * s, z, ry, s);
+  }
+  function moreGatorsInWater(gm) {
     // basking in the shallows, heads toward the shore
     for (let k = 0; k < 12; k++) {
       const side = k % 4, along = -190 + rnd2() * 380, off = HALF + 3 + rnd2() * 5, s = 0.9 + rnd2() * 0.5;
@@ -776,7 +786,7 @@
     if (!KEN) return;
     const n = LOW ? 8 : 16;
     for (let i = 0; i < n; i++) {
-      const a = rand() * Math.PI * 2, r = 40 + rand() * 300, s = 22 + rand() * 24;
+      const a = rand() * Math.PI * 2, r = 30 + rand() * 170, s = 22 + rand() * 24;
       const x = r2(Math.cos(a) * r), z = r2(CZ + Math.sin(a) * r);
       const y = r2(70 + rand() * 40), ry = Math.floor(rand() * 360), dur = 80000 + Math.floor(rand() * 60000);
       const src = BOATS ? natURL("cloud-" + (1 + (i % 3))) : asset("cloud");
@@ -784,7 +794,7 @@
       el("m-attr-anim", { attr: "x", start: r2(x - 40), end: r2(x + 40), duration: dur, loop: "true", "ping-pong": "true", easing: "easeInOutSine" }, c);
     }
     if (BOATS && !LOW) for (let i = 0; i < 10; i++) {   // a few big, high clouds further out
-      const a = rnd2() * Math.PI * 2, r = 200 + rnd2() * 220, s = 45 + rnd2() * 40;
+      const a = rnd2() * Math.PI * 2, r = 90 + rnd2() * 120, s = 45 + rnd2() * 40;
       const x = r2(Math.cos(a) * r), z = r2(CZ + Math.sin(a) * r);
       const c = el("m-model", { src: natURL("cloud-" + (1 + (i % 3))), x, y: r2(110 + rnd2() * 50), z, ry: Math.floor(rnd2() * 360), sx: r2(s), sy: r2(s), sz: r2(s), collide: "false", "cast-shadows": "false" });
       el("m-attr-anim", { attr: "z", start: r2(z - 50), end: r2(z + 50), duration: 120000 + Math.floor(rnd2() * 80000), loop: "true", "ping-pong": "true", easing: "easeInOutSine" }, c);
@@ -793,11 +803,13 @@
 
   function buildAirboats() {
     for (const s of [-1, 1]) {
-      box({ x: s * (HALF + 51), y: 0.45, z: CZ, width: 102, height: 0.3, depth: 4, color: WOOD, mat: "boardwalk" });
-      for (let k = 0; k < 14; k++) cyl({ x: s * (HALF + 3 + k * 7.3), y: -0.4, z: CZ + 1.8, radius: 0.2, height: 1.6, color: WOOD_D, collide: "false", mat: "log" });
-      text(BOATS ? "AIRBOATS - click one to drive" : "AIRBOAT STOP - hop on as one passes", { x: s * 310, y: 2.6, z: CZ - 2.4, ry: s > 0 ? -90 : 90, width: 7, height: 0.6, "font-size": 36, "font-color": AMBER, mount: "post", drop: 2.0 });
+      // short marina pier (was 102 m), with pilings
+      box({ x: s * (HALF + 8), y: 0.25, z: CZ, width: 16, height: 0.3, depth: 4, color: WOOD, mat: "boardwalk" });
+      for (let k = 0; k < 3; k++) for (const pz of [-1.8, 1.8]) cyl({ x: s * (HALF + 3 + k * 6), y: -0.5, z: CZ + pz, radius: 0.2, height: 1.8, color: WOOD_D, collide: "false", mat: "log" });
+      text("SWAMP CITY MARINA", { x: s * (HALF - 4), y: 2.9, z: CZ - 2.6, ry: s > 0 ? -90 : 90, width: 7, height: 1.2, "font-size": 60, color: "#0e3a52", "font-color": "#ffffff", mount: "post", drop: 2.2 });
     }
-    if (BOATS) { live(buildBoats); return; }
+    if (BOATS) { buildSlips(); live(buildBoats); return; }
+    return;   // no swamp, so no airboat loop in the simple version
     live(() => {
     const loop = grp({ z: CZ });
     el("m-attr-anim", { attr: "ry", start: 0, end: 360, duration: 240000, loop: "true" }, loop);
@@ -833,29 +845,50 @@
     });
   }
   const fan = g => { const f = el("m-model", { src: natURL("airboat-prop"), y: 1.7, z: -2.62, collide: "false", "cast-shadows": "false" }, g); el("m-attr-anim", { attr: "rz", start: 0, end: 360, duration: 450, loop: "true" }, f); };
-  function buildBoats() {
-    for (const s of [-1, 1]) {
-      // the marina: a yacht and a sailboat at each pier
-      boat("yacht", s > 0 ? "yacht-1" : "yacht-2", s * (HALF + 52), CZ - 5.6, -90);
-      boat("sailboat", "sailboat", s * (HALF + 80), CZ + 5.0, 90);
-      // four airboats tied along the north side of each pier
-      [6, 13, 20, 78].forEach((dx, k) => boat("airboat", "airboat-" + (1 + ((k + (s > 0 ? 0 : 2)) % 4)), s * (HALF + dx), CZ - 3.7, s > 0 ? -90 : 90, fan));
-      // skiffs on the south side, near the shore end
-      for (let k = 0; k < 3; k++) boat("skiff", "skiff-" + (1 + (k % 2)), s * (HALF + 5 + k * 5.2), CZ + 3.4, 90);
+  // Docked boats: every boat sits in its own little slip against the seawall (no open water, not drivable).
+  // [model, x, z, ry]; boats lie along the wall: ry 90 on the north/south walls, 0 on the east/west walls.
+  const BOAT_DIM = { yacht: [2.8, 19.1, -0.55], sailboat: [2.3, 14.0, 0], airboat: [1.2, 6.3, -0.35], shrimpboat: [6.7, 14.1, 0.05], skiff: [0.9, 5.1, -0.25] };
+  const kindOf = m => m.replace(/-\d+$/, "");
+  function dockedBoats() {
+    const N = ISLAND.z1, S = ISLAND.z2, E = ISLAND.x2, Wx = ISLAND.x1, gap = 0.6;
+    const out = (m) => BOAT_DIM[kindOf(m)][0] + gap;
+    const list = [];
+    for (const s of [-1, 1]) {   // the two marina piers: a yacht along the north side, a sailboat along the south side
+      list.push([s > 0 ? "yacht-1" : "yacht-2", s * (HALF + 10.2), CZ - 2 - out("yacht-1") + 0.2, 90]);
+      list.push(["sailboat", s * (HALF + 7.5), CZ + 2 + out("sailboat") - 0.2, 90]);
+      [-52, -62, 12, 22].forEach((dz, k) => list.push(["airboat-" + (1 + ((k + (s > 0 ? 0 : 2)) % 4)), s * (HALF + out("airboat-1")), CZ + dz, s > 0 ? 180 : 0]));
+      [96, 103, -150, -143].forEach((dz, k) => list.push(["skiff-" + (1 + (k % 2)), s * (HALF + out("skiff-1")), CZ + dz, s > 0 ? 180 : 0]));
     }
-    boat("yacht", "yacht-1", -(HALF + 30), CZ + 5.6, 90);
-    if (LOW) return;
-    // shrimp boats moored off the north and south shores, and out in the open water
-    for (const [x, z, ry, n] of [[-60, CZ - HALF - 14, 95, 1], [45, CZ - HALF - 16, 80, 2], [-150, CZ + HALF + 15, 100, 1], [120, CZ + HALF + 14, 85, 2],
-      [315, CZ - 115, 20, 1], [-315, CZ + 115, 200, 2], [-250, CZ - 240, 135, 1]])
-      boat("shrimp", "shrimpboat-" + n, x, z, ry);
-    // skiffs along the shoreline
-    for (let k = 0; k < 10; k++) {
-      const side = k % 4, along = -180 + rnd2() * 360, off = HALF + 7 + rnd2() * 9;
-      const [x, z] = side === 0 ? [along, CZ - off] : side === 1 ? [along, CZ + off] : side === 2 ? [off, CZ + along] : [-off, CZ + along];
-      if (Math.abs(z - CZ) < 14 && Math.abs(x) > HALF) continue;   // keep the piers clear
-      if (CARS.some(o => Math.hypot(o.x - x, o.z - z) < 10)) continue;
-      boat("skiff", "skiff-" + (1 + (k % 2)), x, z, Math.floor(rnd2() * 360));
+    list.push(["yacht-1", -100, S + out("yacht-1"), 90]);
+    for (const [x, n] of [[-62, 1], [-40, 2], [40, 1], [62, 2]]) list.push(["shrimpboat-" + n, x, N - out("shrimpboat-1"), 90]);
+    for (const [x, n] of [[100, 1], [140, 2], [-160, 1]]) list.push(["shrimpboat-" + n, x, S + out("shrimpboat-1"), 90]);
+    for (const x of [-150, -143, 140, 147]) list.push(["skiff-" + (1 + (Math.abs(x) % 2)), x, N - out("skiff-1"), 90]);
+    for (const x of [-72, -65, 70, 77]) list.push(["skiff-" + (1 + (Math.abs(x) % 2)), x, S + out("skiff-1"), 90]);
+    return list;
+  }
+  // slips: a pad of water just bigger than the boat, with a mud floor under it (static, baked into the city)
+  function buildSlips() {
+    for (const s of [-1, 1]) {   // one shared basin round each marina pier
+      box({ x: s * (HALF + 10.4), y: -0.45, z: CZ, width: 20.8, height: 0.08, depth: 18, color: "#2d4a3a", opacity: 0.82, collide: "false", mat: "water" });
+      box({ x: s * (HALF + 10.4), y: -1.12, z: CZ, width: 20.8, height: 1.28, depth: 18, color: "#6a6a64", mat: "stone" });   // stone basin under the water
+    }
+    for (const [m, x, z, ry] of dockedBoats()) {
+      if (Math.abs(z - CZ) < 12 && Math.abs(x) > HALF) continue;   // inside a pier basin already
+      const [hb, L, zc] = BOAT_DIM[kindOf(m)], along = ry === 90;
+      const w = along ? L + 3 : 2 * hb + 1.2, d = along ? 2 * hb + 1.2 : L + 3;
+      const cx = along ? x + zc * (ry === 90 ? 1 : -1) : x, cz = along ? z : z + zc * (ry === 180 ? -1 : 1);
+      box({ x: r2(cx), y: -0.45, z: r2(cz), width: r2(w), height: 0.08, depth: r2(d), color: "#2d4a3a", opacity: 0.82, collide: "false", mat: "water" });
+      box({ x: r2(cx), y: -1.12, z: r2(cz), width: r2(w), height: 1.28, depth: r2(d), color: "#6a6a64", mat: "stone" });   // stone basin under the water
+    }
+  }
+  function buildBoats() {
+    let k = 0;
+    for (const [m, x, z, ry] of dockedBoats()) {
+      const g = grp({ id: "boat-" + (k++), x: r2(x), y: WATERLINE, z: r2(z), ry });
+      const bob = grp({}, g);   // gentle bob at the mooring
+      el("m-attr-anim", { attr: "y", start: 0, end: 0.07, duration: 3000 + (k % 5) * 400, loop: "true", "ping-pong": "true", easing: "easeInOutSine", "start-time": (k * 700) % 3000 }, bob);
+      el("m-model", { src: natURL(m), "data-boat": kindOf(m) }, bob);
+      if (kindOf(m) === "airboat") el("m-model", { src: natURL("airboat-prop"), y: 1.7, z: -2.62, collide: "false", "cast-shadows": "false" }, bob);
     }
   }
 

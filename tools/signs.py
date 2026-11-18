@@ -72,6 +72,7 @@ STYLE = {
     'BAYOU CANNERY CO.': ('painted', 'alfa-slab-one', None, '#f2e6c8', 'EST. 1921'),
     'GATOR JUNK': ('stencil', 'black-ops-one', '#2b2a26', '#ffb020', 'SCRAP  -  PARTS  -  NO QUESTIONS'),
     'KGTR 97.3': ('billboard', 'racing-sans-one', '#c8161d', '#ffffff', 'SWAMP ROCK RADIO'),
+    'SWAMP CITY MARINA': ('billboard', 'bungee', '#0e3a52', '#ffffff', 'BOAT SLIPS  -  BAIT  -  FUEL'),
     'BAYOU EYE': ('script', 'lobster', '#123a3a', '#7dfff0', None),
     'GATOR-GO-ROUND': ('script', 'lobster', '#4a0f22', '#ffd27a', None),
     'GATOR DROP': ('billboard', 'bungee', '#2a1238', '#ff6ec7', None),

@@ -43,7 +43,7 @@ A Grand Theft Auto style MML world for 4 teams and 50+ players. It uses the same
   - **Gator Flats (west):** shacks, trailers and the Gator Junk yard.
   - Small marsh parks with ponds and cypress trees are scattered through the blocks.
 - **Team hideouts:** one in each outer corner, each with a buggy parked beside it. All four are the same distance from the bank vault (about 175 m), so the Bank Job is fair and buggies really help.
-- **The swamp:** players can wade anywhere around the island. Four airboats circle the city, and players board them from the long east and west piers.
+- **The edge of town:** the city ends at a stone seawall with a boardwalk quay. There is no open water any more; every boat is docked in its own small slip against the wall, and short marina piers stick out on the east and west sides.
 
 ## Teams
 
@@ -68,17 +68,17 @@ Players click their team's stand and type a name. Clicking another stand switche
 
 Every point counts toward **series points**, which add up across all games until you press **Reset series points**. Use them for the weekly leaderboard. When a game's timer ends, the big screen shows the winner and returns to intermission.
 
-## Vehicles (every truck and boat is drivable)
+## Vehicles
 
-There are **47 drivable vehicles**: 12 trucks and 35 boats (3 motor yachts, 2 sailboats, 8 airboats, 7 shrimp boats and 15 skiffs).
+There are **12 drivable trucks**. The **36 boats** (3 motor yachts, 2 sailboats, 8 airboats, 7 shrimp boats and 16 skiffs) are parked: each one is moored in a slip against the seawall and bobs gently.
 
 - **Trucks** are modeled pickups (`pickup-red`, `-blue`, `-gold`, `-green`, CC0, made for this build). They have a rounded body, wheel arches with fender flares, a chrome grille, bumpers and bull bar, glowing headlights and taillights, off-road tires with chrome rims, running boards, a roof light bar and a wooden bed floor. They sit on the road.
 - **Drive:** click any vehicle, or its "CLICK TO DRIVE" sign, to take the wheel. A console appears at waist height at the front of the riding area, tilted up toward you like a dashboard, so it never blocks your view ahead. It has **< LEFT, GO, RIGHT > / BACK, STOP, EXIT**. Whichever of GO, BACK or STOP is active lights up, and the top line shows the speed. Only the driver sees the console. The "click to drive" signs hide while someone is driving, so the riders' view stays clear.
 - **Slow and smooth:** every vehicle starts very slowly, builds up gently and stays at a relaxed pace. Trucks reach about 22 km/h and airboats about 25. Skiffs and yachts are slower still, and sailboats are the slowest. STOP slows the vehicle gradually, a parked vehicle coasts to a halt, and turns ease round to the new heading.
 - **Ride:** every vehicle has an invisible MML floor matched to its deck, plus low invisible rails, so riders stay on while it moves. Trucks carry riders in the bed, with two metal steps at the tailgate to climb in. Yachts, sailboats and shrimp boats have boarding steps on both sides; riders stand on the back deck.
-- **Trucks** stop when they hit a building, and they're amphibious, so they can drive out into the swamp. **Boats** stay in open water: they can't drive onto the island or through the piers, and they stop at the edge of the swamp.
-- **Where they are:** 4 trucks at the plaza, one at each hideout and four on the middle ring road. Each pier has a yacht, a sailboat, four airboats and three skiffs, with one more yacht on the west pier. Shrimp boats are moored off the north and south shores and out in the open water, and the other skiffs sit along the shoreline.
-- Vehicles nobody drives for 2 minutes are released. **Reset all buggies** in the controller puts every truck and boat back where it started.
+- **Trucks** stop when they hit a building.
+- **Where they are:** 4 trucks at the plaza, one at each hideout and four on the middle ring road. Boats: a yacht and a sailboat at each marina pier, four airboats and four skiffs along the east and west walls, shrimp boats by the cannery (north) and along the south wall, one more yacht by the fair, and skiffs along the north and south walls.
+- Vehicles nobody drives for 2 minutes are released. **Reset all buggies** in the controller puts every truck back where it started.
 
 ## Kenney models (CC0)
 
@@ -204,7 +204,7 @@ Every static building block in the city is now **baked into five textured models
 
 **When it turns on:** with `BAKED: true` and the asset pack hosted, *and* all the other add-ons on (`KENNEY`, `NATURE`, `MEDIEVAL`, `DOWNTOWN`, `STREETS`) at normal detail. In any other setup the world falls back to the primitive version, so it always works. Moving and clickable pieces (vehicles, airboats, the Ferris wheel, the vault, check-in stands, bet boards and turf walls) are still live MML elements, because they have to move or respond to clicks.
 
-## Boats, a smaller swamp and new clouds (update)
+## Boats, a smaller swamp and new clouds (earlier update; the swamp has since been removed)
 
 - **Smaller, round swamp:** the swamp is now a circle 720 m across (radius 360 m), which cuts the open water by about 70% from the 980 m square. The city, buildings, streets and piers are the same size, and the airboat loop, work-boat loop and outer gators all sit inside the new shoreline.
 - **Original boat models** (modeled in Blender for this build, CC0):
@@ -236,6 +236,13 @@ Every static building block in the city is now **baked into five textured models
 - `FRAMES`: embed other MML documents, such as the Spire, with `m-frame` at a position you choose.
 - `MODELS`: swap in CC0 GLBs for the buggy, airboat or gators.
 - `DETAIL: "low"`: cuts trees, reeds, lily pads, street lamps and outer-district buildings for weaker devices.
+
+## A smaller build: no outside water (update)
+
+- The round swamp is gone. The world now ends at the city's stone seawall (430 m square), so the whole build is much smaller.
+- The two 102 m airboat piers are now 16 m marina piers. Every boat is docked in its own stone-edged slip of water against the wall and is parked scenery (trucks are still drivable).
+- The swamp trees, reeds, rocks, lily pads and swimming gators that stood in the water were removed; a few gators now bask on the quay by the boats, and the Gator Farm gators are still there. Clouds stay over the city.
+- `tools/docktest.mjs` checks that all 36 boats are docked at the wall and that nothing is left out past the slips.
 
 ## Bank and signs (update)
 
