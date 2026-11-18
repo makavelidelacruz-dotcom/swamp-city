@@ -2547,18 +2547,18 @@
   function celebEnd() { CELEB.t.forEach(clearTimeout); CELEB.t = []; CELEB.g.forEach(g => g.remove()); CELEB.g = []; }
   function celebrate(win) {   // one show over the centre, the Visitor Center side and each quarter, so the haze never hides it
     celebEnd();
-    for (const [x, z] of [[0, 0], [150, 0], [110, 120], [110, -120], [-110, 120], [-110, -120]]) celebAt(x, CZ + z, win);
+    for (const [x, z] of [[0, 0], [172, 0], [110, 120], [110, -120], [-110, 120], [-110, -120]]) celebAt(x, CZ + z, win);
     CELEB.t.push(setTimeout(celebEnd, 30000));
   }
   function celebAt(cx, cz, win) {
-    const g = grp({ x: cx, z: cz, y: 26 }), row = grp({}, g), R = 4, P = k => (90 + 72 * k) * Math.PI / 180;
+    const g = grp({ x: cx, z: cz, y: 20 }), row = grp({}, g), R = 6, P = k => (90 + 72 * k) * Math.PI / 180;
     CELEB.g.push(g);
     el("m-attr-anim", { attr: "ry", start: 0, end: 360, duration: 12000, loop: "true" }, row);
     for (let i = 0; i < 5; i++) {   // each star: a pentagram of five glowing bars
-      const st = grp({ x: (i - 2) * 10 }, row), bars = [];
+      const st = grp({ x: (i - 2) * 14 }, row), bars = [];
       for (let k = 0; k < 5; k++) {
         const x1 = R * Math.cos(P(k)), y1 = R * Math.sin(P(k)), x2 = R * Math.cos(P(k + 2)), y2 = R * Math.sin(P(k + 2));
-        bars.push(box({ x: r2((x1 + x2) / 2), y: r2((y1 + y2) / 2), width: r2(Math.hypot(x2 - x1, y2 - y1) + 0.4), height: 0.7, depth: 0.7, rz: r2(Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI), color: "#2a2a2a", collide: "false" }, st));
+        bars.push(box({ x: r2((x1 + x2) / 2), y: r2((y1 + y2) / 2), width: r2(Math.hypot(x2 - x1, y2 - y1) + 0.4), height: 1.1, depth: 1.1, rz: r2(Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI), color: "#2a2a2a", collide: "false" }, st));
       }
       CELEB.t.push(setTimeout(() => bars.forEach(b => { b.setAttribute("color", "#ffd23f"); b.setAttribute("emissive", "1"); }), 800 * (i + 1)));
     }
@@ -2566,8 +2566,8 @@
       const orbit = grp({}, g);
       el("m-attr-anim", { attr: "ry", start: 0, end: -360, duration: 24000, loop: "true" }, orbit);
       for (let k = 0; k < 4; k++) {
-        const a = k * Math.PI / 2, m = el("m-model", { src: natURL(ICON_NAMES[win[k % win.length]]), x: r2(Math.cos(a) * 30), z: r2(Math.sin(a) * 30), sx: 9, sy: 9, sz: 9, collide: "false", "cast-shadows": "false" }, orbit);
-        el("m-attr-anim", { attr: "y", start: -12, end: -3, duration: 2200 + k * 300, loop: "true", "ping-pong": "true", easing: "easeInOutSine" }, m);
+        const a = k * Math.PI / 2, m = el("m-model", { src: natURL(ICON_NAMES[win[k % win.length]]), x: r2(Math.cos(a) * 36), z: r2(Math.sin(a) * 36), sx: 14, sy: 14, sz: 14, collide: "false", "cast-shadows": "false" }, orbit);
+        el("m-attr-anim", { attr: "y", start: -14, end: -2, duration: 2200 + k * 300, loop: "true", "ping-pong": "true", easing: "easeInOutSine" }, m);
         el("m-attr-anim", { attr: "ry", start: 0, end: 360, duration: 5000, loop: "true" }, m);
       }
     }
