@@ -2547,13 +2547,13 @@
   function celebEnd() { CELEB.t.forEach(clearTimeout); CELEB.t = []; if (CELEB.g) { CELEB.g.remove(); CELEB.g = null; } }
   function celebrate(win) {
     celebEnd();
-    const g = CELEB.g = grp({ z: CZ, y: 34 }), row = grp({}, g), R = 3, P = k => (90 + 72 * k) * Math.PI / 180;
+    const g = CELEB.g = grp({ z: CZ, y: 26 }), row = grp({}, g), R = 4, P = k => (90 + 72 * k) * Math.PI / 180;
     el("m-attr-anim", { attr: "ry", start: 0, end: 360, duration: 12000, loop: "true" }, row);
     for (let i = 0; i < 5; i++) {   // each star: a pentagram of five glowing bars
-      const st = grp({ x: (i - 2) * 7.5 }, row), bars = [];
+      const st = grp({ x: (i - 2) * 10 }, row), bars = [];
       for (let k = 0; k < 5; k++) {
         const x1 = R * Math.cos(P(k)), y1 = R * Math.sin(P(k)), x2 = R * Math.cos(P(k + 2)), y2 = R * Math.sin(P(k + 2));
-        bars.push(box({ x: r2((x1 + x2) / 2), y: r2((y1 + y2) / 2), width: r2(Math.hypot(x2 - x1, y2 - y1) + 0.4), height: 0.5, depth: 0.5, rz: r2(Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI), color: "#2a2a2a", collide: "false" }, st));
+        bars.push(box({ x: r2((x1 + x2) / 2), y: r2((y1 + y2) / 2), width: r2(Math.hypot(x2 - x1, y2 - y1) + 0.4), height: 0.7, depth: 0.7, rz: r2(Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI), color: "#2a2a2a", collide: "false" }, st));
       }
       CELEB.t.push(setTimeout(() => bars.forEach(b => { b.setAttribute("color", "#ffd23f"); b.setAttribute("emissive", "1"); }), 800 * (i + 1)));
     }
@@ -2603,7 +2603,7 @@
       return;
     }
     FAILS.delete(cid);
-    if (cmd === "stop") setActive(null);
+    if (cmd === "stop") finishRound();   // ends the round now: winner on the big screen + celebration
     else if (cmd === "note") { NOTE = String(d.text != null ? d.text : p.text || "").replace(/[^ -~]/g, "").slice(0, 70); NOTE_UNTIL = NOTE ? now() + 45000 : 0; paintScreen(); }
     else if (cmd === "reset") { SERIES.fill(0); paintScores(); }
     else if (cmd === "cars") resetCars();
