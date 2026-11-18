@@ -55,6 +55,10 @@ check(find(o, n => n.tag === "m-model" && n.attributes.sx === "14").length === 2
 // BANK JOB: click the vault, click your own crew's centred drop board
 host(o, "heist"); await sleep(800);
 check(find(o, n => n.tag === "m-cube" && n.attributes.color === "#ffd23f").length === 0, "starting a game clears the celebration");
+const strobes = () => find(o, n => n.tag === "m-attr-anim" && n.attributes.attr === "emissive");
+check(strobes().length === 14, "Bank Job: police scene up, 14 flashing light bars/strobes (5 cruisers, 2 helicopters): " + strobes().length);
+check(strobes().every(n => +n.attributes.end <= 1 && +n.attributes.start <= 1), "flashing stays at level 1 or lower");
+check(find(o, n => n.tag === "m-light").length <= 8, "still 8 lights at most during the Bank Job");
 const vault = o.ids.vault != null ? o.ids.vault : find(o, n => /CLICK THE VAULT/.test(n.attributes.content || ""))[0].nodeId;
 send(p, vault, "click", {}); await sleep(500);
 check(/1 ON THE RUN/.test(state(o).games.heist), "vault grab: " + state(o).games.heist);
@@ -66,6 +70,7 @@ const board = boards.find(b => { const g = o.nodes.get(b.parent); return A(g, "x
 check(board && A(board, "x") === 0, "drop board centred on the door");
 send(p, board.nodeId, "click", {}); await sleep(500);
 check(/1 BAGS BANKED/.test(state(o).games.heist), "bag banked at the hideout: " + state(o).games.heist);
-host(o, "stop"); await sleep(400);
+host(o, "stop"); await sleep(600);
+check(strobes().length === 0, "police scene removed when the Bank Job ends");
 host(o, "reset"); await sleep(300);
 console.log(fails ? fails + " FAILED" : "ALL PASS"); process.exit(fails ? 1 : 0);
