@@ -58,21 +58,54 @@ check(ra && ra.attributes.loop === "true" && ra.attributes.duration === "12000",
 const lx = find(B, n => n.tag === "m-attr-anim" && (n.attributes.attr === "x" || n.attributes.attr === "z") && n.attributes["ping-pong"] === "true" && n.attributes.duration === "1600");
 check(lx.length === 6, "live: three lungers charge in and out (x and z keyframes): " + lx.length);
 check(find(B, n => n.tag === "m-attr-anim" && n.attributes.attr === "rx" && n.attributes.end === "30").length === 5, "live: all five jaws snapping");
-check(find(B, n => n.tag === "m-label" && n.attributes.content === "THRONE IS EMPTY").length === 4, "jumbotron shows the throne state on all four faces");
-// B stands on the throne in the lunge path of the south gator (90 degrees = +z), A in the safe middle
-at(A, -75, -20); at(B, -75, -20 + 4.2);
-let chomped = false;
-for (let k = 0; k < 40 && !chomped; k++) { await sleep(150); chomped = find(B, n => n.tag === "m-label" && /CHOMPED!/.test(n.attributes.content || "")).length > 0; }
-check(chomped, "a lunger chomps the player at the throne's edge (Bo sees CHOMPED!)");
-check(!find(A, n => /CHOMPED!/.test(n.attributes.content || "")).length, "only the bitten player gets the personal CHOMPED message");
-await sleep(1600);
-const faces = find(A, n => n.tag === "m-label" && /GATORS HOLD IT|CHOMP!/.test(n.attributes.content || ""));
-check(faces.length >= 4, "while Bo is benched, GATORS hold it alone: " + faces.slice(0, 2).map(n => n.attributes.content));
+check(find(B, n => n.tag === "m-label" && n.attributes.content === "BRING US GATORS!").length === 4, "jumbotron calls for gators on all four faces");
+// GATOR ROUND-UP: little gators loose in the city; grab one, carry it onto the throne
+const wild = c => find(c, n => n.tag === "m-group" && n.attributes.sx === "0.25" && n.children.some(id => { const k = c.nodes.get(id); return k && k.tag === "m-model" && /pit-gator|a62c69e6/.test(k.attributes.src || ""); }) && c.nodes.get(n.parent) && c.nodes.get(n.parent).attributes["data-game"] === "arena");
+const ws0 = wild(B);
+check(ws0.length === 28, "28 little gators loose around the city: " + ws0.length);
+const spots = ws0.map(g => B.nodes.get(g.parent)).map(p => [+p.attributes.x, +p.attributes.z]);
+check(spots.every(([x, z]) => Math.hypot(x + 75, z + 20) > 26), "none of them start in or next to the pit");
+check(new Set(spots.map(([x, z]) => Math.round(x / 20) + "," + Math.round(z / 20))).size > 15, "they're spread out over the city");
+const target = ws0[0], tp = B.nodes.get(target.parent), [gx, gz] = [+tp.attributes.x, +tp.attributes.z];
+const clickTarget = B.nodes.get(target.children.find(id => B.nodes.get(id).tag === "m-model"));
+at(A, gx + 30, gz); await sleep(300);
+send(A, clickTarget.nodeId, "click"); await sleep(400);
+check(find(A, n => /Get closer/.test(n.attributes.content || "")).length >= 1, "you have to walk up to a gator to grab it");
+at(A, gx + 1, gz); await sleep(300);
+send(A, clickTarget.nodeId, "click"); await sleep(500);
+check(find(A, n => /GOT ONE!/.test(n.attributes.content || "")).length >= 1, "clicking a gator picks it up");
+const carried = find(B, n => n.tag === "m-group" && n.attributes.sx === "0.25" && !(B.nodes.get(n.parent) && B.nodes.get(n.parent).attributes["data-game"] === "arena"));
+check(carried.length === 1, "everyone sees the player carrying a little gator");
+const cg = carried[0] && B.nodes.get(carried[0].parent);
+check(cg && Math.abs(+cg.attributes.y - 1.45) < 0.01 && Math.hypot(+cg.attributes.x - (gx + 1), +cg.attributes.z - (gz - 0.45)) < 0.05, "...held in their arms, in front of them at waist height: " + (cg && [cg.attributes.x, cg.attributes.y, cg.attributes.z]));
+check(wild(B).length === 27, "it's gone from the street");
+at(A, gx + 1.5, gz + 1); await sleep(300);
+const firstClick = B.nodes.get(wild(B)[0].children.find(id => B.nodes.get(id).tag === "m-model"));
+send(A, firstClick.nodeId, "click"); await sleep(300);
+check(find(A, n => /Your arms are full/.test(n.attributes.content || "")).length >= 1, "one gator at a time");
+const before = JSON.parse(B.nodes.get(B.ids["hb-state"]).attributes["data-state"]).round[0];
+at(A, -75, -20); await sleep(600);
+check(find(A, n => /DELIVERED!/.test(n.attributes.content || "")).length >= 1, "carrying it onto the throne delivers it");
+await sleep(1300);
+const st = JSON.parse(B.nodes.get(B.ids["hb-state"]).attributes["data-state"]);
+check(st.round[0] === before + 1, "+1 for the crew: " + JSON.stringify(st.round));
+check(wild(B).length === 28, "a new gator turns up somewhere in the city");
+check(find(B, n => n.tag === "m-label" && /GATORS LEAD  1/.test(n.attributes.content || "")).length === 4, "jumbotron shows who's leading");
 const crown = find(A, n => n.tag === "m-model" && n.attributes.sx === "3" && n.attributes.visible === "true");
-check(crown.length === 1, "the holding crew's mascot spins over the jumbotron");
+check(crown.length === 1, "the leading crew's mascot spins over the jumbotron");
 const th = find(A, n => n.tag === "m-cylinder" && n.attributes.radius === "4.5")[0];
-check(th && th.attributes.color === "#4fe08f", "throne turns GATORS green");
+check(th && th.attributes.color === "#4fe08f", "throne turns the leading crew's color (GATORS green)");
+// Bo grabs one and gets chomped by a lunger on the way to the throne: the gator gets away
+const t2 = wild(B)[1], tp2 = B.nodes.get(t2.parent);
+at(B, +tp2.attributes.x + 0.5, +tp2.attributes.z); await sleep(300);
+send(B, B.nodes.get(t2.children.find(id => B.nodes.get(id).tag === "m-model")).nodeId, "click"); await sleep(500);
+at(B, -75, -20 + 4.9, 0.15);
+let lost = false;
+for (let k = 0; k < 40 && !lost; k++) { await sleep(150); lost = find(B, n => /got away/.test(n.attributes.content || "")).length > 0; }
+check(lost, "a pit gator chomps Bo and the gator he was carrying gets away");
+check(!find(B, n => n.tag === "m-group" && n.attributes.sx === "0.25" && !(B.nodes.get(n.parent) && B.nodes.get(n.parent).attributes["data-game"] === "arena")).length, "...so he's not carrying it any more");
 host("stop"); await sleep(500);
+check(wild(B).length === 0, "stopping clears the loose gators");
 check(rig && animsOn(B, rig).length === 0 && find(B, n => n.tag === "m-attr-anim" && n.attributes.attr === "rx" && n.attributes.end === "7").length === 5, "stopping puts the gators back to sleep");
 check(find(B, n => n.tag === "m-label" && n.attributes.content === "waiting for the host").length === 4, "jumbotron waits for the host");
 console.log(fails ? fails + " FAILED" : "ALL PASSED"); process.exit(0);

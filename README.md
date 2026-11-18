@@ -257,6 +257,16 @@ Every static building block in the city is now **baked into five textured models
 - **Carried bags** use an MML position probe (only while the Bank Job runs) to put a money bag on each carrier's back.
 - **Signs** are broader and each business has its own GTA-style look: script neon for bars and the motel, bold billboards for the pawn shop and fast food, a police badge sign, stencil hideout signs and green highway-exit signs for the districts. Fonts: Anton, Bungee, Bebas Neue, Pacifico, Lobster, Monoton, Black Ops One, Alfa Slab One, Racing Sans One, Permanent Marker, Oswald (SIL Open Font License).
 
+## Gator Pit is now the Gator Round-Up (update)
+
+- **Loose gators:** 28 little gators (a quarter the size of the pit gators) are loose on the streets all over the city. Each one snaps its jaws and has a small glowing green beam so you can spot it.
+- **Grabbing:** walk up to one and click it. You carry it in your arms, and everyone can see it. You can carry one at a time.
+- **Delivering:** carry it onto the throne in the middle of the Gator Pit. That scores +1 for your crew, or +2 in the last 30 seconds (Feeding Frenzy).
+- **The pit gators:** the five big gators still guard the throne. If one chomps you, the gator you're carrying gets away.
+- **Respawns:** caught and escaped gators turn up again somewhere else, so there are always 28 in play.
+- **Leader display:** the throne, the arena light and the jumbotron mascot show which crew has delivered the most.
+- **Length:** a round lasts 4 minutes.
+
 ## Turf War territories, even house counts (update)
 
 The 100 claimable houses are now split into four territories of exactly 25 houses each: Uptown (north), Voodoo Quarter (east), Bayou Village (south) and Old Town (west). See `turf-territories.png`.

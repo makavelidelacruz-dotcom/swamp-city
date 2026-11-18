@@ -730,7 +730,8 @@
       if (segs.some(sg => segDist(p.x, p.z, sg) < 1.05)) {
         PIT.stun.set(cid, wall + 4000);
         PIT.chomp = { name: nameOf(cid), until: wall + 2500 };
-        say(cid, "arena", "CHOMPED! You don't count for 4 seconds - get back up there!", "bad");
+        if (ROUNDUP.carry.has(cid)) { roundupDrop(cid, true); say(cid, "arena", "CHOMPED! Your gator got away - go catch another one", "bad"); }
+        else say(cid, "arena", "CHOMPED! Wait 4 seconds before you can grab another gator", "bad");
       }
     }
   }
@@ -1686,7 +1687,7 @@
      ========================================================================= */
   const INFO = {
     heist: { title: "BANK JOB", kind: "CREWS  |  4 MINUTES", what: "Grab a bag from the vault, get it to YOUR hideout before the dye pack pops (75s).", where: "Vault inside Yuppie Ape Savings > your hideout out past the inner ring road - take a buggy!" },
-    arena: { title: "GATOR PIT", kind: "CREWS  |  3 MINUTES", what: "Hold the throne in the middle of the pit. The crew with the most bodies on it scores every second. Snapping gators sweep the throne and lunge out of the mud: get bit and you don't count for 4 seconds.", where: "Gator Pit arena, west side of the city. Last 30 seconds: FEEDING FRENZY, the gators speed up and points double." },
+    arena: { title: "GATOR PIT", kind: "CREWS  |  4 MINUTES  |  GATOR ROUND-UP", what: "Little gators are loose all over the city (look for the green beams). Click one to grab it, carry it to the Gator Pit and onto the throne: +1 for your crew. The pit gators guard the throne - get chomped and yours gets away.", where: "Gators: every street. Drop-off: the throne in the Gator Pit, west side. Last 30 seconds: FEEDING FRENZY, deliveries count double." },
     casino: { title: "LUCKY WHEEL", kind: "CREWS  |  6 SPINS", what: "Click a bet board before each spin: GATOR, FROG or SKULL pay +2, CROWN pays +6. Swamp Slots, the Mega Gator jackpot and Gator Dice pay too.", where: "Token Gator Casino, east side of the city" },
     turf: { title: "TURF WAR", kind: "CREWS  |  4 MINUTES", what: "Open any house door, go inside and click CLAIM THIS HOUSE. Every 10 seconds each house you own scores 1.", where: "Every house in the city - shacks, shops, bars and the Old Town houses. Grab a truck!" }
   };
@@ -1709,6 +1710,7 @@
       PROBE.pos.set(d.connectionId, at);
       iconMove(d.connectionId, at);
       carryMove(d.connectionId, at);
+      roundupMove(d.connectionId, at);
     };
     PROBE.el.addEventListener("positionenter", onMove);
     PROBE.el.addEventListener("positionmove", onMove);
@@ -1817,44 +1819,139 @@
   };
 
   // ---- GATOR PIT ----------------------------------------------------------------
+  // ---- GATOR PIT: the GATOR ROUND-UP -----------------------------------------------
+  // Little gators (a quarter the size of the pit gators) are loose all over the city. Click one to grab it - you
+  // carry it in your arms - and bring it to the throne in the middle of the Gator Pit. Every gator delivered scores
+  // 1 for your crew (2 in the last 30 s Feeding Frenzy). The pit gators still guard the throne: get chomped and the
+  // gator you're carrying gets away. Caught and escaped gators turn up again somewhere else in the city.
+  const ROUNDUP = { wild: new Map(), carry: new Map(), seq: 0, got: [0, 0, 0, 0], cool: new Map(), spots: null };
+  const WILD_COUNT = 28, LITTLE = 0.25;
+  function wildSpots() {   // sidewalk spots along every street, clear of buildings, the pit, the plaza and the docks
+    if (ROUNDUP.spots) return ROUNDUP.spots;
+    const out = [];
+    for (const r of ROAD_X) for (let t = -195; t <= 195; t += 13) for (const sd of [-7, 7]) out.push([r + sd, CZ + t], [t, CZ + r + sd]);
+    ROUNDUP.spots = out.filter(([x, z]) => !blocked(x, z) && Math.hypot(x - ARENA.x, z - ARENA.z) > 26 && Math.hypot(x, z - CZ) > 30 && x < 196 && Math.abs(x) < 205 && Math.abs(z - CZ) < 205);
+    return ROUNDUP.spots;
+  }
+  function spawnWild() {
+    const spots = wildSpots(); if (!spots.length || !BOATS) return;
+    let pick = null;
+    for (let k = 0; k < 40 && !pick; k++) {
+      const [x, z] = spots[Math.floor(Math.random() * spots.length)];
+      if ([...ROUNDUP.wild.values()].every(w => Math.hypot(w.x - x, w.z - z) > 10)) pick = [x, z];
+    }
+    if (!pick) pick = spots[Math.floor(Math.random() * spots.length)];
+    const [x, z] = pick, id = ++ROUNDUP.seq, ry = Math.round(Math.random() * 360);
+    const g = grp({ x: r2(x), y: 0.17, z: r2(z), ry, "data-game": "arena" });
+    const body = grp({ sx: LITTLE, sy: LITTLE, sz: LITTLE }, g);
+    const m = el("m-model", { src: natURL("pit-gator"), collide: "false", "cast-shadows": "false" }, body);
+    const jg = grp({ y: 0.24, z: 1.4 }, body);
+    el("m-model", { src: natURL("pit-jaw"), collide: "false", "cast-shadows": "false" }, jg);
+    el("m-attr-anim", { attr: "rx", start: 0, end: 26, duration: 420 + (id % 5) * 60, loop: "true", "ping-pong": "true" }, jg);
+    el("m-attr-anim", { attr: "ry", start: ry - 25, end: ry + 25, duration: 1800 + (id % 4) * 300, loop: "true", "ping-pong": "true", easing: "easeInOutSine" }, g);
+    const ring = cyl({ y: 0.02, radius: 0.85, height: 0.03, color: "#7dff8a", opacity: 0.45, collide: "false" }, g);
+    const beam = el("m-model", { src: natURL("beam-gator"), sx: 0.1, sy: 0.1, sz: 0.1, collide: "false", "cast-shadows": "false" }, g);   // a little glowing green beam (6 m) so they're easy to spot
+    ANCHORS["wild-" + id] = { x: r2(x), y: 1.6, z: r2(z), ry: 0, w: 4, twin: { x: r2(x), z: r2(z), ry: 180 } };
+    ROUNDUP.wild.set(id, { g, x, z });
+    onClick([m, ring, beam], cid => arena.grab(cid, id));
+  }
+  function roundupHold(cid) {   // the little gator in the player's arms (crosswise, in front of them)
+    const at = PROBE.pos.get(cid) || { x: 0, y: 0.15, z: CZ, ry: 0 };
+    const g = grp({ x: r2(at.x), y: r2(at.y + 0.95), z: r2(at.z), ry: r2(at.ry + 90) });
+    el("m-attr-lerp", { attr: "x,y,z,ry", duration: 320 }, g);
+    const body = grp({ x: 0, z: 0, sx: LITTLE, sy: LITTLE, sz: LITTLE }, g);
+    el("m-model", { src: natURL("pit-gator"), z: -0.2, collide: "false", "cast-shadows": "false" }, body);
+    const jg = grp({ y: 0.24, z: 1.2 }, body);
+    el("m-model", { src: natURL("pit-jaw"), collide: "false", "cast-shadows": "false" }, jg);
+    el("m-attr-anim", { attr: "rx", start: 0, end: 30, duration: 300, loop: "true", "ping-pong": "true" }, jg);
+    const c = { g, x: at.x, y: at.y + 0.95, z: at.z, ry: at.ry + 90 };
+    ROUNDUP.carry.set(cid, c);
+    roundupMove(cid, at, true);
+  }
+  function roundupMove(cid, at, force) {
+    const c = ROUNDUP.carry.get(cid); if (!c) return;
+    const a = at.ry * Math.PI / 180;
+    // in their arms: a little in front of them (forward is -z turned by ry), at waist height, lying crosswise
+    const x = at.x - Math.sin(a) * 0.45, y = at.y + 0.95, z = at.z - Math.cos(a) * 0.45, ry = at.ry + 90;
+    if (!force && Math.hypot(x - c.x, z - c.z) < 0.12 && Math.abs(y - c.y) < 0.12 && Math.abs(((ry - c.ry + 540) % 360) - 180) < 6) { /* still */ }
+    else { c.x = x; c.y = y; c.z = z; c.ry = ry; c.g.setAttribute("x", r2(x)); c.g.setAttribute("y", r2(y)); c.g.setAttribute("z", r2(z)); c.g.setAttribute("ry", r2(ry)); }
+    // delivered: carried onto the throne in the middle of the pit
+    if (ACTIVE === "arena" && Math.hypot(at.x - ARENA.x, at.z - ARENA.z) < 4.6 && at.y > 0.3 && at.y < 4) arena.deliver(cid);
+  }
+  function roundupDrop(cid) {
+    const c = ROUNDUP.carry.get(cid); if (!c) return;
+    ROUNDUP.carry.delete(cid); c.g.remove();
+  }
+  function clearRoundup() {
+    for (const w of ROUNDUP.wild.values()) w.g.remove();
+    for (const id of ROUNDUP.wild.keys()) delete ANCHORS["wild-" + id];
+    ROUNDUP.wild.clear();
+    for (const cid of [...ROUNDUP.carry.keys()]) roundupDrop(cid, false);
+    ROUNDUP.cool.clear();
+  }
   const arena = {
     endAt: 0, on: new Set(), holder: -1, frenzy: false,
-    start() { this.endAt = now() + 180000; this.holder = -1; this.frenzy = false; PIT.stun.clear(); pitMode("live"); },
+    start() {
+      this.endAt = now() + 240000; this.holder = -1; this.frenzy = false; PIT.stun.clear();
+      clearRoundup(); ROUNDUP.got = [0, 0, 0, 0];
+      for (let k = 0; k < WILD_COUNT; k++) spawnWild();
+      pitMode("live");
+    },
     stop() {
-      this.holder = -1; this.on.clear(); this.frenzy = false; pitMode("idle");
+      this.holder = -1; this.on.clear(); this.frenzy = false; pitMode("idle"); clearRoundup();
       setA(ARENA.throne, "color", THRONE_IDLE); setA(ARENA.light, "color", "#ffe9b8");
       if (ARENA.crown) setA(ARENA.crown, "visible", "false");
       ARENA.faces.forEach(n => setT(n, "GATOR PIT")); ARENA.faces2.forEach(n => setT(n, "waiting for the host"));
     },
-    leave(cid) { this.on.delete(cid); PIT.stun.delete(cid); },
+    leave(cid) { this.on.delete(cid); PIT.stun.delete(cid); roundupDrop(cid, true); ROUNDUP.cool.delete(cid); },
+    grab(cid, id) {
+      const a = "wild-" + id, w = ROUNDUP.wild.get(id);
+      if (!w) return;
+      if (!needTeam(cid, a)) return;
+      if (ACTIVE !== "arena") return;
+      if (ROUNDUP.carry.has(cid)) return say(cid, a, "Your arms are full - take that gator to the Gator Pit first", "bad");
+      if ((PIT.stun.get(cid) || 0) > now() || (ROUNDUP.cool.get(cid) || 0) > now()) return say(cid, a, "Catch your breath - a few seconds", "bad");
+      const at = PROBE.pos.get(cid);
+      if (at && Math.hypot(at.x - w.x, at.z - w.z) > 6) return say(cid, a, "Get closer to grab it!", "bad");
+      w.g.remove(); ROUNDUP.wild.delete(id);
+      roundupHold(cid);
+      say(cid, a, "GOT ONE! Carry it onto the throne in the Gator Pit (west side)", "good");
+      delete ANCHORS[a];
+    },
+    deliver(cid) {
+      if (!ROUNDUP.carry.has(cid)) return;
+      const t = teamOf(cid); if (t == null) return roundupDrop(cid, true);
+      roundupDrop(cid, false);
+      const pts = this.frenzy ? 2 : 1;
+      award(t, pts); ROUNDUP.got[t]++;
+      ROUNDUP.cool.set(cid, now() + 1500);
+      PIT.chomp = { name: nameOf(cid) + " delivered one for " + TEAMS[t].name, until: now() + 2500, good: true };
+      say(cid, "arena", "DELIVERED! +" + pts + " for " + TEAMS[t].name + " - go find another", "good");
+    },
     tick(t) {
-      // who is on the throne: standing on the disc (from the position probe), not chomped
-      const { x, z } = ARENA; this.on.clear();
-      for (const [cid, p] of PROBE.pos) if (Math.hypot(p.x - x, p.z - z) < 4.6 && p.y > 0.3 && p.y < 4 && (PIT.stun.get(cid) || 0) <= t) this.on.add(cid);
-      const c = [0, 0, 0, 0];
-      for (const cid of this.on) { const tm = teamOf(cid); if (tm != null) c[tm]++; }
-      const top = Math.max(...c), leaders = c.filter(v => v === top).length;
       const frenzy = this.endAt - t <= 30000;
-      if (frenzy && !this.frenzy) { this.frenzy = true; pitMode("frenzy"); }   // last 30 s: the gators go wild
+      if (frenzy && !this.frenzy) { this.frenzy = true; pitMode("frenzy"); }   // last 30 s: the pit gators go wild, deliveries count double
+      for (let k = 0; k < 4 && ROUNDUP.wild.size + ROUNDUP.carry.size < WILD_COUNT; k++) spawnWild();   // caught ones turn up again elsewhere
+      const g = ROUNDUP.got, top = Math.max(...g), leaders = g.filter(v => v === top).length;
       let msg;
       if (top > 0 && leaders === 1) {
-        this.holder = c.indexOf(top);
-        award(this.holder, frenzy ? 2 : 1);
+        this.holder = g.indexOf(top);
         const col = TEAMS[this.holder].color;
         setA(ARENA.throne, "color", col); setA(ARENA.light, "color", col);
         if (ARENA.crown) { setA(ARENA.crown, "src", natURL(ICON_NAMES[this.holder])); setA(ARENA.crown, "visible", "true"); }
-        msg = TEAMS[this.holder].name + " HOLD IT";
+        msg = TEAMS[this.holder].name + " LEAD  " + top;
       } else {
         this.holder = -1;
         setA(ARENA.throne, "color", THRONE_IDLE); setA(ARENA.light, "color", frenzy ? "#ff5a3a" : "#ffe9b8");
         if (ARENA.crown) setA(ARENA.crown, "visible", "false");
-        msg = top > 0 ? "CONTESTED!" : "THRONE IS EMPTY";
+        msg = top > 0 ? "TIED AT " + top : "BRING US GATORS!";
       }
-      const line2 = PIT.chomp && PIT.chomp.until > t ? "CHOMP! " + PIT.chomp.name.slice(0, 16) + " got bit" : (frenzy ? "FEEDING FRENZY x2  " : "") + mmss(this.endAt - t) + "  |  " + this.on.size + " ON";
+      const evt = PIT.chomp && PIT.chomp.until > t ? (PIT.chomp.good ? PIT.chomp.name.slice(0, 34) : "CHOMP! " + PIT.chomp.name.slice(0, 16) + " got bit") : null;
+      const line2 = evt || (frenzy ? "FEEDING FRENZY x2  " : "") + mmss(this.endAt - t) + "  |  " + ROUNDUP.carry.size + " BEING CARRIED";
       ARENA.faces.forEach(n => setT(n, msg)); ARENA.faces2.forEach(n => setT(n, line2));
       if (t >= this.endAt) finishRound();
     },
-    status(t) { return ACTIVE === "arena" ? "GATOR PIT  |  " + mmss(this.endAt - t) + " LEFT  |  " + (this.holder >= 0 ? TEAMS[this.holder].name + " HOLD" : "CONTESTED") + "  |  " + this.on.size + " ON THE THRONE" + (this.frenzy ? "  |  FRENZY" : "") : "Idle"; }
+    status(t) { return ACTIVE === "arena" ? "GATOR ROUND-UP  |  " + mmss(this.endAt - t) + " LEFT  |  DELIVERED " + teamLine(ROUNDUP.got) + "  |  " + ROUNDUP.carry.size + " CARRIED, " + ROUNDUP.wild.size + " LOOSE" + (this.frenzy ? "  |  FRENZY" : "") : "Idle"; }
   };
   function hookArena() { }   // the throne is now counted from the position probe, so no collision hooks are needed
 
