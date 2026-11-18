@@ -147,7 +147,7 @@
     "bet-crown", "bet-gator", "bet-frog", "bet-skull",
     "ferris-frame", "ferris-rim", "gondola-pink", "gondola-teal", "gondola-gold", "gondola-purple", "carousel", "carousel-base", "carousel-gator", "carousel-frog",
     "drop-tower", "drop-ring", "whack-booth", "whack-gator", "striker", "striker-puck", "fair-arch", "fair-pole", "fair-garland",
-    "stand-funnel", "stand-boudin", "stand-snowball", "stand-gatorstick"];
+    "stand-funnel", "stand-boudin", "stand-snowball", "stand-gatorstick", "bank", "bank-vault", "money-bag"];
   const BOATS = !!CONFIG.BOATS && (!!CONFIG.ASSET_HOST || BOAT_NAMES.every(n => CONFIG.ASSET_URLS[n]));
   // separate random stream for boats and extra clouds, so the baked city layout never shifts
   let seed2 = 9871;
@@ -260,7 +260,7 @@
       box({ y: base + 3.8, z: d / 2 + 1.38, width: w * 0.8, height: 0.9, depth: 0.06, color: "#151515", collide: "false", mat: "railing" }, g);
     }
     if (o.sign) {
-      text(o.sign, { y: base + h + 1.1, z: d / 2 - 0.2, width: Math.min(w * 0.95, o.sign.length * 0.62 + 1.2), height: 1.3, "font-size": 85, color: "#120d10", "font-color": o.signColor || PINK, emissive: 0.9, mount: "roof", drop: r2(1.1 - 0.65 - 0.3) }, g);
+      text(o.sign, { y: base + h + 1.4, z: d / 2 - 0.2, width: r2(Math.min(w * 0.96, Math.max(w * 0.75, o.sign.length * 0.72 + 2.2))), height: 1.9, "font-size": 85, color: "#120d10", "font-color": o.signColor || PINK, emissive: 0.9, mount: "roof", drop: r2(1.4 - 0.95 - 0.3) }, g);
     }
     HOUSES.push({ g, doorX: 0, doorZ: r2(d / 2 - T / 2), frontZ: r2(d / 2 + 0.05), backZ: r2(-d / 2 + T), base, dw: DW, dh: DH, signY: r2(base + DH + 0.42) });
     footBox(o.x, o.z, w, d, o.ry);
@@ -280,7 +280,7 @@
     cyl({ x: w * 0.25, y: h + 2.2, z: -d * 0.2, radius: 1.3, height: 3, color: "#7a5b3a", collide: "false", mat: "tank" }, g); // water tank
     cyl({ x: -w * 0.25, y: h + 4, radius: 0.08, height: 7, color: "#aaaaaa", collide: "false", mat: "steel" }, g);   // antenna
     sph({ x: -w * 0.25, y: h + 7.6, radius: 0.35, color: "#ff3b3b", mat: "beacon" }, g);
-    if (o.sign) text(o.sign, { y: h - 1.5, z: d / 2 + 0.1, width: w * 0.9, height: 1.6, "font-size": 110, color: "#120d10", "font-color": o.signColor || NEON, emissive: 0.9, mount: "wall", back: 0.1 }, g);
+    if (o.sign) text(o.sign, { y: h - 1.9, z: d / 2 + 0.1, width: r2(w * 0.94), height: 2.5, "font-size": 110, color: "#120d10", "font-color": o.signColor || NEON, emissive: 0.9, mount: "wall", back: 0.1 }, g);
     if (DT) for (let k = 0; k < 3; k++) el("m-model", { src: natURL("dt-acunit"), x: r2(-w * 0.3 + k * w * 0.22), y: h + 0.7, z: r2(d * 0.25), sx: 1.8, sy: 1.8, sz: 1.8, collide: "false", "cast-shadows": "false" }, g);
     box({ y: 1.6, z: d / 2 + 0.08, width: 3.5, height: 3.2, depth: 0.12, color: "#10161a", collide: "false", mat: "glassdoor" }, g);
     footBox(o.x, o.z, w, d, o.ry);
@@ -365,42 +365,67 @@
     else box({ y: 0.115, z: CZ, width: 90, height: 0.05, depth: 90, color: STONE });
     // bank: hollow, doors north and south, vault in the middle
     const bx = 13, bz1 = CZ - 12, bz2 = CZ + 12, H = 12, col = "#d8cbb0";
-    box({ x: -bx + 0.4, y: H / 2, z: CZ, width: 0.8, height: H, depth: 24, color: col, mat: "limestone" });
-    box({ x: bx - 0.4, y: H / 2, z: CZ, width: 0.8, height: H, depth: 24, color: col, mat: "limestone" });
-    for (const zf of [bz1, bz2]) {
-      const zz = zf === bz1 ? bz1 + 0.4 : bz2 - 0.4;
-      box({ x: -8, y: H / 2, z: zz, width: 10, height: H, depth: 0.8, color: col, mat: "limestone" });
-      box({ x: 8, y: H / 2, z: zz, width: 10, height: H, depth: 0.8, color: col, mat: "limestone" });
-      box({ x: 0, y: (H + 5) / 2, z: zz, width: 6, height: H - 5, depth: 0.8, color: col, mat: "limestone" });
-      const out = zf === bz1 ? -1 : 1;
-      for (const cx of [-12.2, -10.2, 10.2, 12.2]) cyl({ x: cx, y: H / 2, z: zf + out * 1.6, radius: 0.55, height: H, color: "#efe6d2", mat: "column" });
-      box({ x: 0, y: 0.25, z: zf + out * 2.2, width: 14, height: 0.3, depth: 3, color: "#bdb29b", mat: "marble" });
+    if (BOATS) {   // modeled neoclassical bank: rusticated stone, columned front, pediment, copper dome, marble hall, tellers
+      el("m-model", { src: natURL("bank"), y: 0, z: CZ });
+      text("BAYOU SAVINGS & TRUST", { y: 11.65, z: r2(CZ - 14.92), ry: 180, width: 20, height: 1.05, "font-size": 80, color: "#2b2418", "font-color": "#f2d48a", emissive: 0.5, mount: "engraved" });
+      footBox(0, CZ - 2, 2 * bx + 4, 34, 0);
+    } else {
+      const bx = 13, bz1 = CZ - 12, bz2 = CZ + 12, H = 12, col = "#d8cbb0";
+      box({ x: -bx + 0.4, y: H / 2, z: CZ, width: 0.8, height: H, depth: 24, color: col, mat: "limestone" });
+      box({ x: bx - 0.4, y: H / 2, z: CZ, width: 0.8, height: H, depth: 24, color: col, mat: "limestone" });
+      for (const zf of [bz1, bz2]) {
+        const zz = zf === bz1 ? bz1 + 0.4 : bz2 - 0.4;
+        box({ x: -8, y: H / 2, z: zz, width: 10, height: H, depth: 0.8, color: col, mat: "limestone" });
+        box({ x: 8, y: H / 2, z: zz, width: 10, height: H, depth: 0.8, color: col, mat: "limestone" });
+        box({ x: 0, y: (H + 5) / 2, z: zz, width: 6, height: H - 5, depth: 0.8, color: col, mat: "limestone" });
+        const out = zf === bz1 ? -1 : 1;
+        for (const cx of [-12.2, -10.2, 10.2, 12.2]) cyl({ x: cx, y: H / 2, z: zf + out * 1.6, radius: 0.55, height: H, color: "#efe6d2", mat: "column" });
+        box({ x: 0, y: 0.25, z: zf + out * 2.2, width: 14, height: 0.3, depth: 3, color: "#bdb29b", mat: "marble" });
+      }
+      box({ y: H + 0.3, z: CZ, width: 2 * bx + 1, height: 0.6, depth: 25, color: "#bfb39a", mat: "cornice-stone" });
+      sph({ y: H + 0.6, z: CZ, radius: 8, sy: 0.55, color: "#7fae9b", collide: "true", mat: "copper" });
+      text("BAYOU SAVINGS & TRUST", { y: H - 1, z: bz1 - 0.05, ry: 180, width: 16, height: 1.2, "font-size": 80, color: "#2b2418", "font-color": "#f2d48a", emissive: 0.5, mount: "engraved" });
+      footBox(0, CZ, 2 * bx + 4, 30, 0);
     }
-    box({ y: H + 0.3, z: CZ, width: 2 * bx + 1, height: 0.6, depth: 25, color: "#bfb39a", mat: "cornice-stone" });
-    sph({ y: H + 0.6, z: CZ, radius: 8, sy: 0.55, color: "#7fae9b", collide: "true", mat: "copper" });
-    text("BAYOU SAVINGS & TRUST", { y: H - 1, z: bz1 - 0.05, ry: 180, width: 16, height: 1.2, "font-size": 80, color: "#2b2418", "font-color": "#f2d48a", emissive: 0.5, mount: "engraved" });
-    footBox(0, CZ, 2 * bx + 4, 30, 0);
     // vault (the heist loot cage)
-    live(() => cyl({ y: 2.2, z: CZ, radius: 3, height: 4.4, color: "#8c8f93" }).setAttribute("id", "vault"));
-    cyl({ y: 2.2, z: CZ + 3.02, rx: 90, radius: 1.7, height: 0.25, color: "#c9a24a", collide: "false", mat: "vaultdoor" });
-    cyl({ y: 2.2, z: CZ - 3.02, rx: 90, radius: 1.7, height: 0.25, color: "#c9a24a", collide: "false", mat: "vaultdoor" });
-    live(() => {
-    const loot = grp({ "data-game": "heist", visible: "false" });
-    for (let i = 0; i < 10; i++) {
-      const a = i / 10 * Math.PI * 2;
-      box({ x: Math.cos(a) * 3.8, y: 0.45, z: CZ + Math.sin(a) * 3.8, ry: i * 36, width: 0.9, height: 0.6, depth: 0.5, color: "#e8c050", collide: "false" }, loot);
+    if (BOATS) {
+      live(() => el("m-model", { id: "vault", src: natURL("bank-vault"), y: 0.16, z: CZ }));
+      live(() => {
+        const loot = grp({ "data-game": "heist", visible: "false" });
+        // piles of money bags round the vault while the job is on
+        for (let i = 0; i < 14; i++) {
+          const a = (i + 0.5) / 14 * Math.PI * 2, r = 4.0 + (i % 2) * 0.7;
+          if (Math.abs(Math.cos(a)) < 0.42 && Math.abs(Math.sin(a)) > 0.9) continue;   // keep both doorways clear
+          el("m-model", { src: natURL("money-bag"), x: r2(Math.cos(a) * r), y: 0.16, z: r2(CZ + Math.sin(a) * r), ry: (i * 47) % 360, sx: 1.2, sy: 1.2, sz: 1.2, collide: "false" }, loot);
+          if (i % 3 === 0) el("m-model", { src: natURL("money-bag"), x: r2(Math.cos(a) * r + 0.25), y: 0.85, z: r2(CZ + Math.sin(a) * r), ry: (i * 91) % 360, rz: 18, collide: "false" }, loot);
+        }
+        el("m-light", { type: "point", y: 7, z: CZ, color: "#ffd98a", intensity: 900, distance: 22, "cast-shadows": "false" }, loot);
+        text("CLICK THE VAULT TO GRAB A BAG", { y: 5.6, z: CZ + 3.4, width: 6.2, height: 0.5, "font-size": 30, "font-color": AMBER }, loot);
+        text("CLICK THE VAULT TO GRAB A BAG", { y: 5.6, z: CZ - 3.4, ry: 180, width: 6.2, height: 0.5, "font-size": 30, "font-color": AMBER }, loot);
+        ANCHORS.vault = { x: 0, y: 6.25, z: CZ + 3.4, ry: 0, w: 6.2, twin: { x: 0, z: CZ - 3.4, ry: 180 } };
+      });
+    } else {
+      live(() => cyl({ y: 2.2, z: CZ, radius: 3, height: 4.4, color: "#8c8f93" }).setAttribute("id", "vault"));
+      cyl({ y: 2.2, z: CZ + 3.02, rx: 90, radius: 1.7, height: 0.25, color: "#c9a24a", collide: "false", mat: "vaultdoor" });
+      cyl({ y: 2.2, z: CZ - 3.02, rx: 90, radius: 1.7, height: 0.25, color: "#c9a24a", collide: "false", mat: "vaultdoor" });
+      live(() => {
+      const loot = grp({ "data-game": "heist", visible: "false" });
+      for (let i = 0; i < 10; i++) {
+        const a = i / 10 * Math.PI * 2;
+        box({ x: Math.cos(a) * 3.8, y: 0.45, z: CZ + Math.sin(a) * 3.8, ry: i * 36, width: 0.9, height: 0.6, depth: 0.5, color: "#e8c050", collide: "false" }, loot);
+      }
+      if (KEN) for (let i = 0; i < 8; i++) {
+        const a = (i + 0.5) / 8 * Math.PI * 2;
+        const c = el("m-model", { src: asset("coin"), x: r2(Math.cos(a) * 5.2), y: 1.6, z: r2(CZ + Math.sin(a) * 5.2), sx: 3, sy: 3, sz: 3, collide: "false", "cast-shadows": "false" }, loot);
+        el("m-attr-anim", { attr: "ry", start: 0, end: 360, duration: 3000 + i * 250, loop: "true" }, c);
+      }
+      el("m-light", { type: "point", y: 7, z: CZ, color: "#ffd98a", intensity: 900, distance: 22, "cast-shadows": "false" }, loot);
+      const vs = text("CLICK THE VAULT TO GRAB A BAG", { y: 5.1, z: CZ + 3.3, width: 6.2, height: 0.5, "font-size": 30, "font-color": AMBER }, loot);
+      text("CLICK THE VAULT TO GRAB A BAG", { y: 5.1, z: CZ - 3.3, ry: 180, width: 6.2, height: 0.5, "font-size": 30, "font-color": AMBER }, loot);
+      ANCHORS.vault = { x: 0, y: 5.75, z: CZ + 3.3, ry: 0, w: 6.2, twin: { x: 0, z: CZ - 3.3, ry: 180 } };
+      void vs;
+      });
     }
-    if (KEN) for (let i = 0; i < 8; i++) {
-      const a = (i + 0.5) / 8 * Math.PI * 2;
-      const c = el("m-model", { src: asset("coin"), x: r2(Math.cos(a) * 5.2), y: 1.6, z: r2(CZ + Math.sin(a) * 5.2), sx: 3, sy: 3, sz: 3, collide: "false", "cast-shadows": "false" }, loot);
-      el("m-attr-anim", { attr: "ry", start: 0, end: 360, duration: 3000 + i * 250, loop: "true" }, c);
-    }
-    el("m-light", { type: "point", y: 7, z: CZ, color: "#ffd98a", intensity: 900, distance: 22, "cast-shadows": "false" }, loot);
-    const vs = text("CLICK THE VAULT TO GRAB A BAG", { y: 5.1, z: CZ + 3.3, width: 6.2, height: 0.5, "font-size": 30, "font-color": AMBER }, loot);
-    text("CLICK THE VAULT TO GRAB A BAG", { y: 5.1, z: CZ - 3.3, ry: 180, width: 6.2, height: 0.5, "font-size": 30, "font-color": AMBER }, loot);
-    ANCHORS.vault = { x: 0, y: 5.75, z: CZ + 3.3, ry: 0, w: 6.2, twin: { x: 0, z: CZ - 3.3, ry: 180 } };
-    void vs;
-    });
 
     // big screen on the south facade, facing the spawn
     const s = grp({ z: bz2 + 0.05 });
@@ -587,7 +612,7 @@
       cyl({ x: px, y: 6, z: pz, radius: 0.25, height: 12, color: "#222", mat: "steel" });
       box({ x: px, y: 12.2, z: pz, width: 2, height: 0.8, depth: 0.4, color: "#ddd", collide: "false", mat: "floodlight" });
     }
-    text("GATOR PIT", { x: x + 16.2, y: 5.2, z, ry: 90, width: 10, height: 1.6, "font-size": 120, color: "#120d10", "font-color": "#7dff8a", emissive: 1, mount: "post", drop: 4.4 });
+    text("GATOR PIT", { x: x + 16.2, y: 5.5, z, ry: 90, width: 11, height: 2.2, "font-size": 120, color: "#120d10", "font-color": "#7dff8a", emissive: 1, mount: "post", drop: 4.4 - 0.3 + 0.3 });
     live(() => {
     ARENA.board = text("GATOR PIT - waiting for the host", { x: x + 16.2, y: 3.8, z, ry: 90, width: 10, height: 0.6, "font-size": 40, "font-color": AMBER });
     ARENA.board2 = text("GATOR PIT - waiting for the host", { x, y: 7, z, width: 10, height: 0.7, "font-size": 44, "font-color": AMBER });
@@ -644,7 +669,7 @@
       box({ y: 7.25, width: 16.6, height: 0.3, depth: 10.6, color: "#1a1a1a", collide: "false", mat: "cornice" }, g);
       glow({ y: 2.3, z: 5.03, width: 7, height: 4.2, color: t.color, emissive: 0.35, mat: "shutter" }, g);
       for (let s = 0; s < 6; s++) box({ y: 0.6 + s * 0.7, z: 5.06, width: 7, height: 0.06, depth: 0.04, color: "#000", collide: "false", mat: "skip" }, g);
-      text(t.name + " HIDEOUT", { y: 6, z: 5.05, width: 12, height: 1.2, "font-size": 80, color: "#120d10", "font-color": t.color, emissive: 1, mount: "wall", back: 0.05 }, g);
+      text(t.name + " HIDEOUT", { y: 6.1, z: 5.05, width: 12.5, height: 1.7, "font-size": 80, color: "#120d10", "font-color": t.color, emissive: 1, mount: "wall", back: 0.05 }, g);
       live(() => {
       const board = box({ x: 6.3, y: 1.3, z: 6, width: 2.4, height: 1.8, depth: 0.3, color: "#1b2a33" }, g);
       const face = glow({ x: 6.3, y: 1.3, z: 6.17, width: 2.2, height: 1.6, color: t.color, emissive: 0.5 }, g);
@@ -1152,7 +1177,7 @@
     box({ x: jx - 2, y: 13.8, z: jz - 8, width: 14, height: 0.6, depth: 0.6, color: "#d6a52f", collide: "false", mat: "crane" });
     if (NAT) for (let i = 0; i < 6; i++) natModel("rock-" + (1 + (i % 5)), jx - 14 + rand() * 26, 0.1, jz - 14 + rand() * 28, 1.4 + rand(), rand() * 360, false);
     if (MED) { natModel("med-wagon", jx + 8, 0.1, jz + 9, 1.1, 30, true); natModel("med-wagon", jx - 4, 0.1, jz + 12, 1.1, 160, true); }
-    text("GATOR JUNK", { x: jx + 17.3, y: 3.6, z: jz, ry: 90, width: 8, height: 1.2, "font-size": 90, color: "#120d10", "font-color": AMBER, emissive: 1, mount: "post", drop: 3.0 });
+    text("GATOR JUNK", { x: jx + 17.3, y: 3.9, z: jz, ry: 90, width: 9, height: 1.8, "font-size": 90, color: "#120d10", "font-color": AMBER, emissive: 1, mount: "post", drop: 3.0 });
     FOOT.push({ x1: jx - 17.5, x2: jx + 17.5, z1: jz - 17.5, z2: jz + 17.5 });
 
     // KGTR SWAMP RADIO (east outer block)
@@ -1203,7 +1228,7 @@
       const g = grp({ x, z, ry });
       const words = style === "industry" ? ["BOAT WORKS", "ICE HOUSE", "DRY DOCK", "SHRIMP CO."] : ["JAZZ", "VOODOO", "OYSTER BAR", "PRALINES", "PO' BOYS", "HOODOO", "BEIGNETS", "CAJUN GRILL", "ZYDECO"];
       const word = pick(words);
-      text(word, { y: r2(top + 0.9), z: r2(s * 0.3), width: Math.min(s * 0.9, word.length * 0.62 + 1.2), height: 1.2, "font-size": 80, color: "#120d10", "font-color": pick([PINK, NEON, AMBER, "#c48bff"]), emissive: 0.9, mount: "roof", drop: 0.3 }, g);
+      text(word, { y: r2(top + 1.2), z: r2(s * 0.3), width: r2(Math.min(s * 0.96, Math.max(s * 0.75, word.length * 0.72 + 2.2))), height: 1.7, "font-size": 80, color: "#120d10", "font-color": pick([PINK, NEON, AMBER, "#c48bff"]), emissive: 0.9, mount: "roof", drop: 0.35 }, g);
     }
     footBox(x, z, s, s, ry);
   }
@@ -1271,7 +1296,7 @@
       natModel(rand() < 0.8 ? "grass-large" : "plant-flowers", x, 0.1, CZ + rz, 1.4 + rand() * 1.1, rand() * 360, false);
     }
     // district signs at the middle ring road
-    const dsign = (s, x, z, ry, c) => text(s, { x, y: 4.2, z, ry, width: 12, height: 1.1, "font-size": 80, color: "#120d10", "font-color": c, emissive: 1, mount: "post", drop: 3.55 });
+    const dsign = (s, x, z, ry, c) => text(s, { x, y: 4.7, z, ry, width: 12, height: 2.0, "font-size": 80, color: "#12613a", "font-color": "#ffffff", emissive: 0.6, mount: "post", drop: 3.6 });
     dsign(DT ? "UPTOWN" : "CANNERY ROW", 0, CZ - 145.5, 180, AMBER);
     dsign("BAYOU VILLAGE", 0, CZ + 145.5, 0, "#7dff8a");
     dsign("VOODOO QUARTER", 145.5, CZ - 60, 90, "#c48bff");
@@ -1386,17 +1411,63 @@
   const show = (id, on) => document.querySelectorAll('[data-game="' + id + '"]').forEach(n => n.setAttribute("visible", on ? "true" : "false"));
 
   // ---- BANK JOB --------------------------------------------------------------
+  // ---- carried money bags ------------------------------------------------------------
+  // While the BANK JOB runs, a position probe reports where each player is. Every player with a bag gets a
+  // money-bag model that follows them (on their back), so everyone can see who is carrying loot.
+  const CARRY = { probe: null, bags: new Map() };
+  function carryStart() {
+    if (!BOATS || CARRY.probe) return;
+    CARRY.probe = el("m-position-probe", { range: 460, interval: 250 });
+    const onMove = e => { const d = e.detail || {}; if (d.connectionId != null && d.elementRelative) carryMove(d.connectionId, d.elementRelative); };
+    CARRY.probe.addEventListener("positionenter", onMove);
+    CARRY.probe.addEventListener("positionmove", onMove);
+  }
+  function carryStop() {
+    for (const cid of [...CARRY.bags.keys()]) bagDrop(cid, null);
+    if (CARRY.probe) { CARRY.probe.remove(); CARRY.probe = null; }
+  }
+  function bagPick(cid) {
+    if (!BOATS) return;
+    bagDrop(cid, null);
+    const g = grp({ x: 0, y: 1.6, z: CZ, ry: 0 });
+    el("m-attr-lerp", { attr: "x,y,z,ry", duration: 320 }, g);
+    el("m-model", { src: natURL("money-bag"), x: 0.12, y: -0.45, rx: 14, rz: -10, sx: 0.85, sy: 0.85, sz: 0.85, collide: "false", "cast-shadows": "false" }, g);
+    CARRY.bags.set(cid, { g, x: 0, y: 1.6, z: CZ, ry: 0, seen: false });
+  }
+  function carryMove(cid, rel) {
+    const b = CARRY.bags.get(cid); if (!b) return;
+    const p = rel.position || {}, ry = +((rel.rotation || {}).y) || 0, a = ry * Math.PI / 180;
+    // on the player's back: behind them (forward is -z turned by ry), at shoulder height
+    const x = (+p.x || 0) + Math.sin(a) * 0.32, y = (+p.y || 0) + 1.15, z = (+p.z || 0) + Math.cos(a) * 0.32;
+    if (b.seen && Math.hypot(x - b.x, z - b.z) < 0.12 && Math.abs(y - b.y) < 0.12 && Math.abs(((ry - b.ry + 540) % 360) - 180) < 6) return;
+    b.x = x; b.y = y; b.z = z; b.ry = ry;
+    if (!b.seen) { b.seen = true; b.g.setAttribute("x", r2(x)); b.g.setAttribute("y", r2(y)); b.g.setAttribute("z", r2(z)); b.g.setAttribute("ry", r2(ry)); return; }
+    b.g.setAttribute("x", r2(x)); b.g.setAttribute("y", r2(y)); b.g.setAttribute("z", r2(z)); b.g.setAttribute("ry", r2(ry));
+  }
+  function bagDrop(cid, how) {
+    const b = CARRY.bags.get(cid); if (!b) return;
+    CARRY.bags.delete(cid);
+    if (how === "dye") {   // the dye pack goes off: a red puff where the bag was
+      const puff = sph({ x: r2(b.x), y: r2(b.y), z: r2(b.z), radius: 0.3, color: "#e0102a", opacity: 0.8 });
+      el("m-attr-anim", { attr: "sx", start: 1, end: 5, duration: 900, "start-time": docNow() || 0 }, puff);
+      el("m-attr-anim", { attr: "sy", start: 1, end: 5, duration: 900, "start-time": docNow() || 0 }, puff);
+      el("m-attr-anim", { attr: "sz", start: 1, end: 5, duration: 900, "start-time": docNow() || 0 }, puff);
+      el("m-attr-anim", { attr: "opacity", start: 0.8, end: 0, duration: 1200, "start-time": docNow() || 0 }, puff);
+      setTimeout(() => puff.remove(), 1400);
+    }
+    b.g.remove();
+  }
   const heist = {
     endAt: 0, carry: new Map(), banked: 0, cool: new Map(),
-    start() { this.endAt = now() + 240000; this.carry.clear(); this.cool.clear(); this.banked = 0; },
-    stop() { this.carry.clear(); },
-    leave(cid) { this.carry.delete(cid); },
+    start() { this.endAt = now() + 240000; this.carry.clear(); this.cool.clear(); this.banked = 0; carryStart(); },
+    stop() { this.carry.clear(); carryStop(); },
+    leave(cid) { this.carry.delete(cid); bagDrop(cid, null); },
     grab(cid) {
       if (!needTeam(cid, "vault")) return;
       if (ACTIVE !== "heist") return say(cid, "vault", "The vault is locked - wait for the BANK JOB", "bad");
       if (this.carry.has(cid)) return say(cid, "vault", "You already have a bag - run it home!", "bad");
       if ((this.cool.get(cid) || 0) > now()) return say(cid, "vault", "Catch your breath - 3 seconds", "bad");
-      this.carry.set(cid, now());
+      this.carry.set(cid, now()); bagPick(cid);
       say(cid, "vault", "BAG GRABBED! 75s to reach the " + TEAMS[teamOf(cid)].name + " hideout", "good");
     },
     drop(cid, hideTeam) {
@@ -1405,7 +1476,7 @@
       if (ACTIVE !== "heist") return say(cid, a, "No job running right now", "bad");
       if (!this.carry.has(cid)) return say(cid, a, "No bag - grab one from the bank vault", "bad");
       if (teamOf(cid) !== hideTeam) return say(cid, a, "Wrong hideout! Yours is " + TEAMS[teamOf(cid)].name, "bad");
-      this.carry.delete(cid);
+      this.carry.delete(cid); bagDrop(cid, "bank");
       this.cool.set(cid, now() + 3000);
       this.banked++;
       award(hideTeam, 1);
@@ -1413,7 +1484,7 @@
     },
     tick(t) {
       for (const [cid, since] of this.carry) if (t - since > 75000) {
-        this.carry.delete(cid);
+        this.carry.delete(cid); bagDrop(cid, "dye");
         say(cid, "vault", "DYE PACK! Your bag exploded - grab another", "bad");
       }
       if (t >= this.endAt) finishRound();

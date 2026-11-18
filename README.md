@@ -60,7 +60,7 @@ Players click their team's stand and type a name. Clicking another stand switche
 
 | Game | Length | How it scores |
 |---|---|---|
-| **Bank Job** | 4 min | Grab a bag at the vault and deliver it to your own hideout's DROP LOOT board for +1. A bag explodes after 75 s. |
+| **Bank Job** | 4 min | Grab a money bag at the vault and deliver it to your own hideout's DROP LOOT board for +1. While you carry it, a money bag rides on your back so everyone can see who has the loot. A bag's dye pack explodes after 75 s (red puff). |
 | **Bayou Run** | 5 min | Hit 15 checkpoints in order, on foot or driving. 1st, 2nd and 3rd score 10, 8 and 6; every other finisher scores 3. Each player only sees a beam over their own next gate. |
 | **Gator Pit** | 3 min | The team with the most players on the throne scores +1 per second. A tie scores nothing. The last 30 s are worth double. |
 | **Lucky Wheel** | 6 spins | Bet on a board during the 20 s window. GATOR, FROG and SKULL pay +2; CROWN (1 slot in 10) pays +6. |
@@ -236,6 +236,13 @@ Every static building block in the city is now **baked into five textured models
 - `FRAMES`: embed other MML documents, such as the Spire, with `m-frame` at a position you choose.
 - `MODELS`: swap in CC0 GLBs for the buggy, airboat or gators.
 - `DETAIL: "low"`: cuts trees, reeds, lily pads, street lamps and outer-district buildings for weaker devices.
+
+## Bank and signs (update)
+
+- **Bayou Savings & Trust** is a modeled neoclassical bank: rusticated stone, a four-column front with a pediment and gold medallion, arched windows, a copper dome with a lantern, ATMs and bronze lamps out front. Inside: a checkered marble hall, teller counters with brass grilles, chandeliers and a velvet-rope queue.
+- **The vault** is a riveted steel vault with two huge round doors swung open and shelves of money bags and gold bars. During the Bank Job, piles of money bags surround it.
+- **Carried bags** use an MML position probe (only while the Bank Job runs) to put a money bag on each carrier's back.
+- **Signs** are broader and each business has its own GTA-style look: script neon for bars and the motel, bold billboards for the pawn shop and fast food, a police badge sign, stencil hideout signs and green highway-exit signs for the districts. Fonts: Anton, Bungee, Bebas Neue, Pacifico, Lobster, Monoton, Black Ops One, Alfa Slab One, Racing Sans One, Permanent Marker, Oswald (SIL Open Font License).
 
 ## Audit fixes (18 Nov 2026)
 
