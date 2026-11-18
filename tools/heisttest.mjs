@@ -45,13 +45,13 @@ send(A, A.ids["join-0"], "prompt", { value: "Robber" }); send(B, B.ids["join-1"]
 await sleep(500);
 const host = (cmd, extra) => send(ctl, ctl.ids["hb-" + cmd], "click", Object.assign({ key: KEY }, extra || {}));
 const probes = c => find(c, n => n.tag === "m-position-probe");
-const bagGroups = c => find(c, n => n.tag === "m-group" && n.children.some(id => { const k = c.nodes.get(id); return k && k.tag === "m-attr-lerp" && k.attributes.attr === "x,y,z,ry"; }) && n.children.some(id => { const k = c.nodes.get(id); return k && k.tag === "m-model" && /money-bag/.test(k.attributes.src || ""); }));
+const bagGroups = c => find(c, n => n.tag === "m-group" && n.children.some(id => { const k = c.nodes.get(id); return k && k.tag === "m-attr-lerp" && k.attributes.attr === "x,y,z,ry"; }) && n.children.some(id => { const k = c.nodes.get(id); return k && k.tag === "m-model" && /money-bag|c4601a60e8d085aa1edf519cb7832d526bb72b0c6794f429ea755588f1199936/.test(k.attributes.src || ""); }));
 check(probes(B).length === 0, "no position probe outside the BANK JOB");
-check(find(B, n => n.tag === "m-model" && /bank\.glb/.test(n.attributes.src || "")).length === 1 && /bank-vault/.test((B.nodes.get(B.ids["vault"]) || { attributes: {} }).attributes.src || ""), "modeled bank and vault are in the world");
+check(find(B, n => n.tag === "m-model" && /bank\.glb|0ba48cfd84782e2720910b8e4a4dd6a0e70963084a42e2a2137f994cb0141465/.test(n.attributes.src || "")).length === 1 && /bank-vault|1df32c3d882b40c660013f4a24b776a7834cf4455570a458bfb8745136c092d3/.test((B.nodes.get(B.ids["vault"]) || { attributes: {} }).attributes.src || ""), "modeled bank and vault are in the world");
 host("heist"); await sleep(500);
 check(probes(B).length === 1 && +probes(B)[0].attributes.range >= 400, "the BANK JOB adds a position probe covering the city");
 const loot = find(B, n => n.attributes["data-game"] === "heist")[0];
-check(loot && find(B, n => n.tag === "m-model" && /money-bag/.test(n.attributes.src || "")).length >= 12, "piles of money bags round the vault");
+check(loot && find(B, n => n.tag === "m-model" && /money-bag|c4601a60e8d085aa1edf519cb7832d526bb72b0c6794f429ea755588f1199936/.test(n.attributes.src || "")).length >= 12, "piles of money bags round the vault");
 send(A, A.ids["vault"], "click", {}); await sleep(400);
 check(mine(A, "BAG GRABBED").length >= 1, "Robber grabs a bag");
 let bags = bagGroups(B);
