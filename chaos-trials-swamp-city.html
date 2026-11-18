@@ -2541,13 +2541,18 @@
     NOTE = result + "  |  " + line; NOTE_UNTIL = now() + 30000;
     paintScreen(); pushState();
   }
-  // ---- winner celebration: five GTA-style wanted stars light up one by one high over the city centre,
-  // while giant mascots of the winning crew (both crews on a tie) float and spin in a ring around them. 30 seconds.
-  const CELEB = { g: null, t: [] };
-  function celebEnd() { CELEB.t.forEach(clearTimeout); CELEB.t = []; if (CELEB.g) { CELEB.g.remove(); CELEB.g = null; } }
-  function celebrate(win) {
+  // ---- winner celebration: five GTA-style wanted stars light up one by one high in the sky, while giant mascots
+  // of the winning crew (both crews on a tie) float and spin around them. 30 seconds.
+  const CELEB = { g: [], t: [] };
+  function celebEnd() { CELEB.t.forEach(clearTimeout); CELEB.t = []; CELEB.g.forEach(g => g.remove()); CELEB.g = []; }
+  function celebrate(win) {   // one show over the centre, the Visitor Center side and each quarter, so the haze never hides it
     celebEnd();
-    const g = CELEB.g = grp({ z: CZ, y: 26 }), row = grp({}, g), R = 4, P = k => (90 + 72 * k) * Math.PI / 180;
+    for (const [x, z] of [[0, 0], [150, 0], [110, 120], [110, -120], [-110, 120], [-110, -120]]) celebAt(x, CZ + z, win);
+    CELEB.t.push(setTimeout(celebEnd, 30000));
+  }
+  function celebAt(cx, cz, win) {
+    const g = grp({ x: cx, z: cz, y: 26 }), row = grp({}, g), R = 4, P = k => (90 + 72 * k) * Math.PI / 180;
+    CELEB.g.push(g);
     el("m-attr-anim", { attr: "ry", start: 0, end: 360, duration: 12000, loop: "true" }, row);
     for (let i = 0; i < 5; i++) {   // each star: a pentagram of five glowing bars
       const st = grp({ x: (i - 2) * 10 }, row), bars = [];
@@ -2560,13 +2565,12 @@
     if (BOATS) {
       const orbit = grp({}, g);
       el("m-attr-anim", { attr: "ry", start: 0, end: -360, duration: 24000, loop: "true" }, orbit);
-      for (let k = 0; k < 8; k++) {
-        const a = k * Math.PI / 4, m = el("m-model", { src: natURL(ICON_NAMES[win[k % win.length]]), x: r2(Math.cos(a) * 28), z: r2(Math.sin(a) * 28), sx: 9, sy: 9, sz: 9, collide: "false", "cast-shadows": "false" }, orbit);
-        el("m-attr-anim", { attr: "y", start: -12, end: -3, duration: 2200 + k * 200, loop: "true", "ping-pong": "true", easing: "easeInOutSine" }, m);
+      for (let k = 0; k < 4; k++) {
+        const a = k * Math.PI / 2, m = el("m-model", { src: natURL(ICON_NAMES[win[k % win.length]]), x: r2(Math.cos(a) * 30), z: r2(Math.sin(a) * 30), sx: 9, sy: 9, sz: 9, collide: "false", "cast-shadows": "false" }, orbit);
+        el("m-attr-anim", { attr: "y", start: -12, end: -3, duration: 2200 + k * 300, loop: "true", "ping-pong": "true", easing: "easeInOutSine" }, m);
         el("m-attr-anim", { attr: "ry", start: 0, end: 360, duration: 5000, loop: "true" }, m);
       }
     }
-    CELEB.t.push(setTimeout(celebEnd, 30000));
   }
   function paintScreen() {
     const t = now(), note = NOTE_UNTIL > t ? NOTE : "";
