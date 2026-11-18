@@ -84,6 +84,10 @@ STYLE = {
     'JAZZ': ('script', 'monoton', '#0a0a18', '#5fb6ff', None), 'HOODOO': ('script', 'permanent-marker', '#120a18', '#9be15d', None),
     'CAJUN GRILL': ('billboard', 'alfa-slab-one', '#c0241e', '#ffe08a', None), 'DRY DOCK': ('stencil', 'black-ops-one', '#2b2a26', '#ffd21f', None),
     'SHRIMP CO.': ('billboard', 'bungee', '#ff7a5c', '#ffffff', None),
+    'WELCOME TO SWAMP CITY': ('billboard', 'bungee', '#0e3a52', '#ffffff', 'DOWNTOWN  -  BANK  -  CASINO  -  SWAMP FAIR'),
+    'VISITOR CENTER': ('billboard', 'oswald', '#0e3a52', '#ffffff', None),
+    'SWAMP CITY VISITOR CENTER': ('billboard', 'bungee', '#0e3a52', '#ffffff', 'TEAM CHECK-IN  -  PICK YOUR CREW HERE'),
+    'TEAM CHECK-IN': ('highway', 'oswald', '#12613a', '#ffffff', 'VISITOR CENTER  -  EAST EDGE'),
 }
 DISTRICT = {'UPTOWN', 'BAYOU VILLAGE', 'VOODOO QUARTER', 'OLD TOWN', 'CANNERY ROW', 'GATOR FLATS'}
 
@@ -167,10 +171,14 @@ def render(a):
         d.rounded_rectangle([bw * 2, bw * 2, W - 1 - bw * 2, H - 1 - bw * 2], radius=r, outline=(255, 255, 255), width=bw)
         f = fit(fpath, text, W * 0.7, H * 0.44)
         d.text((W * 0.44, H * 0.4), text, font=f, fill=(255, 255, 255), anchor='mm')
-        sf = fit(FONTS['oswald'], 'NEXT EXIT', W * 0.16, H * 0.14)
-        d.text((W * 0.44, H * 0.8), 'NEXT EXIT', font=sf, fill=(255, 255, 255), anchor='mm')
-        ax, ay, s = W * 0.86, H * 0.5, H * 0.24          # arrow pointing up (straight ahead)
-        d.polygon([(ax, ay - s), (ax - s * 0.8, ay - s * 0.1), (ax - s * 0.3, ay - s * 0.1), (ax - s * 0.3, ay + s), (ax + s * 0.3, ay + s), (ax + s * 0.3, ay - s * 0.1), (ax + s * 0.8, ay - s * 0.1)], fill=(255, 255, 255))
+        sub = tag or 'NEXT EXIT'
+        sf = fit(FONTS['oswald'], sub, W * (0.62 if tag else 0.16), H * 0.16)
+        d.text((W * 0.44, H * 0.8), sub, font=sf, fill=(255, 255, 255), anchor='mm')
+        ax, ay, s = W * 0.86, H * 0.5, H * 0.24
+        if tag:   # arrow pointing right
+            d.polygon([(ax + s, ay), (ax + s * 0.1, ay - s * 0.8), (ax + s * 0.1, ay - s * 0.3), (ax - s, ay - s * 0.3), (ax - s, ay + s * 0.3), (ax + s * 0.1, ay + s * 0.3), (ax + s * 0.1, ay + s * 0.8)], fill=(255, 255, 255))
+        else:     # arrow pointing up (straight ahead)
+            d.polygon([(ax, ay - s), (ax - s * 0.8, ay - s * 0.1), (ax - s * 0.3, ay - s * 0.1), (ax - s * 0.3, ay + s), (ax + s * 0.3, ay + s), (ax + s * 0.3, ay - s * 0.1), (ax + s * 0.8, ay - s * 0.1)], fill=(255, 255, 255))
         em = Image.fromarray((np.asarray(img).astype(np.float32) * 0.35).astype(np.uint8))   # reflective at night
         return img, em
     if style == 'police':

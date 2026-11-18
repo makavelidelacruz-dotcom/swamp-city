@@ -258,6 +258,15 @@ Every static building block in the city is now **baked into five textured models
 - **Carried bags** use an MML position probe (only while the Bank Job runs) to put a money bag on each carrier's back.
 - **Signs** are broader and each business has its own GTA-style look: script neon for bars and the motel, bold billboards for the pawn shop and fast food, a police badge sign, stencil hideout signs and green highway-exit signs for the districts. Fonts: Anton, Bungee, Bebas Neue, Pacifico, Lobster, Monoton, Black Ops One, Alfa Slab One, Racing Sans One, Permanent Marker, Oswald (SIL Open Font License).
 
+## Visitor Center, spawn at the edge, crew mascots and lit hideouts (update)
+
+- **Visitor Center on the east edge.** Everyone arrives here and checks in. It has a stucco hall with a clock tower and copper dome, a porch with a neon edge, and the big intermission screen (moved off the bank). The four crew check-in stands sit in front, each with its mascot turning on top. A "WELCOME TO SWAMP CITY" arch leads out to the street, and four trucks are parked on the plaza. The KGTR radio mast that stood on this block is gone.
+- **You spawn at the edge, not the middle.** The world is shifted so the Visitor Center plaza (the gold-ringed pad) is the document origin. Wherever you place the build in Otherside, that spot is the Visitor Center, and the city stretches about 380 m east-to-west from it. Set `SPAWN: "center"` at the top of the file to go back to the old bank-centred placement.
+- **The old check-in spot by the bank** now has a green freeway sign: "TEAM CHECK-IN - VISITOR CENTER - EAST EDGE".
+- **Crew mascots over every checked-in player.** GATORS get a little gator, HERONS a heron, BULLFROGS a bullfrog and COTTONMOUTHS a coiled purple snake. Each glows in its crew color, turns slowly and bobs over the player's head. Everyone can see them. They swap if you switch crews and disappear when you leave. One shared position probe (about 3 updates a second; tiny movements are skipped) drives both the mascots and the Bank Job money bags.
+- **Hideouts lit in their crew's color.** Each hideout has a light in its crew color over the forecourt, plus neon trim on the roofline, corners and shutter, two floodlight heads and a colored glow on the ground.
+- New models (CC0, made for Swamp City): `team-gator`, `team-heron`, `team-frog`, `team-snake`. `city-a`, `city-b` and `city-c` were re-baked.
+
 ## Audit fixes (18 Nov 2026)
 
 An outside audit found two real problems; both are fixed.

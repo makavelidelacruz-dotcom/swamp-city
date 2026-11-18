@@ -42,7 +42,7 @@ const HALF = 215, CZ = -20;
 const all = find(A, () => true);
 // world position of a node (translation + ry only, enough here)
 const wpos = n => { let x = 0, z = 0, y = 0, cur = n; const chain = []; while (cur) { chain.unshift(cur); cur = cur.parent != null ? A.nodes.get(cur.parent) : null; }
-  let ry = 0; for (const c of chain) { const a = c.attributes || {}; const lx = +a.x || 0, lz = +a.z || 0, r = ry * Math.PI / 180; x += lx * Math.cos(r) + lz * Math.sin(r); z += -lx * Math.sin(r) + lz * Math.cos(r); y += +a.y || 0; ry += +a.ry || 0; } return { x, y, z }; };
+  let ry = 0; for (const c of chain) { if ((c.attributes || {}).id === "world") continue; const a = c.attributes || {}; const lx = +a.x || 0, lz = +a.z || 0, r = ry * Math.PI / 180; x += lx * Math.cos(r) + lz * Math.sin(r); z += -lx * Math.sin(r) + lz * Math.cos(r); y += +a.y || 0; ry += +a.ry || 0; } return { x, y, z }; };
 const boats = all.filter(n => n.tag === "m-model" && n.attributes["data-boat"]);
 check(boats.length === 36, "36 boats docked (" + boats.length + ")");
 const kinds = boats.reduce((o, b) => (o[b.attributes["data-boat"]] = (o[b.attributes["data-boat"]] || 0) + 1, o), {});
