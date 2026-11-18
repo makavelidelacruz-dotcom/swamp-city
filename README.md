@@ -257,6 +257,15 @@ Every static building block in the city is now **baked into five textured models
 - **Carried bags** use an MML position probe (only while the Bank Job runs) to put a money bag on each carrier's back.
 - **Signs** are broader and each business has its own GTA-style look: script neon for bars and the motel, bold billboards for the pawn shop and fast food, a police badge sign, stencil hideout signs and green highway-exit signs for the districts. Fonts: Anton, Bungee, Bebas Neue, Pacifico, Lobster, Monoton, Black Ops One, Alfa Slab One, Racing Sans One, Permanent Marker, Oswald (SIL Open Font License).
 
+## Turf War territories, even house counts (update)
+
+The 100 claimable houses are now split into four territories of exactly 25 houses each: Uptown (north), Voodoo Quarter (east), Bayou Village (south) and Old Town (west). See `turf-territories.png`.
+
+- **How the split works:** the houses are dealt round the city centre into four neighbouring wedges of equal count. Because houses are packed tighter in the south, the wedges cover different amounts of ground, but each holds the same number of houses.
+- **What players see:** every claim button says which territory the house is in.
+- **Standings:** the Turf War status on the screen and the host controller shows who leads each territory, e.g. "UPTOWN: GATORS 9/25".
+- **Leftover houses:** if the house count ever stops dividing by four, the outermost leftover houses sit out, so the territories stay equal.
+
 ## One sign-up, even crews (update)
 
 Everyone now signs up once, at the **SIGN UP HERE** gate on the dock boardwalk, the first thing you walk through after placing the build.

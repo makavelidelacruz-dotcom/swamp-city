@@ -2094,7 +2094,7 @@
       const a = "house-" + k;
       if (!needTeam(cid, a)) return;
       if (ACTIVE !== "turf") return say(cid, a, "Turf War isn't running - wait for the host", "bad");
-      const t = teamOf(cid), h = TURF[k];
+      const t = teamOf(cid), h = TURF.find(x => x.k === k);
       if (h.owner === t) return say(cid, a, "Already yours - go claim another house", "info");
       if (h.lock > now()) return say(cid, a, "Just claimed - locked " + Math.ceil((h.lock - now()) / 1000) + "s", "bad");
       if ((this.cd.get(cid) || 0) > now()) return say(cid, a, "Catch your breath - 3 seconds", "bad");
@@ -2108,7 +2108,15 @@
       if (++this.sec % 10 === 0) this.owned().forEach((n, i) => award(i, n));
       if (t >= this.endAt) finishRound();
     },
-    status(t) { return ACTIVE === "turf" ? "TURF WAR  |  " + mmss(this.endAt - t) + " LEFT  |  HOUSES " + teamLine(this.owned()) : "Idle"; }
+    // who leads each territory (most houses there), e.g. "UPTOWN: GATORS 9/25"
+    territories() {
+      return TERRITORIES.map((name, ti) => {
+        const c = [0, 0, 0, 0]; TURF.forEach(h => { if (h.terr === ti && h.owner >= 0) c[h.owner]++; });
+        const top = Math.max(...c), lead = top > 0 && c.filter(v => v === top).length === 1 ? TEAMS[c.indexOf(top)].name + " " + top : top > 0 ? "TIED " + top : "OPEN";
+        return name + ": " + lead + "/" + TERR_SIZE;
+      }).join("  |  ");
+    },
+    status(t) { return ACTIVE === "turf" ? "TURF WAR  |  " + mmss(this.endAt - t) + " LEFT  |  HOUSES " + teamLine(this.owned()) + "  ||  " + this.territories() : "Idle"; }
   };
   function paintHouse(team, h) {
     h.owner = team;
@@ -2124,17 +2132,48 @@
     h.door.setAttribute("ry", open ? "-100" : "0");
   }
   // the working door and claim button for every house (block-built and Old Town)
+  // TERRITORIES: the city's houses are split into four territories with exactly the same number of houses each.
+  // Going round the city centre, the houses are dealt into four neighbouring wedges of equal count; the cut is
+  // placed so each wedge sits over the district it is named after (north, east, south, west).
+  const TERRITORIES = [DT ? "UPTOWN" : "CANNERY ROW", "VOODOO QUARTER", "BAYOU VILLAGE", MED ? "OLD TOWN" : "GATOR FLATS"];
+  function assignTerritories() {
+    const per = Math.floor(HOUSES.length / 4), n = per * 4;
+    const ang = h => Math.atan2(+h.g.getAttribute("z") - CZ, +h.g.getAttribute("x"));
+    const order = HOUSES.map((h, k) => ({ k, a: ang(h), r: Math.hypot(+h.g.getAttribute("x"), +h.g.getAttribute("z") - CZ) })).sort((p, q) => p.a - q.a);
+    if (order.length > n) {   // a leftover house or three (count not divisible by 4) sit out: the ones farthest out
+      const out = order.slice().sort((p, q) => q.r - p.r).slice(0, order.length - n).map(o => o.k);
+      for (const k of out) HOUSES[k].terr = -1;
+    }
+    const inPlay = order.filter(o => HOUSES[o.k].terr !== -1);
+    const want = [-Math.PI / 2, 0, Math.PI / 2, Math.PI];   // north, east, south, west (z grows to the south)
+    const diff = (a, b) => Math.abs(Math.atan2(Math.sin(a - b), Math.cos(a - b)));
+    let best = null;
+    for (let st = 0; st < inPlay.length; st++) {   // try every starting house for the first cut, keep the best fit
+      let score = 0;
+      for (let t = 0; t < 4; t++) {
+        const grp = []; for (let j = 0; j < per; j++) grp.push(inPlay[(st + t * per + j) % inPlay.length].a);
+        const mid = Math.atan2(grp.reduce((v, a) => v + Math.sin(a), 0), grp.reduce((v, a) => v + Math.cos(a), 0));
+        score += diff(mid, want[t]);
+      }
+      if (!best || score < best.score) best = { score, st };
+    }
+    for (let t = 0; t < 4; t++) for (let j = 0; j < per; j++) HOUSES[inPlay[(best.st + t * per + j) % inPlay.length].k].terr = t;
+    TERR_SIZE = per;
+  }
+  let TERR_SIZE = 0;
   function buildHouses() {
+    assignTerritories();
     HOUSES.forEach((h, k) => {
+      if (h.terr === -1) return;   // sits out of Turf War so every territory has the same number of houses
       const door = grp({ x: r2(h.doorX - h.dw / 2), y: h.base, z: h.doorZ, ry: 0 }, h.g);
       el("m-attr-lerp", { attr: "ry", duration: 450 }, door);
       const leaf = box({ x: r2(h.dw / 2), y: r2(h.dh / 2), width: r2(h.dw - 0.06), height: r2(h.dh - 0.04), depth: 0.08, color: DOOR_WOOD }, door);
       const knob = sph({ x: r2(h.dw - 0.18), y: 1.05, z: 0.07, radius: 0.05, color: "#c9a24a" }, door);
       const sign = text("UNCLAIMED", { x: h.doorX, y: h.signY, z: h.frontZ, width: 2.4, height: 0.42, "font-size": 24, color: "#3a3a3a", "font-color": PAPER, emissive: 0.5 }, h.g);
       const btn = text("CLAIM THIS HOUSE", { y: r2(h.base + 1.55), z: r2(h.backZ + 0.06), width: 2.6, height: 0.62, "font-size": 30, color: "#3a3a3a", "font-color": PAPER, emissive: 0.6 }, h.g);
-      const hint = text("TURF WAR  |  click to claim for your crew", { y: r2(h.base + 1.05), z: r2(h.backZ + 0.06), width: 2.6, height: 0.26, "font-size": 16, color: "#111", "font-color": AMBER }, h.g);
+      const hint = text(TERRITORIES[h.terr] + " TERRITORY  |  click to claim", { y: r2(h.base + 1.05), z: r2(h.backZ + 0.06), width: 2.6, height: 0.26, "font-size": 16, color: "#111", "font-color": AMBER }, h.g);
       ANCHORS["house-" + k] = { parent: h.g, x: 0, y: r2(h.base + 2.3), z: r2(h.backZ + 0.1), ry: 0, w: 3.2 };
-      const H = Object.assign({}, h, { k, door, leaf, sign, btn, open: false, closeAt: 0, owner: -1, lock: 0 });
+      const H = Object.assign({}, h, { k, terr: h.terr, door, leaf, sign, btn, open: false, closeAt: 0, owner: -1, lock: 0 });
       onClick([leaf, knob], () => setDoor(H, !H.open));
       onClick([btn, hint], cid => turf.claim(cid, k));
       TURF.push(H);
