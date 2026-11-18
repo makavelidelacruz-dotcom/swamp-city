@@ -21,9 +21,10 @@ A Grand Theft Auto style MML world for 4 teams and 50+ players. It uses the same
 - **Plaza (spawn):** Bayou Savings bank with the big screen on its front, the 4 team check-in stands, and 4 buggies.
 - **Bank vault:** inside the bank, with doors on the north and south sides.
 - **Lucky Gator Casino:** east side. The Gator Grand Hotel is behind it. Inside:
-  - **Lucky Wheel:** modeled wheel with icon slices (Gator, Frog, Skull, Crown) and a bulb-lit frame. It spins and eases to a stop over 5 seconds.
-  - **Swamp Slots:** 20 machines in purple, teal and red, plus 2 **Mega Slots** at the back wall. Click one to pull the lever; three reels spin and stop one after another.
-  - **Gator Dice:** 2 dice tables. Click to roll a pair.
+  - **Lucky Wheel:** modeled wheel with icon slices (Gator, Frog, Skull, Crown) and a bulb-lit frame. It spins and eases to a stop over 5 seconds. Bet at the four lit **bet kiosks** in front of it; each kiosk shows how many bets are on it.
+  - **Swamp Slots:** 20 machines in purple, teal and red, plus 2 **Mega Slots** at the back wall. Click one: the lever pulls down and springs back, and the three reels spin several turns and stop one after another, left to right.
+  - **Gator Dice:** 2 dice tables. Click to throw a pair: the dice fly in from the rim, bounce on the felt, tumble and land showing the result.
+  - All casino motion uses time-synced `m-attr-anim`, so every player sees the same spin or roll, including anyone who walks up mid-roll.
   - During the Casino round, wins pay points to your team (5 second cooldown per player). Outside the round everything is free play.
 - **Gator Pit arena:** west side, with the gold throne in the middle.
 - **Bayou Heights:** downtown towers and Bayou PD to the north.

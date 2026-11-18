@@ -143,7 +143,8 @@
   const BOAT_NAMES = ["yacht-1", "yacht-2", "sailboat", "airboat-1", "airboat-2", "airboat-3", "airboat-4", "airboat-prop",
     "shrimpboat-1", "shrimpboat-2", "skiff-1", "skiff-2", "cloud-1", "cloud-2", "cloud-3", "gator", "gator-bronze",
     "pickup-red", "pickup-blue", "pickup-gold", "pickup-green",
-    "wheel-spin", "wheel-frame", "slot-purple", "slot-teal", "slot-red", "slot-mega", "slot-reel", "slot-lever", "dice"];
+    "wheel-spin", "wheel-frame", "slot-purple", "slot-teal", "slot-red", "slot-mega", "slot-reel", "slot-lever", "dice",
+    "bet-crown", "bet-gator", "bet-frog", "bet-skull"];
   const BOATS = !!CONFIG.BOATS && (!!CONFIG.ASSET_HOST || BOAT_NAMES.every(n => CONFIG.ASSET_URLS[n]));
   // separate random stream for boats and extra clouds, so the baked city layout never shifts
   let seed2 = 9871;
@@ -188,6 +189,17 @@
   const stat = fn => { const p = STATIC; STATIC = true; try { return fn(); } finally { STATIC = p; } };
   const live = fn => { const p = STATIC; STATIC = false; try { return fn(); } finally { STATIC = p; } };
   const grp = (a, p) => el("m-group", a, p);
+  // Time-synced keyframe animation: every client plays it from the same document time, late joiners included.
+  // One animation per attribute per element; a new one replaces the old. Holds the end value when finished.
+  const docNow = () => { try { const v = document.timeline && document.timeline.currentTime; return typeof v === "number" && isFinite(v) ? Math.round(v) : null; } catch (e) { return null; } };
+  const ANIM = docNow() !== null;
+  function playAnim(node, attr, start, end, duration, easing, opts) {
+    for (const c of Array.from(node.children)) if (c.tagName.toLowerCase() === "m-attr-anim" && c.getAttribute("attr") === attr) c.remove();
+    const a = { attr, start: r2(start), end: r2(end), "start-time": docNow() + ((opts && opts.delay) || 0), duration: Math.round(duration), easing: easing || "linear" };
+    if (opts && opts.pingPong) a["ping-pong"] = "true";
+    el("m-attr-anim", a, node);
+    node.setAttribute(attr, String(r2(opts && opts.pingPong ? start : end)));
+  }
   const box = (a, p) => el("m-cube", Object.assign({ "cast-shadows": "false" }, a), p);
   const cyl = (a, p) => el("m-cylinder", Object.assign({ "cast-shadows": "false" }, a), p);
   const sph = (a, p) => el("m-sphere", Object.assign({ "cast-shadows": "false", collide: "false" }, a), p);
@@ -493,7 +505,7 @@
     if (BOATS) {   // modeled carnival wheel: lit frame + pointer, and the painted wheel that spins
       el("m-model", { src: natURL("wheel-frame"), collide: "false" }, wg);
       const spin = grp({ z: 0.2, rz: 0 }, wg);
-      el("m-attr-lerp", { attr: "rz", duration: 5000, easing: "easeOutCubic" }, spin);
+      if (!ANIM) el("m-attr-lerp", { attr: "rz", duration: 5000, easing: "easeOutCubic" }, spin);
       el("m-model", { src: natURL("wheel-spin"), collide: "false" }, spin);
       WHEEL.node = spin; WHEEL.smooth = true;
     } else {
@@ -517,6 +529,13 @@
     BETS.boards = syms.map((sym, i) => {
       const z = CZ - 7.5 + i * 5;
       const g = grp({ x: 82, z, ry: -90 });
+      if (BOATS) {   // lit kiosk with the symbol art, and a live count of bets on its plinth
+        const kiosk = el("m-model", { src: natURL("bet-" + sym.toLowerCase()) }, g);
+        const cnt = text("BETS OPEN DURING LUCKY WHEEL", { y: 0.15, z: 0.37, width: 2.6, height: 0.22, "font-size": 20, color: "#140c16", "font-color": "#ffd27a", emissive: 0.7 }, g);
+        BETS.count[sym] = cnt;
+        onClick([kiosk, cnt], cid => GAMES.casino.bet(cid, sym));
+        return g;
+      }
       const b = box({ y: 1.2, width: 3.2, height: 2, depth: 0.4, color: "#1b1022" }, g);
       const face = glow({ y: 1.25, z: 0.22, width: 3, height: 1.8, color: SYMBOL[sym], emissive: 0.45 }, g);
       const l1 = text("BET " + sym, { y: 1.55, z: 0.24, width: 2.8, height: 0.6, "font-size": 48, color: SYMBOL[sym], "font-color": INK, emissive: 0.1 }, g);
@@ -524,7 +543,7 @@
       onClick([b, face, l1, l2], cid => GAMES.casino.bet(cid, sym));
       return g;
     });
-    ANCHORS.bet = { x: 81.6, y: 3.0, z: CZ, ry: -90, w: 7 };
+    ANCHORS.bet = { x: 81.6, y: BOATS ? 3.55 : 3.0, z: CZ, ry: -90, w: 7 };
     if (BOATS) buildCasinoGames(x1, x2, z1, z2);
     });
     if (DT) for (let z = z1 + 1; z <= z2 - 1; z += 3) natModel("dt-bollard", x1 - 2.2, 0.1, z, 1.2, 0, true);
@@ -1131,7 +1150,7 @@
     casino: { title: "LUCKY WHEEL", kind: "CREWS  |  6 SPINS", what: "Click a bet board before each spin: GATOR, FROG or SKULL pay +2, CROWN pays +6. Swamp Slots, the Mega Gator jackpot and Gator Dice pay too.", where: "Lucky Gator Casino, east side of the city" },
     turf: { title: "TURF WAR", kind: "CREWS  |  4 MINUTES", what: "Open any house door, go inside and click CLAIM THIS HOUSE. Every 10 seconds each house you own scores 1.", where: "Every house in the city - shacks, shops, bars and the Old Town houses. Grab a truck!" }
   };
-  const BETS = { boards: [] };
+  const BETS = { boards: [], count: {} };
   const show = (id, on) => document.querySelectorAll('[data-game="' + id + '"]').forEach(n => n.setAttribute("visible", on ? "true" : "false"));
 
   // ---- BANK JOB --------------------------------------------------------------
@@ -1271,17 +1290,23 @@
   }
 
   // ---- LUCKY WHEEL ------------------------------------------------------------------
+  function updateBetCounts() {
+    for (const sym of Object.keys(BETS.count)) {
+      let n = 0; for (const b of casino.bets.values()) if (b === sym) n++;
+      setT(BETS.count[sym], ACTIVE !== "casino" ? "BETS OPEN DURING LUCKY WHEEL" : n ? n + (n === 1 ? " BET" : " BETS") + " ON " + sym : "NO BETS YET");
+    }
+  }
   const casino = {
     spins: 0, phase: "bet", phaseEnd: 0, bets: new Map(), last: "", timers: [],
     start() { this.spins = 0; this.last = ""; this.openBets(); },
-    stop() { this.timers.forEach(clearTimeout); this.timers = []; this.bets.clear(); setT(WHEEL.board, "LUCKY WHEEL - waiting for the host"); },
-    leave(cid) { this.bets.delete(cid); },
-    openBets() { this.phase = "bet"; this.phaseEnd = now() + 20000; this.bets.clear(); },
+    stop() { this.timers.forEach(clearTimeout); this.timers = []; this.bets.clear(); setT(WHEEL.board, "LUCKY WHEEL - waiting for the host"); setTimeout(updateBetCounts, 0); },
+    leave(cid) { this.bets.delete(cid); updateBetCounts(); },
+    openBets() { this.phase = "bet"; this.phaseEnd = now() + 20000; this.bets.clear(); updateBetCounts(); },
     bet(cid, sym) {
       if (!needTeam(cid, "bet")) return;
       if (ACTIVE !== "casino") return say(cid, "bet", "The wheel isn't running - wait for LUCKY WHEEL", "bad");
       if (this.phase !== "bet") return say(cid, "bet", "No more bets - wheel is spinning", "bad");
-      this.bets.set(cid, sym);
+      this.bets.set(cid, sym); updateBetCounts();
       say(cid, "bet", "Bet placed on " + sym + " - click another to change", "good");
     },
     spin() {
@@ -1289,7 +1314,8 @@
       const i = Math.floor(Math.random() * SLOTS.length), sym = SLOTS[i];
       const from = WHEEL.rz, mod = ((from + i * 36) % 360 + 360) % 360, target = from - 1080 - mod;
       const steps = WHEEL.smooth ? 0 : 24;
-      if (WHEEL.smooth) WHEEL.node.setAttribute("rz", r2(target));   // the model eases to a stop on its own
+      if (WHEEL.smooth && ANIM) playAnim(WHEEL.node, "rz", from, target, 5000, "easeOutCubic");   // spins and eases to a stop, same for every viewer
+      else if (WHEEL.smooth) WHEEL.node.setAttribute("rz", r2(target));   // the model eases to a stop on its own
       for (let s = 1; s <= steps; s++) this.timers.push(setTimeout(() => {
         const p = s / steps, e = 1 - Math.pow(1 - p, 3);
         WHEEL.node.setAttribute("rz", r2(from + (target - from) * e));
@@ -1341,13 +1367,23 @@
     if (m.busy > now()) return;
     if (!busyCheck(cid, m.anchor)) return;
     m.busy = now() + 2900;
-    m.lever.setAttribute("rx", "55"); setTimeout(() => m.lever.setAttribute("rx", "0"), 350);
     const res = slotResult(m.mega);
-    res.forEach((s, i) => {
-      const k = REEL.indexOf(s), a = reelAngle(k), cur = m.ang[i];
-      const next = cur - 1080 - 360 * i - (((cur - a) % 360) + 360) % 360;
-      m.ang[i] = next; m.reels[i].setAttribute("rx", String(r2(next)));
-    });
+    if (ANIM) {
+      playAnim(m.lever, "rx", 0, 60, 700, "easeInOutQuad", { pingPong: true });   // lever down and back up
+      res.forEach((s, i) => {            // each reel spins several full turns from where it stands and stops on its symbol, left to right
+        const a = reelAngle(REEL.indexOf(s)), cur = m.ang[i];
+        const start = a + 360 * (5 + 2 * i) + ((((cur - a) % 360) + 360) % 360);
+        playAnim(m.reels[i], "rx", start, a, 1400 + 500 * i, "easeOutCubic", { delay: 150 });
+        m.ang[i] = a;
+      });
+    } else {
+      m.lever.setAttribute("rx", "55"); setTimeout(() => m.lever.setAttribute("rx", "0"), 350);
+      res.forEach((s, i) => {
+        const k = REEL.indexOf(s), a = reelAngle(k), cur = m.ang[i];
+        const next = cur - 1080 - 360 * i - (((cur - a) % 360) + 360) % 360;
+        m.ang[i] = next; m.reels[i].setAttribute("rx", String(r2(next)));
+      });
+    }
     setT(m.screen, "SPINNING...");
     if (m.mega) { floorGames.potSpins++; if (floorGames.potSpins % 3 === 0) floorGames.pot++; }
     setTimeout(() => {
@@ -1372,11 +1408,31 @@
   function rollDice(tb, cid) {
     if (tb.busy > now()) return;
     if (!busyCheck(cid, tb.anchor)) return;
-    tb.busy = now() + 1900;
+    const ROLL = ANIM ? 2000 : 1500;
+    tb.busy = now() + ROLL + 400;
     const faces = [1 + Math.floor(Math.random() * 6), 1 + Math.floor(Math.random() * 6)];
     // rotation that brings each value to the top: +y=1, +z=2, +x=3, -x=4, -z=5, -y=6
     const up = { 1: [0, 0], 2: [-90, 0], 3: [0, 90], 4: [0, -90], 5: [90, 0], 6: [180, 0] };
-    faces.forEach((v, i) => {
+    if (ANIM) {
+      // throw both dice in from one side of the table: they fly in, bounce on the felt, tumble and spin, then settle
+      const side = Math.random() * Math.PI * 2, sx = Math.cos(side), sz = Math.sin(side);
+      const landA = Math.random() * Math.PI * 2, landR = Math.random() * 0.45;
+      const lx = tb.cx + Math.cos(landA) * landR - sx * 0.2, lz = tb.cz + Math.sin(landA) * landR - sz * 0.2;
+      const sep = side + Math.PI / 2 + (Math.random() - 0.5) * 0.8;
+      faces.forEach((v, i) => {
+        const d = tb.dice[i], [rx, rz] = up[v], s = i ? 1 : -1;
+        const ex = lx + Math.cos(sep) * 0.2 * s, ez = lz + Math.sin(sep) * 0.2 * s;          // landing spot, the two dice ~0.4 m apart
+        const fx = tb.cx + sx * 1.35 + Math.cos(sep) * 0.15 * s, fz = tb.cz + sz * 1.35 + Math.sin(sep) * 0.15 * s;   // thrown from the rim
+        const dur = ROLL - 150 + i * 150, spinDir = Math.random() < 0.5 ? -1 : 1;
+        playAnim(d.pos, "x", fx, ex, dur, "easeOutCubic"); playAnim(d.pos, "z", fz, ez, dur, "easeOutCubic");
+        playAnim(d.hop, "y", 0.75, 0, dur, "easeOutBounce");                                    // drop and bounce on the felt
+        const ry = Math.round(Math.random() * 360);
+        playAnim(d.hop, "ry", ry + spinDir * (360 + Math.round(Math.random() * 360)), ry, dur, "easeOutCubic");
+        playAnim(d.node, "rx", rx + 360 * (2 + Math.floor(Math.random() * 2)) * spinDir, rx, dur, "easeOutCubic");
+        playAnim(d.node, "rz", rz - 360 * (1 + Math.floor(Math.random() * 2)) * spinDir, rz, dur, "easeOutCubic");
+        d.x = ex; d.z = ez; d.rx = rx; d.rz = rz; d.ry = ry;
+      });
+    } else faces.forEach((v, i) => {
       const d = tb.dice[i], [rx, rz] = up[v];
       d.rx = d.rx - ((d.rx - rx) % 360 + 360) % 360 + 720; d.rz = d.rz - ((d.rz - rz) % 360 + 360) % 360 + 360; d.ry += 360;
       d.node.setAttribute("rx", String(d.rx)); d.node.setAttribute("rz", String(d.rz)); d.node.setAttribute("ry", String(d.ry));
@@ -1395,7 +1451,7 @@
       else if (pts) say(cid, tb.anchor, name + " - free play (points only during LUCKY WHEEL)", "info");
       else say(cid, tb.anchor, "Rolled " + sum + " - doubles or 7 to win", "info");
       setTimeout(() => { if (tb.busy <= now()) setT(tb.screen, "CLICK TO ROLL  |  DOUBLES +2  |  7 PAYS +1"); }, 4000);
-    }, 1500);
+    }, ROLL + 100);
   }
   function buildCasinoGames(x1, x2, z1, z2) {
     const colors = ["slot-purple", "slot-teal", "slot-red"];
@@ -1406,11 +1462,11 @@
       el("m-model", { src: natURL(mega ? "slot-mega" : colors[k % 3]) }, g);
       const reels = [-0.27, 0, 0.27].map(rx0 => {
         const r = el("m-model", { src: natURL("slot-reel"), x: rx0, y: 1.42, z: 0.08, rx: r2(reelAngle(Math.floor(Math.random() * 8))), collide: "false" }, g);
-        el("m-attr-lerp", { attr: "rx", duration: 1500 + Math.round((rx0 + 0.27) * 3700), easing: "easeOutCubic" }, r);
+        if (!ANIM) el("m-attr-lerp", { attr: "rx", duration: 1500 + Math.round((rx0 + 0.27) * 3700), easing: "easeOutCubic" }, r);
         return r;
       });
       const lever = el("m-model", { src: natURL("slot-lever"), x: 0.62, y: 1.25, z: 0.05, collide: "false" }, g);
-      el("m-attr-lerp", { attr: "rx", duration: 300, easing: "easeOutQuad" }, lever);
+      if (!ANIM) el("m-attr-lerp", { attr: "rx", duration: 300, easing: "easeOutQuad" }, lever);
       const screen = text(mega ? "MATCH 3 GATORS FOR THE JACKPOT" : "PULL THE LEVER", { y: 0.78, z: 0.41, width: 0.92, height: 0.16, "font-size": 15, color: "#120d10", "font-color": mega ? "#7dff8a" : AMBER, emissive: 0.6 }, g);
       const pull = text("PULL", { x: 0.62, y: 1.92, z: 0.06, width: 0.36, height: 0.16, "font-size": 16, color: "#e01e2e", "font-color": "#ffffff", emissive: 0.5 }, g);
       const anchor = "slot-" + k;
@@ -1429,9 +1485,16 @@
       cyl({ x: tx, y: 0.97, z: tz, radius: 1.65, height: 0.06, color: "#1f6b45", collide: "false" });
       cyl({ x: tx, y: 1.02, z: tz, radius: 1.75, height: 0.08, color: "#c9a24a", collide: "false" });
       const dice = [-0.3, 0.3].map((dx, i) => {
-        const node = el("m-model", { src: natURL("dice"), x: r2(tx + dx), y: 1.15, z: r2(tz + (i ? 0.12 : -0.1)), ry: i ? 20 : -15, collide: "false" });
-        el("m-attr-lerp", { attr: "rx,ry,rz", duration: 1400, easing: "easeOutCubic" }, node);
-        return { node, rx: 0, ry: i ? 20 : -15, rz: 0 };
+        if (!ANIM) {
+          const node = el("m-model", { src: natURL("dice"), x: r2(tx + dx), y: 1.15, z: r2(tz + (i ? 0.12 : -0.1)), ry: i ? 20 : -15, collide: "false" });
+          el("m-attr-lerp", { attr: "rx,ry,rz", duration: 1400, easing: "easeOutCubic" }, node);
+          return { node, rx: 0, ry: i ? 20 : -15, rz: 0 };
+        }
+        // pos = where it is on the table, hop = height + spin around the vertical, node = the tumble (face up)
+        const pos = grp({ x: r2(tx + dx), y: 1.15, z: r2(tz + (i ? 0.12 : -0.1)) });
+        const hop = grp({ ry: i ? 20 : -15 }, pos);
+        const node = el("m-model", { src: natURL("dice"), collide: "false" }, hop);
+        return { node, pos, hop, x: tx + dx, z: tz + (i ? 0.12 : -0.1), ry: i ? 20 : -15, rx: 0, rz: 0 };
       });
       const sg = grp({ x: tx, y: 2.05, z: tz });
       const screen = text("CLICK TO ROLL  |  DOUBLES +2  |  7 PAYS +1", { width: 3.4, height: 0.3, "font-size": 22, color: "#120d10", "font-color": "#ffd23b", emissive: 0.6 }, sg);
@@ -1440,7 +1503,7 @@
       const title2 = text("GATOR DICE", { y: 0.36, ry: 180, width: 2.0, height: 0.36, "font-size": 30, color: "#120d10", "font-color": PINK, emissive: 0.8 }, sg);
       const anchor = "dice-" + k;
       ANCHORS[anchor] = { parent: sg, x: 0, y: 0.95, z: 0, ry: 0, w: 2.8 };
-      const tb = { k, dice, screen, anchor, busy: 0 };
+      const tb = { k, dice, screen, anchor, busy: 0, cx: tx, cz: tz };
       const setBoth = (node, s) => { setT(screen, s); setT(back, s); };
       tb.screen = { setAttribute: (a, v) => { screen.setAttribute(a, v); back.setAttribute(a, v); }, getAttribute: a => screen.getAttribute(a) };
       void setBoth;
