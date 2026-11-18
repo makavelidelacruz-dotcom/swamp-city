@@ -20,7 +20,11 @@ A Grand Theft Auto style MML world for 4 teams and 50+ players. It uses the same
 
 - **Plaza (spawn):** Bayou Savings bank with the big screen on its front, the 4 team check-in stands, and 4 buggies.
 - **Bank vault:** inside the bank, with doors on the north and south sides.
-- **Lucky Gator Casino:** east side, with the Lucky Wheel inside. The Gator Grand Hotel is behind it.
+- **Lucky Gator Casino:** east side. The Gator Grand Hotel is behind it. Inside:
+  - **Lucky Wheel:** modeled wheel with icon slices (Gator, Frog, Skull, Crown) and a bulb-lit frame. It spins and eases to a stop over 5 seconds.
+  - **Swamp Slots:** 20 machines in purple, teal and red, plus 2 **Mega Slots** at the back wall. Click one to pull the lever; three reels spin and stop one after another.
+  - **Gator Dice:** 2 dice tables. Click to roll a pair.
+  - During the Casino round, wins pay points to your team (5 second cooldown per player). Outside the round everything is free play.
 - **Gator Pit arena:** west side, with the gold throne in the middle.
 - **Bayou Heights:** downtown towers and Bayou PD to the north.
 - **Neon Row:** bars and shops to the south, with stilt shacks behind them.
@@ -171,7 +175,7 @@ Every static building block in the city is now **baked into five textured models
 
 - **Buildings:** plaster, clapboard siding, red brick, stucco and concrete skins, with corner pilasters, stone plinths, floor bands and cornices. Windows have frames, mullions, sills, curtains and a warm lit interior. Shacks get wooden shake roofs; other houses get clay tile roofs. Doors are paneled wood; towers have glass curtain walls and glass entry doors.
 - **The bank:** cut limestone walls, fluted columns, a marble entry step, a carved stone cornice, an aged copper dome and gold vault doors.
-- **Casino:** patterned red carpet, art-deco wall panels, gold columns, felt card tables, polished wood, slot machine screens and a lit bulb border.
+- **Casino:** patterned red carpet with swamp flowers, wood art-deco wall panels, coffered gold ceiling, chandeliers, gold columns, felt card tables, polished wood, slot machine screens and a lit bulb border.
 - **Gator Pit:** a log palisade, wooden bleachers, sand floor and steel floodlight poles.
 - **Hideouts:** corrugated metal with ribbed roll-up shutters in the team color.
 - **Swamp:** muddy banks, stone embankments, rippled water, lily pads, plank boardwalks and bark-textured pilings.

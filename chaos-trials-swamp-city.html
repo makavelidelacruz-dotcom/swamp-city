@@ -142,7 +142,8 @@
   const ST = !!CONFIG.STREETS && (!!CONFIG.ASSET_HOST || ST_NAMES.every(n => CONFIG.ASSET_URLS[n]));
   const BOAT_NAMES = ["yacht-1", "yacht-2", "sailboat", "airboat-1", "airboat-2", "airboat-3", "airboat-4", "airboat-prop",
     "shrimpboat-1", "shrimpboat-2", "skiff-1", "skiff-2", "cloud-1", "cloud-2", "cloud-3", "gator", "gator-bronze",
-    "pickup-red", "pickup-blue", "pickup-gold", "pickup-green"];
+    "pickup-red", "pickup-blue", "pickup-gold", "pickup-green",
+    "wheel-spin", "wheel-frame", "slot-purple", "slot-teal", "slot-red", "slot-mega", "slot-reel", "slot-lever", "dice"];
   const BOATS = !!CONFIG.BOATS && (!!CONFIG.ASSET_HOST || BOAT_NAMES.every(n => CONFIG.ASSET_URLS[n]));
   // separate random stream for boats and extra clouds, so the baked city layout never shifts
   let seed2 = 9871;
@@ -458,10 +459,16 @@
   const BET_PAY = { CROWN: 6, GATOR: 2, FROG: 2, SKULL: 2 };
   function buildCasino() {
     const x1 = 60, x2 = 92, z1 = CZ - 22, z2 = CZ + 22, H = 9;
-    box({ x: (x1 + x2) / 2, y: 0.13, z: CZ, width: x2 - x1, height: 0.06, depth: z2 - z1, color: "#5a1626", mat: "carpet" });   // carpet
-    box({ x: x2, y: H / 2, z: CZ, width: 0.8, height: H, depth: z2 - z1, color: "#2a1830", mat: "casinowall" });
-    box({ x: (x1 + x2) / 2, y: H / 2, z: z1, width: x2 - x1, height: H, depth: 0.8, color: "#2a1830", mat: "casinowall" });
-    box({ x: (x1 + x2) / 2, y: H / 2, z: z2, width: x2 - x1, height: H, depth: 0.8, color: "#2a1830", mat: "casinowall" });
+    box({ x: (x1 + x2) / 2, y: 0.13, z: CZ, width: x2 - x1, height: 0.06, depth: z2 - z1, color: "#5a1626", mat: "carpet2" });  // carpet
+    box({ x: x2, y: H / 2, z: CZ, width: 0.8, height: H, depth: z2 - z1, color: "#2a1830", mat: "casinopanel" });
+    box({ x: (x1 + x2) / 2, y: H / 2, z: z1, width: x2 - x1, height: H, depth: 0.8, color: "#2a1830", mat: "casinopanel" });
+    box({ x: (x1 + x2) / 2, y: H / 2, z: z2, width: x2 - x1, height: H, depth: 0.8, color: "#2a1830", mat: "casinopanel" });
+    box({ x: (x1 + x2) / 2, y: H - 0.1, z: CZ, width: x2 - x1 - 0.8, height: 0.2, depth: z2 - z1 - 0.8, color: "#5a2232", collide: "false", mat: "coffer" });  // ceiling
+    for (const [cx, cz] of [[68, CZ - 9], [68, CZ + 9], [80, CZ - 9], [80, CZ + 9], [74, CZ]]) {                                                 // chandeliers
+      cyl({ x: cx, y: H - 0.9, z: cz, radius: 0.04, height: 1.4, color: "#c9a24a", collide: "false", mat: "gold" });
+      sph({ x: cx, y: H - 1.7, z: cz, radius: 0.55, sy: 0.7, color: "#ffe9b0", mat: "globe" });
+      for (let k = 0; k < 6; k++) { const a = k * Math.PI / 3; sph({ x: r2(cx + Math.cos(a) * 0.95), y: H - 1.55, z: r2(cz + Math.sin(a) * 0.95), radius: 0.16, color: "#ffe9b0", mat: "globe" }); }
+    }
     box({ x: (x1 + x2) / 2, y: H + 0.3, z: CZ, width: x2 - x1 + 1, height: 0.6, depth: z2 - z1 + 1, color: "#1d1022", mat: "cornice" });
     for (let z = z1 + 2; z <= z2 - 2; z += 8) cyl({ x: x1, y: H / 2, z, radius: 0.5, height: H, color: "#c9a24a", mat: "gold" });
     // facade + marquee
@@ -470,18 +477,26 @@
     glow({ x: x1 - 0.6, y: H + 0.55, z: CZ, ry: -90, width: 42, height: 0.22, color: AMBER, mat: "bulbs" });
     glow({ x: x1 - 0.6, y: H + 4.0, z: CZ, ry: -90, width: 42, height: 0.22, color: NEON, mat: "bulbs" });
     // slot machines along the side walls, card tables in the middle
-    for (const zz of [z1 + 1.2, z2 - 1.2]) for (let x = x1 + 5; x < x2 - 4; x += 3.2) {
+    if (BOATS) { for (const [x, z] of [[76, CZ - 12], [76, CZ + 12]]) { cyl({ x, y: 0.5, z, radius: 1.7, height: 0.9, color: "#3a2a1a", mat: "woodpolish" }); cyl({ x, y: 0.97, z, radius: 1.55, height: 0.06, color: "#1f6b45", collide: "false", mat: "felt" }); } }
+    else for (const zz of [z1 + 1.2, z2 - 1.2]) for (let x = x1 + 5; x < x2 - 4; x += 3.2) {
       const ry = zz < CZ ? 0 : 180;
       box({ x, y: 1, z: zz, width: 1.4, height: 2, depth: 1, color: "#3b1f4a", mat: "slotcab" });
       glow({ x, y: 1.4, z: zz + (ry === 0 ? 0.52 : -0.52), ry, width: 1, height: 0.7, color: [PINK, NEON, AMBER][Math.floor(rand() * 3)], emissive: 0.7, mat: "slotscreen" });
     }
-    for (const [x, z] of [[68, CZ - 10], [68, CZ + 10], [76, CZ - 12], [76, CZ + 12]]) {
+    if (!BOATS) for (const [x, z] of [[68, CZ - 10], [68, CZ + 10], [76, CZ - 12], [76, CZ + 12]]) {
       cyl({ x, y: 0.5, z, radius: 1.7, height: 0.9, color: "#3a2a1a", mat: "woodpolish" });
       cyl({ x, y: 0.97, z, radius: 1.55, height: 0.06, color: "#1f6b45", collide: "false", mat: "felt" });
     }
     // the wheel: vertical disc on the back wall, facing -x
     live(() => {
     const wg = grp({ x: x2 - 0.7, y: 4.2, z: CZ, ry: -90 });
+    if (BOATS) {   // modeled carnival wheel: lit frame + pointer, and the painted wheel that spins
+      el("m-model", { src: natURL("wheel-frame"), collide: "false" }, wg);
+      const spin = grp({ z: 0.2, rz: 0 }, wg);
+      el("m-attr-lerp", { attr: "rz", duration: 5000, easing: "easeOutCubic" }, spin);
+      el("m-model", { src: natURL("wheel-spin"), collide: "false" }, spin);
+      WHEEL.node = spin; WHEEL.smooth = true;
+    } else {
     cyl({ rx: 90, radius: 3.65, height: 0.3, color: "#c9a24a", collide: "false" }, wg);
     const spin = grp({ z: 0.2, rz: 0 }, wg);
     el("m-attr-lerp", { attr: "rz", duration: 220 }, spin);
@@ -495,7 +510,8 @@
     sph({ z: 0.4, radius: 0.5, color: "#c9a24a" }, spin);
     box({ y: 3.75, z: 0.3, width: 0.35, height: 0.7, depth: 0.2, color: "#ff3b3b", collide: "false" }, wg); // pointer
     WHEEL.node = spin;
-    WHEEL.board = text("LUCKY WHEEL - waiting for the host", { y: 4.4, z: 0.3, width: 9, height: 0.55, "font-size": 38, "font-color": AMBER }, wg);
+    }
+    WHEEL.board = text("LUCKY WHEEL - waiting for the host", { y: BOATS ? 5.75 : 4.4, z: 0.3, width: 9, height: 0.55, "font-size": 38, color: "#160a12", "font-color": AMBER, emissive: 0.4 }, wg);
     // bet boards
     const syms = ["CROWN", "GATOR", "FROG", "SKULL"];
     BETS.boards = syms.map((sym, i) => {
@@ -509,6 +525,7 @@
       return g;
     });
     ANCHORS.bet = { x: 81.6, y: 3.0, z: CZ, ry: -90, w: 7 };
+    if (BOATS) buildCasinoGames(x1, x2, z1, z2);
     });
     if (DT) for (let z = z1 + 1; z <= z2 - 1; z += 3) natModel("dt-bollard", x1 - 2.2, 0.1, z, 1.2, 0, true);
     // casino block: hotel tower to the north, stilt motel to the south
@@ -1111,7 +1128,7 @@
     heist: { title: "BANK JOB", kind: "CREWS  |  4 MINUTES", what: "Grab a bag from the vault, get it to YOUR hideout before the dye pack pops (75s).", where: "Vault inside Bayou Savings > your hideout out past the inner ring road - take a buggy!" },
     race: { title: "BAYOU RUN", kind: "SOLO FOR YOUR CREW  |  5 MINUTES", what: "Hit all 15 checkpoints in order - run or drive. Top 3 score 10 / 8 / 6, finishers 3.", where: "Start: the road just south of the plaza. Your next gate glows for you." },
     arena: { title: "GATOR PIT", kind: "CREWS  |  3 MINUTES", what: "Stand on the gold throne. The crew with the most bodies on it scores every second.", where: "Gator Pit arena, west side of the city. Last 30 seconds score double." },
-    casino: { title: "LUCKY WHEEL", kind: "CREWS  |  6 SPINS", what: "Click a bet board before each spin. GATOR, FROG or SKULL pay +2. CROWN pays +6.", where: "Lucky Gator Casino, east side of the city" },
+    casino: { title: "LUCKY WHEEL", kind: "CREWS  |  6 SPINS", what: "Click a bet board before each spin: GATOR, FROG or SKULL pay +2, CROWN pays +6. Swamp Slots, the Mega Gator jackpot and Gator Dice pay too.", where: "Lucky Gator Casino, east side of the city" },
     turf: { title: "TURF WAR", kind: "CREWS  |  4 MINUTES", what: "Open any house door, go inside and click CLAIM THIS HOUSE. Every 10 seconds each house you own scores 1.", where: "Every house in the city - shacks, shops, bars and the Old Town houses. Grab a truck!" }
   };
   const BETS = { boards: [] };
@@ -1271,7 +1288,8 @@
       this.phase = "spin"; this.phaseEnd = now() + 5200; this.spins++;
       const i = Math.floor(Math.random() * SLOTS.length), sym = SLOTS[i];
       const from = WHEEL.rz, mod = ((from + i * 36) % 360 + 360) % 360, target = from - 1080 - mod;
-      const steps = 24;
+      const steps = WHEEL.smooth ? 0 : 24;
+      if (WHEEL.smooth) WHEEL.node.setAttribute("rz", r2(target));   // the model eases to a stop on its own
       for (let s = 1; s <= steps; s++) this.timers.push(setTimeout(() => {
         const p = s / steps, e = 1 - Math.pow(1 - p, 3);
         WHEEL.node.setAttribute("rz", r2(from + (target - from) * e));
@@ -1297,6 +1315,139 @@
     },
     status(t) { return ACTIVE === "casino" ? "LUCKY WHEEL  |  SPIN " + Math.min(6, this.spins + (this.phase === "bet" ? 1 : 0)) + "/6  |  " + (this.phase === "bet" ? "BETS OPEN " + mmss(this.phaseEnd - t) + "  |  " + this.bets.size + " BETS" : this.phase === "spin" ? "SPINNING" : "LANDED ON " + this.last) : "Idle"; }
   };
+
+  // ---- CASINO FLOOR GAMES: Swamp Slots, Mega Gator, Gator Dice ------------------------------------
+  // Free play any time; they pay team points only while the host runs LUCKY WHEEL.
+  const REEL = ["SEVEN", "CHERRY", "BELL", "BAR", "GATOR", "FROG", "CROWN", "SKULL"];
+  const REEL_NAME = { SEVEN: "7", CHERRY: "CHERRY", BELL: "BELL", BAR: "BAR", GATOR: "GATOR", FROG: "FROG", CROWN: "CROWN", SKULL: "SKULL" };
+  const SLOT_PAY = { CROWN: 5, SEVEN: 4, GATOR: 2, FROG: 2, BELL: 1, CHERRY: 1, BAR: 1, SKULL: 1 };
+  const MACHINES = [], DICE_TABLES = [];
+  const floorGames = { cd: new Map(), pot: 8, potSpins: 0 };
+  const paying = () => ACTIVE === "casino";
+  const reelAngle = k => 90 - (k + 0.5) * 45;
+  function pickWeighted(w) { let r = Math.random() * w.reduce((a, b) => a + b[1], 0); for (const [v, p] of w) { if ((r -= p) <= 0) return v; } return w[0][0]; }
+  function slotResult(mega) {
+    const r = Math.random();
+    if (mega && r < 0.035) return ["GATOR", "GATOR", "GATOR"];
+    if (r < (mega ? 0.12 : 0.13)) { const s = pickWeighted([["CROWN", 6], ["SEVEN", 10], ["GATOR", mega ? 0 : 18], ["FROG", 18], ["BELL", 16], ["CHERRY", 16], ["BAR", 12]]); return [s, s, s]; }
+    let out; do { out = [0, 1, 2].map(() => REEL[Math.floor(Math.random() * REEL.length)]); } while (out[0] === out[1] && out[1] === out[2]);
+    return out;
+  }
+  function busyCheck(cid, anchor) {
+    if ((floorGames.cd.get(cid) || 0) > now()) { say(cid, anchor, "One at a time - try again in a moment", "bad"); return false; }
+    floorGames.cd.set(cid, now() + 5000); return true;
+  }
+  function pullSlot(m, cid) {
+    if (m.busy > now()) return;
+    if (!busyCheck(cid, m.anchor)) return;
+    m.busy = now() + 2900;
+    m.lever.setAttribute("rx", "55"); setTimeout(() => m.lever.setAttribute("rx", "0"), 350);
+    const res = slotResult(m.mega);
+    res.forEach((s, i) => {
+      const k = REEL.indexOf(s), a = reelAngle(k), cur = m.ang[i];
+      const next = cur - 1080 - 360 * i - (((cur - a) % 360) + 360) % 360;
+      m.ang[i] = next; m.reels[i].setAttribute("rx", String(r2(next)));
+    });
+    setT(m.screen, "SPINNING...");
+    if (m.mega) { floorGames.potSpins++; if (floorGames.potSpins % 3 === 0) floorGames.pot++; }
+    setTimeout(() => {
+      const win = res[0] === res[1] && res[1] === res[2];
+      const team = TEAM.has(cid) ? teamOf(cid) : -1;
+      let pts = 0, msg;
+      if (win && m.mega && res[0] === "GATOR") { pts = floorGames.pot; msg = "MEGA GATOR JACKPOT! +" + pts; }
+      else if (win) { pts = m.mega ? 2 : SLOT_PAY[res[0]]; msg = "3 " + REEL_NAME[res[0]] + "! +" + pts; }
+      else msg = res.map(s => REEL_NAME[s]).join(" | ");
+      setT(m.screen, msg);
+      if (win && paying() && team >= 0) {
+        award(team, pts);
+        say(cid, m.anchor, msg + " for " + TEAMS[team].name, "good");
+        if (m.mega && res[0] === "GATOR") { flash(nameOf(cid).toUpperCase() + " HIT THE MEGA GATOR JACKPOT! +" + pts); floorGames.pot = 8; }
+      } else if (win) say(cid, m.anchor, msg + " - free play (points only during LUCKY WHEEL)", "info");
+      else say(cid, m.anchor, paying() ? "No match - pull again in a moment" : "No match - free play", "info");
+      updatePots();
+      setTimeout(() => { if (m.busy <= now()) setT(m.screen, m.mega ? "MATCH 3 GATORS FOR THE JACKPOT" : "PULL THE LEVER"); }, 3500);
+    }, 2650);
+  }
+  function updatePots() { for (const m of MACHINES) if (m.mega) setT(m.pot, "JACKPOT  +" + floorGames.pot); }
+  function rollDice(tb, cid) {
+    if (tb.busy > now()) return;
+    if (!busyCheck(cid, tb.anchor)) return;
+    tb.busy = now() + 1900;
+    const faces = [1 + Math.floor(Math.random() * 6), 1 + Math.floor(Math.random() * 6)];
+    // rotation that brings each value to the top: +y=1, +z=2, +x=3, -x=4, -z=5, -y=6
+    const up = { 1: [0, 0], 2: [-90, 0], 3: [0, 90], 4: [0, -90], 5: [90, 0], 6: [180, 0] };
+    faces.forEach((v, i) => {
+      const d = tb.dice[i], [rx, rz] = up[v];
+      d.rx = d.rx - ((d.rx - rx) % 360 + 360) % 360 + 720; d.rz = d.rz - ((d.rz - rz) % 360 + 360) % 360 + 360; d.ry += 360;
+      d.node.setAttribute("rx", String(d.rx)); d.node.setAttribute("rz", String(d.rz)); d.node.setAttribute("ry", String(d.ry));
+    });
+    setT(tb.screen, "ROLLING...");
+    setTimeout(() => {
+      const [a, b] = faces, sum = a + b, team = TEAM.has(cid) ? teamOf(cid) : -1;
+      let pts = 0, name = "";
+      if (a === 1 && b === 1) { pts = 3; name = "SNAKE EYES"; }
+      else if (a === 6 && b === 6) { pts = 3; name = "BOXCARS"; }
+      else if (a === b) { pts = 2; name = "DOUBLES"; }
+      else if (sum === 7) { pts = 1; name = "LUCKY SEVEN"; }
+      const line = a + " + " + b + (name ? "  " + name + " +" + pts : "");
+      setT(tb.screen, line);
+      if (pts && paying() && team >= 0) { award(team, pts); say(cid, tb.anchor, name + "! +" + pts + " for " + TEAMS[team].name, "good"); }
+      else if (pts) say(cid, tb.anchor, name + " - free play (points only during LUCKY WHEEL)", "info");
+      else say(cid, tb.anchor, "Rolled " + sum + " - doubles or 7 to win", "info");
+      setTimeout(() => { if (tb.busy <= now()) setT(tb.screen, "CLICK TO ROLL  |  DOUBLES +2  |  7 PAYS +1"); }, 4000);
+    }, 1500);
+  }
+  function buildCasinoGames(x1, x2, z1, z2) {
+    const colors = ["slot-purple", "slot-teal", "slot-red"];
+    let n = 0;
+    const machine = (x, z, ry, mega) => {
+      const k = n++, sc = mega ? 1.35 : 1;
+      const g = grp({ x: r2(x), y: 0.16, z: r2(z), ry, sx: sc, sy: sc, sz: sc });
+      el("m-model", { src: natURL(mega ? "slot-mega" : colors[k % 3]) }, g);
+      const reels = [-0.27, 0, 0.27].map(rx0 => {
+        const r = el("m-model", { src: natURL("slot-reel"), x: rx0, y: 1.42, z: 0.08, rx: r2(reelAngle(Math.floor(Math.random() * 8))), collide: "false" }, g);
+        el("m-attr-lerp", { attr: "rx", duration: 1500 + Math.round((rx0 + 0.27) * 3700), easing: "easeOutCubic" }, r);
+        return r;
+      });
+      const lever = el("m-model", { src: natURL("slot-lever"), x: 0.62, y: 1.25, z: 0.05, collide: "false" }, g);
+      el("m-attr-lerp", { attr: "rx", duration: 300, easing: "easeOutQuad" }, lever);
+      const screen = text(mega ? "MATCH 3 GATORS FOR THE JACKPOT" : "PULL THE LEVER", { y: 0.78, z: 0.41, width: 0.92, height: 0.16, "font-size": 15, color: "#120d10", "font-color": mega ? "#7dff8a" : AMBER, emissive: 0.6 }, g);
+      const pull = text("PULL", { x: 0.62, y: 1.92, z: 0.06, width: 0.36, height: 0.16, "font-size": 16, color: "#e01e2e", "font-color": "#ffffff", emissive: 0.5 }, g);
+      const anchor = "slot-" + k;
+      ANCHORS[anchor] = { parent: g, x: 0, y: 3.05, z: 0.3, ry: 0, w: 2.6 };
+      const m = { k, g, reels, lever, screen, mega, anchor, busy: 0, ang: reels.map(r => +r.getAttribute("rx")) };
+      if (mega) m.pot = text("JACKPOT  +" + floorGames.pot, { y: 2.92, z: 0.1, width: 1.0, height: 0.2, "font-size": 20, color: "#0b1a10", "font-color": "#7dff8a", emissive: 0.8 }, g);
+      onClick([lever, pull, screen].concat(reels), cid => pullSlot(m, cid));
+      MACHINES.push(m);
+    };
+    for (const zz of [z1 + 1.1, z2 - 1.1]) for (let x = x1 + 5; x < x2 - 6; x += 2.4) machine(x, zz, zz < CZ ? 0 : 180, false);
+    machine(88.6, CZ - 13, -90, true); machine(88.6, CZ + 13, -90, true);
+    // Gator Dice: two felt tables with a pair of dice each
+    for (const [tx, tz] of [[68, CZ - 10], [68, CZ + 10]]) {
+      const k = DICE_TABLES.length;
+      cyl({ x: tx, y: 0.5, z: tz, radius: 1.8, height: 0.9, color: "#3a2a1a" });
+      cyl({ x: tx, y: 0.97, z: tz, radius: 1.65, height: 0.06, color: "#1f6b45", collide: "false" });
+      cyl({ x: tx, y: 1.02, z: tz, radius: 1.75, height: 0.08, color: "#c9a24a", collide: "false" });
+      const dice = [-0.3, 0.3].map((dx, i) => {
+        const node = el("m-model", { src: natURL("dice"), x: r2(tx + dx), y: 1.15, z: r2(tz + (i ? 0.12 : -0.1)), ry: i ? 20 : -15, collide: "false" });
+        el("m-attr-lerp", { attr: "rx,ry,rz", duration: 1400, easing: "easeOutCubic" }, node);
+        return { node, rx: 0, ry: i ? 20 : -15, rz: 0 };
+      });
+      const sg = grp({ x: tx, y: 2.05, z: tz });
+      const screen = text("CLICK TO ROLL  |  DOUBLES +2  |  7 PAYS +1", { width: 3.4, height: 0.3, "font-size": 22, color: "#120d10", "font-color": "#ffd23b", emissive: 0.6 }, sg);
+      const back = text("CLICK TO ROLL  |  DOUBLES +2  |  7 PAYS +1", { ry: 180, width: 3.4, height: 0.3, "font-size": 22, color: "#120d10", "font-color": "#ffd23b", emissive: 0.6 }, sg);
+      const title = text("GATOR DICE", { y: 0.36, width: 2.0, height: 0.36, "font-size": 30, color: "#120d10", "font-color": PINK, emissive: 0.8 }, sg);
+      const title2 = text("GATOR DICE", { y: 0.36, ry: 180, width: 2.0, height: 0.36, "font-size": 30, color: "#120d10", "font-color": PINK, emissive: 0.8 }, sg);
+      const anchor = "dice-" + k;
+      ANCHORS[anchor] = { parent: sg, x: 0, y: 0.95, z: 0, ry: 0, w: 2.8 };
+      const tb = { k, dice, screen, anchor, busy: 0 };
+      const setBoth = (node, s) => { setT(screen, s); setT(back, s); };
+      tb.screen = { setAttribute: (a, v) => { screen.setAttribute(a, v); back.setAttribute(a, v); }, getAttribute: a => screen.getAttribute(a) };
+      void setBoth;
+      onClick([screen, back, title, title2].concat(dice.map(d => d.node)), cid => rollDice(tb, cid));
+      DICE_TABLES.push(tb);
+    }
+  }
 
   // ---- TURF WAR: claim houses -------------------------------------------------------------
   // Walk up to any house, open the door, go inside and click CLAIM THIS HOUSE. Every 10 s each house you own scores 1.
