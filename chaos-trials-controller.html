@@ -120,7 +120,7 @@ label{display:block;font-size:11px;letter-spacing:.18em;color:var(--muted);margi
     </div>
     <div class="card">
       <h2>Big screen message</h2>
-      <input id="note" maxlength="70" placeholder="e.g. Bayou Run starts in 30 seconds!">
+      <input id="note" maxlength="70" placeholder="e.g. Gator Pit starts in 30 seconds!">
       <div class="count" id="noteCount">0 / 70</div>
       <div class="row" style="margin-top:8px">
         <button class="go" id="noteBtn" style="flex:1" disabled>Show 45s</button>
@@ -137,14 +137,13 @@ label{display:block;font-size:11px;letter-spacing:.18em;color:var(--muted);margi
 <script>
 (function () {
   const GAMES = [
-    { id: "heist", title: "BANK JOB", kind: "CREWS - 4 MINUTES", what: "Grab a bag from the vault, run or drive it to your crew's hideout before the 75s dye pack pops.", where: "Bayou Savings vault (plaza) > hideouts out past the inner ring road" },
-    { id: "race", title: "BAYOU RUN", kind: "SOLO FOR YOUR CREW - 5 MINUTES", what: "15 checkpoints in order, on foot or in a buggy. Top 3 score 10 / 8 / 6, every finisher 3.", where: "Starts on the road south of the plaza, loops the middle ring road" },
+    { id: "heist", title: "BANK JOB", kind: "CREWS - 4 MINUTES", what: "Grab a bag from the vault, run or drive it to your crew's hideout before the 75s dye pack pops.", where: "Yuppie Ape Savings vault (downtown) > hideouts out past the inner ring road" },
     { id: "arena", title: "GATOR PIT", kind: "CREWS - 3 MINUTES", what: "Crew with the most players on the gold throne scores every second. Last 30s double.", where: "Gator Pit arena, west side" },
-    { id: "casino", title: "LUCKY WHEEL", kind: "CREWS - 6 SPINS", what: "Bet before each spin. GATOR / FROG / SKULL pay +2, CROWN pays +6.", where: "Lucky Gator Casino, east side" },
+    { id: "casino", title: "LUCKY WHEEL", kind: "CREWS - 6 SPINS", what: "Bet before each spin. GATOR / FROG / SKULL pay +2, CROWN pays +6.", where: "Token Gator Casino, east side" },
     { id: "turf", title: "TURF WAR", kind: "CREWS - 4 MINUTES", what: "Tag the 20 walls in your crew's color. Each wall you own scores 1 every 5 seconds.", where: "Numbered walls all over the city" }
   ];
   const CREWS = [["GATORS", "#4fe08f"], ["MUNYONS", "#3fd0ff"], ["BULLFROGS", "#ffc23d"], ["COTTONMOUTHS", "#c48bff"]];
-  const PRESETS = ["Check in at a team stand under the big screen!", "Next game starts in 30 seconds", "Everyone back to the plaza", "Grab a buggy - click the hood to drive", "Last round - give it everything!", "GG - stick around for the next Chaos Trial"];
+  const PRESETS = ["Check in at a crew stand at the Visitor Center!", "Next game starts in 30 seconds", "Everyone back to the Visitor Center", "Grab a buggy - click the hood to drive", "Last round - give it everything!", "GG - stick around for the next Chaos Trial"];
   const $ = id => document.getElementById(id);
   const store = { get: k => { try { return localStorage.getItem(k); } catch (e) { return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} } };
   $("url").value = store.get("swamp.url") || "";

@@ -83,23 +83,15 @@ await sleep(300);
 check(state(ctl).round[0] === 1 && state(ctl).series[0] === 1, "bag banked for GATORS: round " + JSON.stringify(state(ctl).round));
 check(find(P[0], n => n.attributes["data-game"] === "heist" && n.attributes.visible === "true").length > 0, "heist beacons visible while live");
 
-// race
-host("race");
-await sleep(400);
-check(state(ctl).active === "race", "host switches to BAYOU RUN");
-check(find(P[0], n => n.attributes["data-game"] === "heist" && n.attributes.visible === "true").length === 0, "heist beacons hidden again");
-const pads = find(P[1], n => n.tag === "m-cube" && n.attributes["collision-interval"] === "200").map(n => n.nodeId);
-check(pads.length === 15, "15 checkpoint pads");
-check(find(P[1], n => n.tag === "m-cylinder" && n.attributes.height === "30").length === 1, "P1 sees exactly one personal beam (of 8 created)");
-send(P[1], pads[3], "collisionstart", {}); // out of order: ignored
-await sleep(150);
-for (const id of pads) { send(P[1], id, "collisionstart", {}); await sleep(60); }
-await sleep(400);
-check(state(ctl).round[1] === 10, "P1 finished first: +10 MUNYONS " + JSON.stringify(state(ctl).round));
+// BAYOU RUN was removed: a "race" command does nothing, and there are no checkpoints
+check(ctl.ids["hb-race"] === undefined && state(ctl).active === "heist", "no race button in the host bank (BAYOU RUN removed)");
+check(find(P[1], n => n.tag === "m-cube" && n.attributes["collision-interval"] === "200").length === 0, "no checkpoint pads in the world");
+check(!state(ctl).games || !("race" in state(ctl).games), "no BAYOU RUN in the game list");
 
 // arena
 host("arena");
 await sleep(300);
+check(find(P[0], n => n.attributes["data-game"] === "heist" && n.attributes.visible === "true").length === 0, "heist beacons hidden again");
 const throne = find(P[0], n => n.tag === "m-cylinder" && n.attributes["collision-interval"] === "250")[0].nodeId;
 send(P[0], throne, "collisionstart", {}); send(P[4], throne, "collisionstart", {}); send(P[1], throne, "collisionstart", {});
 await sleep(3200);

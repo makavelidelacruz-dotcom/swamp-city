@@ -61,7 +61,6 @@ Players click their team's stand and type a name. Clicking another stand switche
 | Game | Length | How it scores |
 |---|---|---|
 | **Bank Job** | 4 min | Grab a money bag at the vault and deliver it to your own hideout's DROP LOOT board for +1. While you carry it, a money bag rides on your back so everyone can see who has the loot. A bag's dye pack explodes after 75 s (red puff). |
-| **Bayou Run** | 5 min | Hit 15 checkpoints in order, on foot or driving. 1st, 2nd and 3rd score 10, 8 and 6; every other finisher scores 3. Each player only sees a beam over their own next gate. |
 | **Gator Pit** | 3 min | The team with the most players on the throne scores +1 per second. A tie scores nothing. The last 30 s are worth double. |
 | **Lucky Wheel** | 6 spins | Bet on a board during the 20 s window. GATOR, FROG and SKULL pay +2; CROWN (1 slot in 10) pays +6. |
 | **Turf War** | 4 min | Walk up to any house, open the door, go inside and click **CLAIM THIS HOUSE** on the back wall. Every 10 s, each house you own scores +1. A house locks for 8 s after each claim, and a player can claim once every 3 s. Doors swing open when clicked and close on their own after 12 s. |
@@ -258,6 +257,10 @@ Every static building block in the city is now **baked into five textured models
 - **Carried bags** use an MML position probe (only while the Bank Job runs) to put a money bag on each carrier's back.
 - **Signs** are broader and each business has its own GTA-style look: script neon for bars and the motel, bold billboards for the pawn shop and fast food, a police badge sign, stencil hideout signs and green highway-exit signs for the districts. Fonts: Anton, Bungee, Bebas Neue, Pacifico, Lobster, Monoton, Black Ops One, Alfa Slab One, Racing Sans One, Permanent Marker, Oswald (SIL Open Font License).
 
+## Bayou Run removed (update)
+
+The race game and its 15 checkpoint gates are gone. Four games remain: Bank Job, Gator Pit, Lucky Wheel and Turf War. The controller no longer has a Bayou Run button, so use the new controller file.
+
 ## Renames (update)
 
 From the names sheet: the blue crew HERONS is now **MUNYONS** (hideout, stand, screen and controller; their mascot is still the heron), Lucky Gator Casino is now **TOKEN GATOR CASINO**, Bayou Savings & Trust is now **YUPPIE APE SAVINGS & TRUST**, and the JAZZ shop signs now read **CURTIS**. `city-c` was re-baked for the new signs.
@@ -282,7 +285,6 @@ An outside audit found two real problems; both are fixed.
 ## Known limits
 
 - **Riding vehicles:** whether players get carried on a moving buggy or airboat depends on the client. Test this in your viewer; if riders slide off, players can still drive the buggy while running beside it.
-- **Driving through checkpoints:** in Bayou Run, a driver gets credit for a checkpoint by driving through it, but passengers do not.
 - **Steering:** buggies turn in 22.5° steps, because MML has no held-key controls.
 - **Hosting models on GitHub:** raw.githubusercontent.com can rate-limit when a big crowd joins at once. For a live event, upload the models to the MML editor (mmlstorage) and use `ASSET_URLS`, like the live build does.
 - **Water level:** the water sits at y -0.42. Place the world on flat ground, or terrain can poke through the water.

@@ -5,7 +5,7 @@
   driven by the external host controller, per-player messages with visible-to, and one
   game running at a time.
 
-  Games:   BANK JOB (heist) | BAYOU RUN (race) | GATOR PIT (arena) | LUCKY WHEEL (casino) | TURF WAR (turf)
+  Games:   BANK JOB (heist) | GATOR PIT (arena) | LUCKY WHEEL (casino) | TURF WAR (turf)
   Teams:   GATORS (green) | MUNYONS (blue) | BULLFROGS (gold) | COTTONMOUTHS (purple)
   Rides:   8 drivable swamp buggies (amphibious) + 3 airboats on a loop around the city
 
@@ -15,7 +15,6 @@
 <m-group id="world"></m-group>
 <m-group id="hostbank" visible="false">
   <m-group id="hb-heist"></m-group>
-  <m-group id="hb-race"></m-group>
   <m-group id="hb-arena"></m-group>
   <m-group id="hb-casino"></m-group>
   <m-group id="hb-turf"></m-group>
@@ -1513,7 +1512,6 @@
      ========================================================================= */
   const INFO = {
     heist: { title: "BANK JOB", kind: "CREWS  |  4 MINUTES", what: "Grab a bag from the vault, get it to YOUR hideout before the dye pack pops (75s).", where: "Vault inside Yuppie Ape Savings > your hideout out past the inner ring road - take a buggy!" },
-    race: { title: "BAYOU RUN", kind: "SOLO FOR YOUR CREW  |  5 MINUTES", what: "Hit all 15 checkpoints in order - run or drive. Top 3 score 10 / 8 / 6, finishers 3.", where: "Start: the road just south of Yuppie Ape Savings, downtown. Your next gate glows for you." },
     arena: { title: "GATOR PIT", kind: "CREWS  |  3 MINUTES", what: "Stand on the gold throne. The crew with the most bodies on it scores every second.", where: "Gator Pit arena, west side of the city. Last 30 seconds score double." },
     casino: { title: "LUCKY WHEEL", kind: "CREWS  |  6 SPINS", what: "Click a bet board before each spin: GATOR, FROG or SKULL pay +2, CROWN pays +6. Swamp Slots, the Mega Gator jackpot and Gator Dice pay too.", where: "Token Gator Casino, east side of the city" },
     turf: { title: "TURF WAR", kind: "CREWS  |  4 MINUTES", what: "Open any house door, go inside and click CLAIM THIS HOUSE. Every 10 seconds each house you own scores 1.", where: "Every house in the city - shacks, shops, bars and the Old Town houses. Grab a truck!" }
@@ -1643,71 +1641,6 @@
     },
     status(t) { return ACTIVE === "heist" ? "BANK JOB  |  " + mmss(this.endAt - t) + " LEFT  |  " + this.banked + " BAGS BANKED  |  " + this.carry.size + " ON THE RUN" : "Idle"; }
   };
-
-  // ---- BAYOU RUN ---------------------------------------------------------------
-  const CPS = [ // a loop round the middle ring road (x/z = +-150) and back to the plaza
-    [-15, CZ + 50, 90], [-50, CZ + 125, 0], [-100, CZ + 150, 90], [-150, CZ + 100, 0], [-150, CZ, 0],
-    [-150, CZ - 100, 0], [-100, CZ - 150, 90], [0, CZ - 150, 90], [100, CZ - 150, 90], [150, CZ - 100, 0],
-    [150, CZ, 0], [150, CZ + 100, 0], [100, CZ + 150, 90], [50, CZ + 125, 0], [15, CZ + 50, 90]
-  ];
-  const race = {
-    endAt: 0, next: new Map(), done: [], marks: new Map(), pads: [],
-    start() {
-      this.endAt = now() + 300000; this.done = []; this.next.clear();
-      for (const m of this.marks.values()) m.remove();
-      this.marks.clear();
-      for (const cid of TEAM.keys()) this.join(cid);
-    },
-    stop() { for (const m of this.marks.values()) m.remove(); this.marks.clear(); this.next.clear(); },
-    join(cid) {
-      if (this.next.has(cid) || this.done.includes(cid)) return;
-      this.next.set(cid, 0);
-      this.marks.set(cid, el("m-cylinder", { x: CPS[0][0], y: 15, z: CPS[0][1], radius: 1.1, height: 30, color: TEAMS[teamOf(cid)].color, opacity: 0.45, collide: "false", "cast-shadows": "false", "visible-to": String(cid) }));
-    },
-    leave(cid) { this.next.delete(cid); const m = this.marks.get(cid); if (m) m.remove(); this.marks.delete(cid); },
-    hit(cid, k) {
-      if (ACTIVE !== "race" || !TEAM.has(cid)) return;
-      if (!this.next.has(cid)) this.join(cid);
-      if (this.next.get(cid) !== k) return;
-      const n = k + 1;
-      if (n >= CPS.length) {
-        this.next.delete(cid);
-        const m = this.marks.get(cid); if (m) m.remove(); this.marks.delete(cid);
-        this.done.push(cid);
-        const place = this.done.length, pts = [10, 8, 6][place - 1] || 3;
-        award(teamOf(cid), pts);
-        say(cid, "cp-" + k, "FINISHED #" + place + "! +" + pts + " for " + TEAMS[teamOf(cid)].name, "good");
-        if (place <= 3) flash(nameOf(cid) + " (" + TEAMS[teamOf(cid)].name + ") FINISHES #" + place);
-        return;
-      }
-      this.next.set(cid, n);
-      const m = this.marks.get(cid);
-      if (m) { m.setAttribute("x", CPS[n][0]); m.setAttribute("z", CPS[n][1]); }
-      say(cid, "cp-" + k, "CHECKPOINT " + n + "/" + CPS.length + " - follow your beam", "good");
-    },
-    driveCheck(cid, x, z) {
-      if (ACTIVE !== "race") return;
-      const k = this.next.get(cid);
-      if (k == null) return;
-      if (Math.hypot(CPS[k][0] - x, CPS[k][1] - z) < 7) this.hit(cid, k);
-    },
-    tick(t) { if (t >= this.endAt || (this.done.length && !this.next.size)) finishRound(); },
-    status(t) { return ACTIVE === "race" ? "BAYOU RUN  |  " + mmss(this.endAt - t) + " LEFT  |  " + this.done.length + " FINISHED  |  " + this.next.size + " RACING" : "Idle"; }
-  };
-  function buildCheckpoints() {
-    CPS.forEach(([x, z, ry], k) => {
-      const g = grp({ x, z, ry, "data-game": "race", visible: "false" });
-      for (const s of [-1, 1]) cyl({ x: s * 6.5, y: 3, radius: 0.3, height: 6, color: "#1b1b1b", collide: "false" }, g);
-      const lbl = k === CPS.length - 1 ? "FINISH" : "CHECKPOINT " + (k + 1);
-      text(lbl, { y: 6.2, z: 0.05, width: 13.4, height: 1, "font-size": 70, color: "#120d10", "font-color": k === CPS.length - 1 ? PINK : AMBER, emissive: 0.9 }, g);
-      text(lbl, { y: 6.2, z: -0.05, ry: 180, width: 13.4, height: 1, "font-size": 70, color: "#120d10", "font-color": k === CPS.length - 1 ? PINK : AMBER, emissive: 0.9 }, g);
-      const pad = box({ y: 0.17, width: 12.6, height: 0.05, depth: 3, color: AMBER, opacity: 0.45, "collision-interval": 200 }, g);
-      pad.addEventListener("collisionstart", e => { const cid = e.detail && e.detail.connectionId; if (cid != null) race.hit(cid, k); });
-      const rr = ry * Math.PI / 180, ox = r2(Math.sin(rr) * 0.06), oz = r2(Math.cos(rr) * 0.06);
-      ANCHORS["cp-" + k] = { x: x + ox, y: 4.6, z: z + oz, ry, w: 7, twin: { x: x - ox, z: z - oz, ry: ry + 180 } };
-      race.pads.push(pad);
-    });
-  }
 
   // ---- GATOR PIT ----------------------------------------------------------------
   const arena = {
@@ -2029,7 +1962,7 @@
     setInterval(dropTick, 1000);
   }
 
-  const GAMES = { heist, race, arena, casino, turf };
+  const GAMES = { heist, arena, casino, turf };
 
   /* =========================================================================
      VEHICLES: swamp buggies
@@ -2234,7 +2167,6 @@
       if (s.land) { car.tY = onIsland(car.x, car.z) ? GROUND : -0.5; car.y += Math.sign(car.tY - car.y) * Math.min(Math.abs(car.tY - car.y), 0.06); }
       setCar(car);
       dashStatus(car);
-      if (car.driver != null && s.land) race.driveCheck(car.driver, car.x, car.z);
     }
   }
   function resetCars() { for (const car of CARS) { release(car); car.x = car.home.x; car.z = car.home.z; car.ry = car.tRy = car.home.ry; car.v = 0; car.y = car.tY = VSPEC[car.kind].land ? GROUND : WATERLINE; setCar(car); } }
@@ -2278,7 +2210,7 @@
       setT(SCREEN.title, "INTERMISSION");
       setT(SCREEN.kind, note || "THE HOST WILL START THE NEXT GAME SOON");
       setT(SCREEN.what, KEN ? "Check in at a team stand below. Grab a truck - click it to drive." : "Check in at a team stand below. Grab a buggy - click its hood to drive.");
-      setT(SCREEN.where, "TONIGHT: BANK JOB  |  BAYOU RUN  |  GATOR PIT  |  LUCKY WHEEL  |  TURF WAR");
+      setT(SCREEN.where, "TONIGHT: BANK JOB  |  GATOR PIT  |  LUCKY WHEEL  |  TURF WAR");
       setT(SCREEN.status, TEAM.size + " PLAYERS CHECKED IN");
       return;
     }
@@ -2315,7 +2247,7 @@
     pushState();
   }
   function hookHost() {
-    for (const cmd of ["heist", "race", "arena", "casino", "turf", "stop", "note", "reset", "cars"])
+    for (const cmd of ["heist", "arena", "casino", "turf", "stop", "note", "reset", "cars"])
       document.getElementById("hb-" + cmd).addEventListener("click", e => hostCommand(cmd, e));
   }
 
@@ -2349,7 +2281,6 @@
   stat(buildNature);
   stat(buildAirboats);
   buildClouds();
-  buildCheckpoints();
   buildCars();
   stat(buildOuter);
   buildOptional();
