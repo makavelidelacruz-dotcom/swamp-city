@@ -257,6 +257,29 @@ Every static building block in the city is now **baked into five textured models
 - **Carried bags** use an MML position probe (only while the Bank Job runs) to put a money bag on each carrier's back.
 - **Signs** are broader and each business has its own GTA-style look: script neon for bars and the motel, bold billboards for the pawn shop and fast food, a police badge sign, stencil hideout signs and green highway-exit signs for the districts. Fonts: Anton, Bungee, Bebas Neue, Pacifico, Lobster, Monoton, Black Ops One, Alfa Slab One, Racing Sans One, Permanent Marker, Oswald (SIL Open Font License).
 
+## Gator Pit rebuilt (update)
+
+The Gator Pit is now an active king-of-the-hill fight with live gators.
+
+- **The gators:** five big 5 m gators with snapping jaws.
+  - Two **sweepers** ride a turntable across the throne, one close to the middle and one near the edge.
+  - Three **lungers** charge out of the mud ring at the throne's edge and back, taking turns.
+  - They're solid, so they shove avatars wherever the player's app pushes people out of moving objects.
+  - The game also tracks exactly where each gator is. Anyone a gator runs into is **CHOMPED**: they see a personal message and don't count on the throne for 4 seconds, and the jumbotron calls out "CHOMP! (name) got bit".
+- **Scoring:** the crew with the most un-chomped players on the throne scores every second.
+  - The throne and the arena light turn the holding crew's color.
+  - The crew's mascot spins big on top of the jumbotron.
+- **Feeding Frenzy:** in the last 30 seconds the gators speed up (the turntable goes from 12 s to 7 s per turn, and the lunges get faster), the light goes red and points double.
+- **Between games:** the gators doze with their jaws slowly breathing.
+- **New arena** (`pit-arena`, CC0):
+  - a sand floor with a swamp-mud ring, puddles and old bones;
+  - a stone-and-gold dais rim and a palisade of sharpened logs on a mossy stone base;
+  - three tiers of bleachers, crew banners and tiki torches;
+  - a "jaws" entrance with a giant gator head and a row of fangs, and a log arch on the west;
+  - floodlight towers holding a four-sided jumbotron over the throne.
+
+  The gators are `pit-gator` and `pit-jaw`.
+
 ## Gator Junk redressed (update)
 
 The junkyard is now a real wrecking yard, built as one model (`gator-junk`, CC0):

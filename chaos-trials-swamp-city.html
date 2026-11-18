@@ -154,7 +154,7 @@
     "ferris-frame", "ferris-rim", "gondola-pink", "gondola-teal", "gondola-gold", "gondola-purple", "carousel", "carousel-base", "carousel-gator", "carousel-frog",
     "drop-tower", "drop-ring", "whack-booth", "whack-gator", "striker", "striker-puck", "fair-arch", "fair-pole", "fair-garland",
     "stand-funnel", "stand-boudin", "stand-snowball", "stand-gatorstick", "bank", "bank-vault", "money-bag",
-    "team-gator", "team-heron", "team-frog", "team-snake", "beam-gator", "beam-heron", "beam-frog", "beam-snake", "gator-junk"];
+    "team-gator", "team-heron", "team-frog", "team-snake", "beam-gator", "beam-heron", "beam-frog", "beam-snake", "gator-junk", "pit-arena", "pit-gator", "pit-jaw"];
   const ICON_NAMES = ["team-gator", "team-heron", "team-frog", "team-snake"];   // crew mascots, same order as TEAMS
   const BOATS = !!CONFIG.BOATS && (!!CONFIG.ASSET_HOST || BOAT_NAMES.every(n => CONFIG.ASSET_URLS[n]));
   // separate random stream for boats and extra clouds, so the baked city layout never shifts
@@ -585,44 +585,155 @@
   const ARENA = { x: -75, z: CZ };
   function buildArena() {
     const { x, z } = ARENA, N = 16;
-    cyl({ x, y: 0.14, z, radius: 14.5, height: 0.08, color: "#b89a62", mat: "sand" });
-    live(() => {
-    const throne = cyl({ x, y: 0.32, z, radius: 4.5, height: 0.36, color: "#6a5a3a", "collision-interval": 250 });
-    ARENA.throne = throne;
-    ARENA.ringDisc = cyl({ x, y: 0.52, z, radius: 4.6, height: 0.02, color: AMBER, opacity: 0.55, collide: "false", "data-game": "arena", visible: "false" });
-    });
-    gatorModel(x, 0.5, z - 2.5, 0, 0.9, "#556b3f", "bronze");
-    for (let k = 0; k < N; k++) {
-      const th = k / N * 360, rad = th * Math.PI / 180;
-      if (k === 0 || k === N / 2) continue; // entrances east and west
-      const ry = -(th + 90);
-      const chord = 2 * 15.5 * Math.sin(Math.PI / N) + 0.3;
-      box({ x: r2(x + Math.cos(rad) * 15.5), y: 1.6, z: r2(z + Math.sin(rad) * 15.5), ry: r2(ry), width: r2(chord), height: 3, depth: 0.7, color: "#4b3a2a", mat: "palisade" });
-      for (let t = 0; t < 3; t++) {
-        const rr = 16.9 + t * 1.3, ch = 2 * rr * Math.sin(Math.PI / N) + 0.3;
-        box({ x: r2(x + Math.cos(rad) * rr), y: 0.6 * (t + 1), z: r2(z + Math.sin(rad) * rr), ry: r2(ry), width: r2(ch), height: 1.2 * (t + 1), depth: 1.3, color: t % 2 ? "#6b4a2b" : "#5a3d24", mat: "bleacher" });
+    if (BOATS) {
+      // the arena shell is one model: sand floor, a ring of swamp mud, the stone-and-gold dais rim, palisade wall,
+      // bleachers, crew banners, tiki torches, the "jaws" entrance on the east, floodlight towers, jumbotron frame
+      natModel("pit-arena", x, 0.12, z, 1, 0, true);
+      text("GATOR PIT", { x: x + 15.5, y: 8.4, z, ry: 90, width: 10, height: 2, "font-size": 120, color: "#120d10", "font-color": "#7dff8a", emissive: 1, mount: "roof", drop: 1.9 });
+    } else {
+      cyl({ x, y: 0.14, z, radius: 14.5, height: 0.08, color: "#b89a62", mat: "sand" });
+      gatorModel(x, 0.5, z - 2.5, 0, 0.9, "#556b3f", "bronze");
+      for (let k = 0; k < N; k++) {
+        const th = k / N * 360, rad = th * Math.PI / 180;
+        if (k === 0 || k === N / 2) continue; // entrances east and west
+        const ry = -(th + 90);
+        const chord = 2 * 15.5 * Math.sin(Math.PI / N) + 0.3;
+        box({ x: r2(x + Math.cos(rad) * 15.5), y: 1.6, z: r2(z + Math.sin(rad) * 15.5), ry: r2(ry), width: r2(chord), height: 3, depth: 0.7, color: "#4b3a2a", mat: "palisade" });
+        for (let t = 0; t < 3; t++) {
+          const rr = 16.9 + t * 1.3, ch = 2 * rr * Math.sin(Math.PI / N) + 0.3;
+          box({ x: r2(x + Math.cos(rad) * rr), y: 0.6 * (t + 1), z: r2(z + Math.sin(rad) * rr), ry: r2(ry), width: r2(ch), height: 1.2 * (t + 1), depth: 1.3, color: t % 2 ? "#6b4a2b" : "#5a3d24", mat: "bleacher" });
+        }
       }
+      for (const a of [45, 135, 225, 315]) {
+        const rad = a * Math.PI / 180, px = x + Math.cos(rad) * 21, pz = z + Math.sin(rad) * 21;
+        cyl({ x: px, y: 6, z: pz, radius: 0.25, height: 12, color: "#222", mat: "steel" });
+        box({ x: px, y: 12.2, z: pz, width: 2, height: 0.8, depth: 0.4, color: "#ddd", collide: "false", mat: "floodlight" });
+      }
+      text("GATOR PIT", { x: x + 16.2, y: 5.5, z, ry: 90, width: 11, height: 2.2, "font-size": 120, color: "#120d10", "font-color": "#7dff8a", emissive: 1, mount: "post", drop: 4.4 - 0.3 + 0.3 });
     }
-    for (const a of [45, 135, 225, 315]) {
-      const rad = a * Math.PI / 180, px = x + Math.cos(rad) * 21, pz = z + Math.sin(rad) * 21;
-      cyl({ x: px, y: 6, z: pz, radius: 0.25, height: 12, color: "#222", mat: "steel" });
-      box({ x: px, y: 12.2, z: pz, width: 2, height: 0.8, depth: 0.4, color: "#ddd", collide: "false", mat: "floodlight" });
-    }
-    text("GATOR PIT", { x: x + 16.2, y: 5.5, z, ry: 90, width: 11, height: 2.2, "font-size": 120, color: "#120d10", "font-color": "#7dff8a", emissive: 1, mount: "post", drop: 4.4 - 0.3 + 0.3 });
     live(() => {
-    ARENA.board = text("GATOR PIT - waiting for the host", { x: x + 16.2, y: 3.8, z, ry: 90, width: 10, height: 0.6, "font-size": 40, "font-color": AMBER });
-    ARENA.board2 = text("GATOR PIT - waiting for the host", { x, y: 7, z, width: 10, height: 0.7, "font-size": 44, "font-color": AMBER });
+      // the throne: the gold disc everyone fights to stand on; it turns the holding crew's color
+      ARENA.throne = cyl({ x, y: 0.32, z, radius: 4.5, height: 0.36, color: THRONE_IDLE });
+      ARENA.ringDisc = cyl({ x, y: 0.52, z, radius: 4.6, height: 0.02, color: AMBER, opacity: 0.55, collide: "false", "data-game": "arena", visible: "false" });
+      // jumbotron over the throne: two lines on each of its four faces
+      ARENA.faces = []; ARENA.faces2 = [];
+      for (const [fx, fz, fry] of [[0, 3.03, 0], [3.03, 0, 90], [0, -3.03, 180], [-3.03, 0, -90]]) {
+        ARENA.faces.push(text("GATOR PIT", { x: x + fx, y: 10.05, z: z + fz, ry: fry, width: 5.8, height: 1.0, "font-size": 56, color: "#0b0f0c", "font-color": "#7dff8a", emissive: 0.8 }));
+        ARENA.faces2.push(text("waiting for the host", { x: x + fx, y: 9.0, z: z + fz, ry: fry, width: 5.8, height: 0.9, "font-size": 40, color: "#0b0f0c", "font-color": AMBER, emissive: 0.6 }));
+      }
+      // the holding crew's mascot, huge and spinning on top of the jumbotron
+      if (BOATS) {
+        ARENA.crown = el("m-model", { src: natURL(ICON_NAMES[0]), x, y: 11.2, z, sx: 3, sy: 3, sz: 3, collide: "false", visible: "false", "cast-shadows": "false" });
+        el("m-attr-anim", { attr: "ry", start: 0, end: 360, duration: 5000, loop: "true" }, ARENA.crown);
+      }
+      ARENA.light = el("m-light", { type: "point", x, y: 12, z, color: "#ffe9b8", intensity: 1500, distance: 36, "cast-shadows": "false" });
+      if (BOATS) buildPitGators();
     });
-    ANCHORS.arena = { x: x + 16.3, y: 3.1, z, ry: 90, w: 9 };
+    ARENA.board = ARENA.faces[1]; ARENA.board2 = ARENA.faces2[1];
+    ANCHORS.arena = { x: x + 3.08, y: 8.1, z, ry: 90, w: 5.6, twin: { x: x - 3.08, z, ry: -90 } };
     // arena block: gator farm shacks north, bait shack south
     building({ x: -86, z: CZ - 36, w: 10, d: 8, h: 5, ry: 180, stilts: true, color: "#6a7a4a", roof: "gable", sign: "GATOR FARM", signColor: "#7dff8a", side: false });
     building({ x: -64, z: CZ - 36, w: 9, d: 8, h: 4.5, ry: 90, stilts: true, color: "#7a5a3a", roof: "gable", side: false });
     building({ x: -84, z: CZ + 34, w: 10, d: 8, h: 4.5, ry: 0, stilts: true, color: "#4a6a7a", roof: "gable", sign: "LIVE BAIT", signColor: AMBER, side: false });
     for (const [tx, tz] of [[-92, CZ + 22], [-58, CZ - 40], [-66, CZ + 40]]) { tree(tx, tz, 0.8, false); FOOT.push({ cx: tx, cz: tz, r: 1 }); }
     if (MED) { for (let k = 0; k < 7; k++) natModel("med-fence", -93 + k * 2.05, 0.1, CZ - 27, 1, 0, true); natModel("med-wagon", -70, 0.1, CZ - 29, 1.1, 75, true); }
-    el("m-light", { type: "point", x, y: 12, z, color: "#ffe9b8", intensity: 1500, distance: 36, "cast-shadows": "false" });
     FOOT.push({ cx: x, cz: z, r: 21.5 });
   }
+
+  // ---- the pit's gators -----------------------------------------------------------
+  // Two SWEEPERS ride a turntable across the throne (one close to the middle, one near the edge) and three
+  // LUNGERS charge out of the mud at the throne's edge and back. All of them are solid, so they shove people
+  // where the player's client pushes avatars out of moving objects, and the game also checks where they are:
+  // anyone a gator runs into is CHOMPED and doesn't count on the throne for a few seconds. Their motion is
+  // time-synced keyframes, so the server works out exactly where each gator is from the same clock.
+  const THRONE_IDLE = "#7a6a48";
+  const PIT = { mode: "idle", T0: 0, sweepMs: 12000, lungeMs: 1600, R0: 9.3, R1: 5.4, sweepers: [], lungers: [], stun: new Map(), chomp: null };
+  const PIT_SPEED = { live: [12000, 1600], frenzy: [7000, 1000] };
+  const setA = (node, k, v) => { if (node && node.getAttribute(k) !== String(v)) node.setAttribute(k, String(v)); };
+  function loopAnim(node, attr, start, end, duration, startTime, opts) {
+    for (const c of Array.from(node.children)) if (c.tagName.toLowerCase() === "m-attr-anim" && c.getAttribute("attr") === attr) c.remove();
+    const a = { attr, start: r2(start), end: r2(end), "start-time": startTime, duration: Math.round(duration), loop: "true", easing: (opts && opts.easing) || "linear" };
+    if (opts && opts.pingPong) a["ping-pong"] = "true";
+    el("m-attr-anim", a, node);
+  }
+  function stopAnim(node, attr, value) {
+    for (const c of Array.from(node.children)) if (c.tagName.toLowerCase() === "m-attr-anim" && c.getAttribute("attr") === attr) c.remove();
+    node.setAttribute(attr, String(r2(value)));
+  }
+  function pitGator(parent, a) {
+    const g = grp(a, parent);
+    el("m-model", { src: natURL("pit-gator"), collide: "true", "cast-shadows": "false" }, g);
+    const j = grp({ y: 0.24, z: 1.4 }, g);
+    el("m-model", { src: natURL("pit-jaw"), collide: "false", "cast-shadows": "false" }, j);
+    return { g, j };
+  }
+  function buildPitGators() {
+    const { x, z } = ARENA;
+    PIT.rig = grp({ x, y: 0.5, z });
+    PIT.sweepers = [[1.7, 180], [-3.3, 0]].map(([lx, ry]) => Object.assign(pitGator(PIT.rig, { x: lx, ry }), { lx, fwd: ry === 180 ? -1 : 1 }));
+    PIT.lungers = [90, 210, 330].map((deg, i) => {
+      const a = deg * Math.PI / 180, c = Math.cos(a), sn = Math.sin(a);
+      const ry = Math.atan2(-c, -sn) * 180 / Math.PI;   // facing the middle
+      return Object.assign(pitGator(null, { x: r2(x + c * PIT.R0), y: 0.19, z: r2(z + sn * PIT.R0), ry: r2(ry) }), { c, sn, i });
+    });
+    pitMode("idle");
+  }
+  // idle: dozing (jaws breathing slowly); live / frenzy: turntable sweeping, lungers charging, jaws snapping
+  function pitMode(mode) {
+    if (!PIT.rig) return;
+    const t0 = docNow() || 0; PIT.mode = mode; PIT.T0 = t0;
+    const { x, z } = ARENA;
+    const all = PIT.sweepers.concat(PIT.lungers);
+    if (mode === "idle") {
+      stopAnim(PIT.rig, "ry", 0);
+      for (const L of PIT.lungers) { stopAnim(L.g, "x", x + L.c * PIT.R0); stopAnim(L.g, "z", z + L.sn * PIT.R0); }
+      all.forEach((G, k) => loopAnim(G.j, "rx", 0, 7, 2600 + k * 300, t0, { pingPong: true, easing: "easeInOutSine" }));
+      return;
+    }
+    [PIT.sweepMs, PIT.lungeMs] = PIT_SPEED[mode];
+    loopAnim(PIT.rig, "ry", 0, 360, PIT.sweepMs, t0);
+    for (const L of PIT.lungers) {
+      const st = t0 - Math.round(L.i * PIT.lungeMs * 2 / 3);   // staggered so they take turns
+      loopAnim(L.g, "x", x + L.c * PIT.R0, x + L.c * PIT.R1, PIT.lungeMs, st, { pingPong: true });
+      loopAnim(L.g, "z", z + L.sn * PIT.R0, z + L.sn * PIT.R1, PIT.lungeMs, st, { pingPong: true });
+    }
+    all.forEach((G, k) => loopAnim(G.j, "rx", 0, 30, mode === "frenzy" ? 220 : 340, t0 + k * 90, { pingPong: true }));
+  }
+  // where every gator's body is right now, as a segment from tail-ish to snout, in world-group space
+  function pitSegments(t) {
+    const { x, z } = ARENA, segs = [];
+    if (PIT.mode === "idle" || !PIT.rig) return segs;
+    const D = PIT.sweepMs, th = ((((t - PIT.T0) % D) + D) % D) / D * 2 * Math.PI, c = Math.cos(th), sn = Math.sin(th);
+    const rot = (lx, lz) => [x + lx * c + lz * sn, z - lx * sn + lz * c];
+    for (const S of PIT.sweepers) segs.push([rot(S.lx, -S.fwd * 2.2), rot(S.lx, S.fwd * 3.0)]);
+    const L2 = 2 * PIT.lungeMs;
+    for (const L of PIT.lungers) {
+      const st = PIT.T0 - Math.round(L.i * PIT.lungeMs * 2 / 3), u = ((((t - st) % L2) + L2) % L2) / PIT.lungeMs;
+      const r = u <= 1 ? PIT.R0 + (PIT.R1 - PIT.R0) * u : PIT.R1 + (PIT.R0 - PIT.R1) * (u - 1);
+      segs.push([[x + L.c * (r + 2.2), z + L.sn * (r + 2.2)], [x + L.c * (r - 3.0), z + L.sn * (r - 3.0)]]);
+    }
+    return segs;
+  }
+  function segDist(px, pz, [[ax, az], [bx, bz]]) {
+    const dx = bx - ax, dz = bz - az, L = dx * dx + dz * dz || 1;
+    const u = Math.max(0, Math.min(1, ((px - ax) * dx + (pz - az) * dz) / L));
+    return Math.hypot(px - (ax + dx * u), pz - (az + dz * u));
+  }
+  function pitCheck() {
+    if (ACTIVE !== "arena" || PIT.mode === "idle") return;
+    const t = docNow(); if (t == null) return;
+    const segs = pitSegments(t), wall = now(), { x, z } = ARENA;
+    for (const [cid, p] of PROBE.pos) {
+      if (Math.hypot(p.x - x, p.z - z) > 13 || p.y > 2.2 || !TEAM.has(cid)) continue;
+      if ((PIT.stun.get(cid) || 0) > wall) continue;
+      if (segs.some(sg => segDist(p.x, p.z, sg) < 1.05)) {
+        PIT.stun.set(cid, wall + 4000);
+        PIT.chomp = { name: nameOf(cid), until: wall + 2500 };
+        say(cid, "arena", "CHOMPED! You don't count for 4 seconds - get back up there!", "bad");
+      }
+    }
+  }
+  setInterval(pitCheck, 120);
 
   /* =========================================================================
      DISTRICTS
@@ -1547,7 +1658,7 @@
      ========================================================================= */
   const INFO = {
     heist: { title: "BANK JOB", kind: "CREWS  |  4 MINUTES", what: "Grab a bag from the vault, get it to YOUR hideout before the dye pack pops (75s).", where: "Vault inside Yuppie Ape Savings > your hideout out past the inner ring road - take a buggy!" },
-    arena: { title: "GATOR PIT", kind: "CREWS  |  3 MINUTES", what: "Stand on the gold throne. The crew with the most bodies on it scores every second.", where: "Gator Pit arena, west side of the city. Last 30 seconds score double." },
+    arena: { title: "GATOR PIT", kind: "CREWS  |  3 MINUTES", what: "Hold the throne in the middle of the pit. The crew with the most bodies on it scores every second. Snapping gators sweep the throne and lunge out of the mud: get bit and you don't count for 4 seconds.", where: "Gator Pit arena, west side of the city. Last 30 seconds: FEEDING FRENZY, the gators speed up and points double." },
     casino: { title: "LUCKY WHEEL", kind: "CREWS  |  6 SPINS", what: "Click a bet board before each spin: GATOR, FROG or SKULL pay +2, CROWN pays +6. Swamp Slots, the Mega Gator jackpot and Gator Dice pay too.", where: "Token Gator Casino, east side of the city" },
     turf: { title: "TURF WAR", kind: "CREWS  |  4 MINUTES", what: "Open any house door, go inside and click CLAIM THIS HOUSE. Every 10 seconds each house you own scores 1.", where: "Every house in the city - shacks, shops, bars and the Old Town houses. Grab a truck!" }
   };
@@ -1679,38 +1790,45 @@
 
   // ---- GATOR PIT ----------------------------------------------------------------
   const arena = {
-    endAt: 0, on: new Set(), holder: -1,
-    start() { this.endAt = now() + 180000; this.holder = -1; },
-    stop() { this.holder = -1; ARENA.throne.setAttribute("color", "#6a5a3a"); setT(ARENA.board, "GATOR PIT - waiting for the host"); setT(ARENA.board2, "GATOR PIT - waiting for the host"); },
-    leave(cid) { this.on.delete(cid); },
+    endAt: 0, on: new Set(), holder: -1, frenzy: false,
+    start() { this.endAt = now() + 180000; this.holder = -1; this.frenzy = false; PIT.stun.clear(); pitMode("live"); },
+    stop() {
+      this.holder = -1; this.on.clear(); this.frenzy = false; pitMode("idle");
+      setA(ARENA.throne, "color", THRONE_IDLE); setA(ARENA.light, "color", "#ffe9b8");
+      if (ARENA.crown) setA(ARENA.crown, "visible", "false");
+      ARENA.faces.forEach(n => setT(n, "GATOR PIT")); ARENA.faces2.forEach(n => setT(n, "waiting for the host"));
+    },
+    leave(cid) { this.on.delete(cid); PIT.stun.delete(cid); },
     tick(t) {
+      // who is on the throne: standing on the disc (from the position probe), not chomped
+      const { x, z } = ARENA; this.on.clear();
+      for (const [cid, p] of PROBE.pos) if (Math.hypot(p.x - x, p.z - z) < 4.6 && p.y > 0.3 && p.y < 4 && (PIT.stun.get(cid) || 0) <= t) this.on.add(cid);
       const c = [0, 0, 0, 0];
       for (const cid of this.on) { const tm = teamOf(cid); if (tm != null) c[tm]++; }
       const top = Math.max(...c), leaders = c.filter(v => v === top).length;
       const frenzy = this.endAt - t <= 30000;
+      if (frenzy && !this.frenzy) { this.frenzy = true; pitMode("frenzy"); }   // last 30 s: the gators go wild
       let msg;
       if (top > 0 && leaders === 1) {
         this.holder = c.indexOf(top);
         award(this.holder, frenzy ? 2 : 1);
-        ARENA.throne.setAttribute("color", TEAMS[this.holder].color);
-        msg = TEAMS[this.holder].name + " HOLD THE PIT" + (frenzy ? "  x2 FRENZY" : "");
+        const col = TEAMS[this.holder].color;
+        setA(ARENA.throne, "color", col); setA(ARENA.light, "color", col);
+        if (ARENA.crown) { setA(ARENA.crown, "src", natURL(ICON_NAMES[this.holder])); setA(ARENA.crown, "visible", "true"); }
+        msg = TEAMS[this.holder].name + " HOLD IT";
       } else {
         this.holder = -1;
-        ARENA.throne.setAttribute("color", "#6a5a3a");
-        msg = top > 0 ? "CONTESTED! push them off" : "THRONE IS EMPTY - get on it";
+        setA(ARENA.throne, "color", THRONE_IDLE); setA(ARENA.light, "color", frenzy ? "#ff5a3a" : "#ffe9b8");
+        if (ARENA.crown) setA(ARENA.crown, "visible", "false");
+        msg = top > 0 ? "CONTESTED!" : "THRONE IS EMPTY";
       }
-      setT(ARENA.board, msg + "  |  " + mmss(this.endAt - t));
-      setT(ARENA.board2, msg);
+      const line2 = PIT.chomp && PIT.chomp.until > t ? "CHOMP! " + PIT.chomp.name.slice(0, 16) + " got bit" : (frenzy ? "FEEDING FRENZY x2  " : "") + mmss(this.endAt - t) + "  |  " + this.on.size + " ON";
+      ARENA.faces.forEach(n => setT(n, msg)); ARENA.faces2.forEach(n => setT(n, line2));
       if (t >= this.endAt) finishRound();
     },
-    status(t) { return ACTIVE === "arena" ? "GATOR PIT  |  " + mmss(this.endAt - t) + " LEFT  |  " + (this.holder >= 0 ? TEAMS[this.holder].name + " HOLD" : "CONTESTED") + "  |  " + this.on.size + " ON THE THRONE" : "Idle"; }
+    status(t) { return ACTIVE === "arena" ? "GATOR PIT  |  " + mmss(this.endAt - t) + " LEFT  |  " + (this.holder >= 0 ? TEAMS[this.holder].name + " HOLD" : "CONTESTED") + "  |  " + this.on.size + " ON THE THRONE" + (this.frenzy ? "  |  FRENZY" : "") : "Idle"; }
   };
-  function hookArena() {
-    const id = e => e.detail && e.detail.connectionId;
-    ARENA.throne.addEventListener("collisionstart", e => { const c = id(e); if (c != null) arena.on.add(c); });
-    ARENA.throne.addEventListener("collisionmove", e => { const c = id(e); if (c != null) arena.on.add(c); });
-    ARENA.throne.addEventListener("collisionend", e => { const c = id(e); if (c != null) arena.on.delete(c); });
-  }
+  function hookArena() { }   // the throne is now counted from the position probe, so no collision hooks are needed
 
   // ---- LUCKY WHEEL ------------------------------------------------------------------
   function updateBetCounts() {

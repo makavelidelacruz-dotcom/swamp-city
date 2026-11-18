@@ -92,14 +92,17 @@ check(!state(ctl).games || !("race" in state(ctl).games), "no BAYOU RUN in the g
 host("arena");
 await sleep(300);
 check(find(P[0], n => n.attributes["data-game"] === "heist" && n.attributes.visible === "true").length === 0, "heist beacons hidden again");
-const throne = find(P[0], n => n.tag === "m-cylinder" && n.attributes["collision-interval"] === "250")[0].nodeId;
-send(P[0], throne, "collisionstart", {}); send(P[4], throne, "collisionstart", {}); send(P[1], throne, "collisionstart", {});
+// the throne is counted from the position probe; stand in the middle, where no gator can reach
+const probeOf = c => find(c, n => n.tag === "m-position-probe")[0].nodeId;
+const at = (c, x, z, y) => send(c, probeOf(c), "positionmove", { elementRelative: { position: { x, y: y == null ? 0.5 : y, z }, rotation: { x: 0, y: 0, z: 0 } } });
+at(P[0], -75.3, -20); at(P[4], -74.7, -20); at(P[1], -75, -19.6);
 await sleep(3200);
 const ar = state(ctl).round;
 check(ar[0] >= 2 && ar[1] === 0, "GATORS (2 on throne) out-hold MUNYONS (1): " + JSON.stringify(ar));
-send(P[4], throne, "collisionend", {});
+at(P[4], -40, -20);
 await sleep(2200);
 check(state(ctl).games.arena.includes("CONTESTED"), "1 v 1 is contested: " + state(ctl).games.arena);
+at(P[0], -20, -20); at(P[1], -20, -18);
 
 // turf: claim houses
 host("turf");
