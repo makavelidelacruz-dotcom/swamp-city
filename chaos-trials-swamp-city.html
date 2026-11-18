@@ -861,10 +861,10 @@
       for (let s = 0; s < 6; s++) box({ y: 0.6 + s * 0.7, z: 5.06, width: 7, height: 0.06, depth: 0.04, color: "#000", collide: "false", mat: "skip" }, g);
       text(t.name + " HIDEOUT", { y: 6.1, z: 5.05, width: 12.5, height: 1.7, "font-size": 80, color: "#120d10", "font-color": t.color, emissive: 1, mount: "wall", back: 0.05 }, g);
       live(() => {
-      const board = box({ x: 6.3, y: 1.3, z: 6, width: 2.4, height: 1.8, depth: 0.3, color: "#1b2a33" }, g);
-      const face = glow({ x: 6.3, y: 1.3, z: 6.17, width: 2.2, height: 1.6, color: t.color, emissive: 0.5 }, g);
-      const l1 = text("DROP LOOT", { x: 6.3, y: 1.6, z: 6.19, width: 2.1, height: 0.5, "font-size": 36, color: t.color, "font-color": INK, emissive: 0.1 }, g);
-      const l2 = text("click here", { x: 6.3, y: 1.0, z: 6.19, width: 2.1, height: 0.38, "font-size": 24, color: t.color, "font-color": INK, emissive: 0.1 }, g);
+      const board = box({ x: 0, y: 1.3, z: 6, width: 2.4, height: 1.8, depth: 0.3, color: "#1b2a33" }, g);
+      const face = glow({ x: 0, y: 1.3, z: 6.17, width: 2.2, height: 1.6, color: t.color, emissive: 0.5 }, g);
+      const l1 = text("DROP LOOT", { x: 0, y: 1.6, z: 6.19, width: 2.1, height: 0.5, "font-size": 36, color: t.color, "font-color": INK, emissive: 0.1 }, g);
+      const l2 = text("click here", { x: 0, y: 1.0, z: 6.19, width: 2.1, height: 0.38, "font-size": 24, color: t.color, "font-color": INK, emissive: 0.1 }, g);
       onClick([board, face, l1, l2], cid => GAMES.heist.drop(cid, i));
       // crew beacon: a beam of the crew's color straight up out of the roof, always on, so every hideout is easy to find
       if (BOATS) el("m-model", { src: natURL("beam-" + ICON_NAMES[i].slice(5)), y: 7.4, collide: "false", "cast-shadows": "false" }, g);   // glowing, fades out up high
@@ -888,7 +888,7 @@
       cyl({ x: -7, y: 5, z: 6, radius: 0.08, height: 10, color: "#bbb", collide: "false", mat: "steel" }, g);
       box({ x: -6.1, y: 9.2, z: 6, width: 1.8, height: 1.1, depth: 0.04, color: t.color, collide: "false", mat: "flag" }, g);
       // world-space anchor in front of the drop board
-      const rad = h.ry * Math.PI / 180, lx = 6.3, lz = 6.25;
+      const rad = h.ry * Math.PI / 180, lx = 0, lz = 6.25;   // board in the middle of the door: every crew is the same distance from the vault
       ANCHORS["hide-" + i] = { x: h.x + lx * Math.cos(rad) + lz * Math.sin(rad), y: 2.75, z: h.z - lx * Math.sin(rad) + lz * Math.cos(rad), ry: h.ry, w: 5 };
       footBox(h.x, h.z, 17, 11, h.ry);
       HIDE.push(g);
