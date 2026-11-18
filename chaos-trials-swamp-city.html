@@ -1670,31 +1670,40 @@
   // Reports where each player is about three times a second. It places the crew mascot over the head of every
   // checked-in player (everyone can see who runs with which crew), and the money bag on the back of anyone
   // carrying loot in the BANK JOB. Positions are in world-group space, so they follow wherever the build is placed.
-  const PROBE = { el: null, pos: new Map(), seen: 0 };   // connectionId -> { x, y, z, ry }
-  function probeStart() {
-    if (PROBE.el) return;
-    PROBE.el = el("m-position-probe", { range: 460, interval: 300 });
+  // Several probes: one big one over the whole city, one at the sign-up gate and a grid of smaller ones, in case
+  // a player's app limits how far a probe reaches. Each report is turned into world-group space.
+  const PROBE = { el: null, pos: new Map(), src: new Map(), seen: [0, 0, 0] };   // connectionId -> { x, y, z, ry }
+  function probeAt(px, pz, range, interval, kind) {
+    const pr = el("m-position-probe", { x: px, z: pz, range, interval });
     const onMove = e => {
       const d = e.detail || {}; if (d.connectionId == null) return;
-      PROBE.seen++;
+      PROBE.seen[kind]++;
       let at;
       if (d.elementRelative && d.elementRelative.position) {
         const p = d.elementRelative.position;
-        at = { x: +p.x || 0, y: +p.y || 0, z: +p.z || 0, ry: +((d.elementRelative.rotation || {}).y) || 0 };
+        at = { x: px + (+p.x || 0), y: +p.y || 0, z: pz + (+p.z || 0), ry: +((d.elementRelative.rotation || {}).y) || 0 };
       } else {   // clients that only send the document-relative spot: turn it into world-group space
         const q = (d.documentRelative || d).position || d.position; if (!q) return;
         const a = (+W.getAttribute("ry") || 0) * Math.PI / 180, c = Math.cos(a), s = Math.sin(a);
         const dx = (+q.x || 0) - (+W.getAttribute("x") || 0), dz = (+q.z || 0) - (+W.getAttribute("z") || 0);
         at = { x: c * dx - s * dz, y: (+q.y || 0) - (+W.getAttribute("y") || 0), z: s * dx + c * dz, ry: +(((d.documentRelative || d).rotation || {}).y) - (+W.getAttribute("ry") || 0) || 0 };
       }
+      PROBE.src.set(d.connectionId, pr);
       PROBE.pos.set(d.connectionId, at);
       iconMove(d.connectionId, at);
       carryMove(d.connectionId, at);
       roundupMove(d.connectionId, at);
     };
-    PROBE.el.addEventListener("positionenter", onMove);
-    PROBE.el.addEventListener("positionmove", onMove);
-    PROBE.el.addEventListener("positionleave", e => { const d = e.detail || {}; if (d.connectionId == null) return; PROBE.pos.delete(d.connectionId); iconHide(d.connectionId); });
+    pr.addEventListener("positionenter", onMove);
+    pr.addEventListener("positionmove", onMove);
+    pr.addEventListener("positionleave", e => { const d = e.detail || {}; const cid = d.connectionId; if (cid == null || PROBE.src.get(cid) !== pr) return; PROBE.src.delete(cid); PROBE.pos.delete(cid); iconHide(cid); });
+  }
+  function probeStart() {
+    if (PROBE.el) return;
+    PROBE.el = 1;
+    probeAt(0, 0, 460, 300, 0);
+    probeAt(VC.x, CZ, 40, 300, 1);
+    for (const gx of [-200, -100, 0, 100, 200]) for (const gz of [-200, -100, 0, 100, 200]) probeAt(gx, gz, 75, 400, 2);
   }
   // ---- crew mascots over players' heads: gator, heron (MUNYONS), bullfrog, cottonmouth ---------
   const ICONS = new Map();   // connectionId -> { g, team, x, y, z }
@@ -2519,7 +2528,7 @@
     setT(SCREEN.status, GAMES[ACTIVE].status(t));
   }
   function pushState() {
-    const t = now(), s = { boot: BOOT, active: ACTIVE, players: TEAM.size, probe: PROBE.pos.size, seen: PROBE.seen, crews: COUNTS.slice(), series: SERIES.slice(), round: ROUND.slice(), note: NOTE_UNTIL > t ? NOTE : "", cars: CARS.filter(c => c.driver != null).length, games: {} };
+    const t = now(), s = { boot: BOOT, active: ACTIVE, players: TEAM.size, probe: PROBE.pos.size, seen: PROBE.seen, tracked: Array.from(TEAM.keys()).filter(c => PROBE.pos.has(c)).length, crews: COUNTS.slice(), series: SERIES.slice(), round: ROUND.slice(), note: NOTE_UNTIL > t ? NOTE : "", cars: CARS.filter(c => c.driver != null).length, games: {} };
     for (const k in GAMES) s.games[k] = GAMES[k].status(t);
     document.getElementById("hb-state").setAttribute("data-state", JSON.stringify(s));
   }
