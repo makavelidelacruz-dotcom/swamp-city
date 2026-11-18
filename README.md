@@ -230,9 +230,19 @@ Every static building block in the city is now **baked into five textured models
 - `MODELS`: swap in CC0 GLBs for the buggy, airboat or gators.
 - `DETAIL: "low"`: cuts trees, reeds, lily pads, street lamps and outer-district buildings for weaker devices.
 
+## Audit fixes (18 Nov 2026)
+
+An outside audit found two real problems; both are fixed.
+
+- **Doc now starts on standard MML servers.** The packed loader used `Blob.stream()` and `DecompressionStream`, which the standard Node/JSDOM MML runners don't have. It still tries those first and now falls back to a small built-in gzip decoder. The packed doc passes the full game, boat and casino tests on a standard runner.
+- **Every model now has UVs.** 51 models had parts with no texture coordinates (`TEXCOORD_0`), which some viewers, including Otherside, may not render. `city-b.glb` also had broken (NaN) UVs on its lamp globes. All 99 models now pass the Khronos glTF validator with 0 errors and 0 warnings, and they look identical.
+- **Tools** (in `tools/`): `uvscan.mjs` lists models with missing or broken UVs; `uvfix.mjs in.glb out.glb` adds them without changing anything else. Run both on any new model before uploading.
+
 ## Known limits
 
 - **Riding vehicles:** whether players get carried on a moving buggy or airboat depends on the client. Test this in your viewer; if riders slide off, players can still drive the buggy while running beside it.
 - **Driving through checkpoints:** in Bayou Run, a driver gets credit for a checkpoint by driving through it, but passengers do not.
 - **Steering:** buggies turn in 22.5° steps, because MML has no held-key controls.
+- **Hosting models on GitHub:** raw.githubusercontent.com can rate-limit when a big crowd joins at once. For a live event, upload the models to the MML editor (mmlstorage) and use `ASSET_URLS`, like the live build does.
+- **Water level:** the water sits at y -0.42. Place the world on flat ground, or terrain can poke through the water.
 - **Size:** with the baked city, the world has about 1,560 elements on join, plus about 8 MB of baked models (cached after the first load). Desktop is fine; on phones, try `DETAIL: "low"` first.
