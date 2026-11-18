@@ -96,7 +96,7 @@
   };
   const KB_H = { "building-a": 0.95, "building-b": 1.63, "building-c": 1.75, "building-d": 1.0 }; // model heights per unit
   function asset(name) {
-    if (CONFIG.ASSET_URLS[name]) return CONFIG.ASSET_URLS[name];
+    if (CONFIG.ASSET_URLS[name]) return natURL(name);   // bare mmlstorage ids become full links
     if (CONFIG.ASSET_HOST) return CONFIG.ASSET_HOST.replace(/\/?$/, "/") + name + ".glb";
     const a = ASSET[name];
     return RAW[a[0]] + a[1];
