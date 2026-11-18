@@ -33,49 +33,20 @@
      ========================================================================= */
   const CONFIG = {
     HOST_KEY: "2164fdc8f46047cdde8b2b0d4a83e3cc", // paste this into the controller's Host code box
-    DETAIL: "high",          // "low" cuts trees, reeds and lily pads roughly in half
-    LIGHT_LEVEL: 1,          // brightness of every light in the world, 0 to 1. 0 turns them all off
-    // Where the world sits when you place it:
-    //   "front"  - you stand just OUTSIDE the city, at the foot of the east dock, and the whole city is in front of you.
-    //              Walk down the dock to the Visitor Center to check in. (default)
-    //   "edge"   - you stand on the plaza in front of the Visitor Center, inside the build.
-    //   "center" - the old placement, centred on the bank.
+    DETAIL: "high",          // "low" cuts trees and plants roughly in half
+    LIGHT_LEVEL: 1,          // brightness of every light, 0 to 1
+    // "front": you stand just outside the east dock with the city ahead (default). "edge": on the Visitor Center
+    // plaza. "center": the old placement on the bank.
     SPAWN: "front",
-    TURN: 0,                 // extra turn of the whole build in degrees (90, 180, 270) if it ends up beside or behind you
-    // Optional: folder URL that holds your princess castle GLBs (citadel_grounds.glb, citadel_walls.glb,
-    // citadel_keep.glb, citadel_crown.glb). When set, the castle appears on Queen's Isle in the swamp.
-    CASTLE_BASE: "",
-    // Optional: embed other MML documents (for example the Spire) with m-frame.
-    // Example: [{ src: "wss://run.mmleditor.com/XXXX", x: 0, y: 0, z: -420, ry: 0 }]
-    FRAMES: [],
-    // Optional CC0 GLB swaps. Leave blank to use the built-in primitive versions.
+    TURN: 0,                 // turn the whole build 90 / 180 / 270 degrees if it ends up beside or behind you
+    CASTLE_BASE: "",         // optional castle GLB folder
+    FRAMES: [],              // optional m-frame embeds: [{ src: "wss://...", x, y, z, ry }]
     MODELS: { buggy: "", airboat: "", gator: "" },
-    // Kenney CC0 models (trucks, Voodoo Quarter townhouses, warehouses, clouds, coins, fountains, fair tents).
-    // false = everything built from primitives, like the first version.
-    KENNEY: true,
-    // Where those models load from. By default they come straight from Kenney's public GitHub repos
-    // (pinned to a fixed version). To host the included swamp-city-assets pack yourself, either set
-    // ASSET_HOST to the folder URL, or paste one URL per file into ASSET_URLS (handy for mmlstorage).
+    KENNEY: true,           // false = primitives only
+    // Models load from ASSET_HOST (a folder URL) or ASSET_URLS (one link or mmlstorage id per model).
     ASSET_HOST: "https://raw.githubusercontent.com/makavelidelacruz-dotcom/swamp-city/main/swamp-city-assets/",
     ASSET_URLS: {},
-    // Swamp nature models from your AllModels.blend (Quaternius "Ultimate Stylized Nature", CC0):
-    // dead swamp trees, leafy trees, bushes, tall grass and rocks. These only load once the
-    // swamp-city-assets pack is hosted (ASSET_HOST or ASSET_URLS); until then the primitive trees stay.
-    NATURE: true,
-    // Old-town houses and props from your Medieval Village MegaKit (Quaternius, CC0): four houses built
-    // from the kit's pieces, plus wagons, crates, wooden fences and iron railings. Also needs the hosted pack.
-    MEDIEVAL: true,
-    // Brick city buildings and street props from your Downtown City MegaKit (Quaternius, CC0):
-    // three ready-made buildings, bollards, planters, rooftop AC units and manhole covers. Also needs the hosted pack.
-    DOWNTOWN: true,
-    // Textured streets (asphalt with painted lines, sidewalks with curbs, crosswalk intersections),
-    // a grass lawn over the whole island and paved plaza stones. Also needs the hosted pack.
-    STREETS: true,
-    // Detailed textured versions of every building, the bank, the casino, the arena and the signs
-    // (baked from this file into a few models). Also needs the hosted pack.
-    BAKED: true,
-    // Boats and clouds modeled for Swamp City (CC0): motor yachts and a sailboat at the piers, airboats with
-    // spinning fans, shrimp boats and fishing skiffs on the swamp, and soft textured clouds. Also needs the hosted pack.
+    NATURE: true, MEDIEVAL: true, DOWNTOWN: true, STREETS: true, BAKED: true,   // CC0 model sets (need the hosted models)
     BOATS: true
   };
 
