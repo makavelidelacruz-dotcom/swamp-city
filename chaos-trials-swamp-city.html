@@ -134,8 +134,11 @@
   const rnd2 = () => { seed2 = (seed2 * 16807) % 2147483647; return (seed2 - 1) / 2147483646; };
   const BAKE_NAMES = ["city-a", "city-b", "city-c", "city-d", "city-e"];
   const BAKE_EXPORT = !!CONFIG.BAKE_EXPORT; // used only when generating the baked models
+  const FLOOR_RE = /^(ground-grass|road-|plaza-pavers|city-|pit-arena)/;   // walkable surfaces that also report where players stand
   function natModel(name, x, y, z, s, ry, collide) {
-    return el("m-model", { src: natURL(name), x: r2(x), y: r2(y), z: r2(z), ry: Math.round(ry), sx: r2(s), sy: r2(s), sz: r2(s), collide: collide ? "true" : "false", "cast-shadows": "false" });
+    const m = el("m-model", { src: natURL(name), x: r2(x), y: r2(y), z: r2(z), ry: Math.round(ry), sx: r2(s), sy: r2(s), sz: r2(s), collide: collide ? "true" : "false", "cast-shadows": "false" });
+    if (collide && FLOOR_RE.test(name)) floorHook(m);
+    return m;
   }
 
   const W = document.getElementById("world");
@@ -585,7 +588,7 @@
     }
     live(() => {
       // the throne: the gold disc everyone fights to stand on; it turns the holding crew's color
-      ARENA.throne = cyl({ x, y: 0.32, z, radius: 4.5, height: 0.36, color: THRONE_IDLE });
+      ARENA.throne = cyl({ x, y: 0.32, z, radius: 4.5, height: 0.36, color: THRONE_IDLE }); floorHook(ARENA.throne);
       ARENA.ringDisc = cyl({ x, y: 0.52, z, radius: 4.6, height: 0.02, color: AMBER, opacity: 0.55, collide: "false", "data-game": "arena", visible: "false" });
       // jumbotron over the throne: two lines on each of its four faces
       ARENA.faces = []; ARENA.faces2 = [];
@@ -1672,7 +1675,33 @@
   // carrying loot in the BANK JOB. Positions are in world-group space, so they follow wherever the build is placed.
   // Several probes: one big one over the whole city, one at the sign-up gate and a grid of smaller ones, in case
   // a player's app limits how far a probe reaches. Each report is turned into world-group space.
-  const PROBE = { el: null, pos: new Map(), src: new Map(), seen: [0, 0, 0] };   // connectionId -> { x, y, z, ry }
+  const PROBE = { el: null, pos: new Map(), src: new Map(), pt: new Map(), seen: [0, 0, 0, 0] };
+  function trackAt(cid, at, src) {
+    PROBE.src.set(cid, src);
+    PROBE.pos.set(cid, at);
+    iconMove(cid, at);
+    carryMove(cid, at);
+    roundupMove(cid, at);
+  }
+  // Floor tracking, for player apps that never send position-probe reports: the ground, the streets and the city
+  // models fire collision events while someone stands on them. A working probe always wins over the floor.
+  function floorHook(m) {
+    m.setAttribute("collision-interval", "250");
+    const on = ev => {
+      const d = ev.detail || {}, cid = d.connectionId, p = d.position;
+      if (cid == null || !p) return;
+      PROBE.seen[3]++;
+      if (now() - (PROBE.pt.get(cid) || 0) < 2000) return;
+      const g = k => +m.getAttribute(k) || 0, a = g("ry") * Math.PI / 180, c = Math.cos(a), s = Math.sin(a), k = g("sx") || 1;
+      const lx = (+p.x || 0) * k, lz = (+p.z || 0) * k, x = g("x") + c * lx + s * lz, z = g("z") - s * lx + c * lz;
+      const old = PROBE.pos.get(cid);
+      let ry = old ? old.ry : 0;
+      if (old && Math.hypot(x - old.x, z - old.z) > 0.3) ry = Math.atan2(old.x - x, old.z - z) * 180 / Math.PI;
+      trackAt(cid, { x, y: g("y") + (+p.y || 0) * k, z, ry }, "floor");
+    };
+    m.addEventListener("collisionstart", on);
+    m.addEventListener("collisionmove", on);
+  }   // connectionId -> { x, y, z, ry }
   function probeAt(px, pz, range, interval, kind) {
     const pr = el("m-position-probe", { x: px, z: pz, range, interval });
     const onMove = e => {
@@ -1688,11 +1717,8 @@
         const dx = (+q.x || 0) - (+W.getAttribute("x") || 0), dz = (+q.z || 0) - (+W.getAttribute("z") || 0);
         at = { x: c * dx - s * dz, y: (+q.y || 0) - (+W.getAttribute("y") || 0), z: s * dx + c * dz, ry: +(((d.documentRelative || d).rotation || {}).y) - (+W.getAttribute("ry") || 0) || 0 };
       }
-      PROBE.src.set(d.connectionId, pr);
-      PROBE.pos.set(d.connectionId, at);
-      iconMove(d.connectionId, at);
-      carryMove(d.connectionId, at);
-      roundupMove(d.connectionId, at);
+      PROBE.pt.set(d.connectionId, now());
+      trackAt(d.connectionId, at, pr);
     };
     pr.addEventListener("positionenter", onMove);
     pr.addEventListener("positionmove", onMove);
@@ -1702,8 +1728,6 @@
     if (PROBE.el) return;
     PROBE.el = 1;
     probeAt(0, 0, 460, 300, 0);
-    probeAt(VC.x, CZ, 40, 300, 1);
-    for (const gx of [-200, -100, 0, 100, 200]) for (const gz of [-200, -100, 0, 100, 200]) probeAt(gx, gz, 75, 400, 2);
   }
   // ---- crew mascots over players' heads: gator, heron (MUNYONS), bullfrog, cottonmouth ---------
   const ICONS = new Map();   // connectionId -> { g, team, x, y, z }
@@ -2528,7 +2552,7 @@
     setT(SCREEN.status, GAMES[ACTIVE].status(t));
   }
   function pushState() {
-    const t = now(), s = { boot: BOOT, active: ACTIVE, players: TEAM.size, probe: PROBE.pos.size, seen: PROBE.seen, tracked: Array.from(TEAM.keys()).filter(c => PROBE.pos.has(c)).length, crews: COUNTS.slice(), series: SERIES.slice(), round: ROUND.slice(), note: NOTE_UNTIL > t ? NOTE : "", cars: CARS.filter(c => c.driver != null).length, games: {} };
+    const t = now(), s = { boot: BOOT, active: ACTIVE, players: TEAM.size, probe: PROBE.pos.size, floor: [...PROBE.src.values()].filter(v => v === "floor").length, seen: PROBE.seen, tracked: Array.from(TEAM.keys()).filter(c => PROBE.pos.has(c)).length, crews: COUNTS.slice(), series: SERIES.slice(), round: ROUND.slice(), note: NOTE_UNTIL > t ? NOTE : "", cars: CARS.filter(c => c.driver != null).length, games: {} };
     for (const k in GAMES) s.games[k] = GAMES[k].status(t);
     document.getElementById("hb-state").setAttribute("data-state", JSON.stringify(s));
   }
@@ -2564,7 +2588,7 @@
     for (const car of CARS) if (car.driver === cid) release(car);
     for (const [k, v] of SAYS) if (k.startsWith(cid + "|")) { v.nodes.forEach(n => n.remove()); SAYS.delete(k); }
     const y = YOU.get(cid); if (y) { y.remove(); YOU.delete(cid); }
-    iconHide(cid); PROBE.pos.delete(cid);
+    iconHide(cid); PROBE.pos.delete(cid); PROBE.src.delete(cid); PROBE.pt.delete(cid);
     FAILS.delete(cid);
     if (TEAM.has(cid)) { COUNTS[TEAM.get(cid)]--; TEAM.delete(cid); NAME.delete(cid); paintRoster(); }
     pushState();
