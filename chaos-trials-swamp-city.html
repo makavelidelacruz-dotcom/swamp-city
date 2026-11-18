@@ -1839,7 +1839,7 @@
   // 1 for your crew (2 in the last 30 s Feeding Frenzy). The pit gators still guard the throne: get chomped and the
   // gator you're carrying gets away. Caught and escaped gators turn up again somewhere else in the city.
   const ROUNDUP = { wild: new Map(), carry: new Map(), seq: 0, got: [0, 0, 0, 0], cool: new Map(), spots: null };
-  const WILD_COUNT = 28, LITTLE = 0.25;
+  const WILD_COUNT = 56, LITTLE = 0.25;
   function wildSpots() {   // sidewalk spots along every street, clear of buildings, the pit, the plaza and the docks
     if (ROUNDUP.spots) return ROUNDUP.spots;
     const out = [];
