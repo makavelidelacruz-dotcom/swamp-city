@@ -80,12 +80,9 @@ const loader = `(async () => {
   new Function(code)();
 })();`;
 
-const out = `<!--
-  CHAOS TRIALS: SWAMP CITY
-  Settings are below in plain text - edit them freely (host code, lights, detail, model links).
-  The game code itself is packed at the bottom to keep this document small enough for the MML editor.
-  Readable source + guide: github.com/makavelidelacruz-dotcom/swamp-city
--->
+// keep the settings readable but small: drop whole-line comments and the padding before end-of-line comments
+configText = configText.replace(/\n\s*\/\/[^\n]*/g, '').replace(/,\s{2,}\/\//g, ', //');
+const out = `<!-- CHAOS TRIALS: SWAMP CITY. Settings below are plain text; the game code is packed at the bottom. Source: github.com/makavelidelacruz-dotcom/swamp-city -->
 ${markup}
 <script>
   window.SWAMP_CONFIG = ${configText.replace(/\n {2}/g, '\n')};
@@ -96,4 +93,7 @@ ${loader}
 </script>
 `;
 fs.writeFileSync(outPath, out);
+// the MML editor freezes and fails to save above about 67 KB
+const bytes = Buffer.byteLength(out);
+console.log(outPath + ": " + bytes + " bytes" + (bytes > 66900 ? "  WARNING: over 66,900 B, the MML editor may freeze. Trim before publishing." : ""));
 console.log('packed doc bytes', Buffer.byteLength(out), '| js min', min.length, '| gz b64', packed.length);

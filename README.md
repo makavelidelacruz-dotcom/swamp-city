@@ -16,6 +16,38 @@ A Grand Theft Auto style MML world for 4 teams and 50+ players. It uses the same
 3. **Open the controller**, paste the address and your host code, and press Connect. The pill turns green when it finds the game.
 4. **Do a test run** with a few people: check in, drive a buggy, and run one round of each game.
 
+## Self-hosting (recommended for events)
+
+In the MML editor, the world only runs while the editor tab stays open, and documents over about 67 KB freeze it. A small server avoids both problems: no tab to keep alive, no size limit, and no repacking.
+
+```
+cd tools/selfhost
+npm install
+HOST_KEY=<your private host code> PORT=8080 node server.mjs
+```
+
+- It runs the readable `chaos-trials-swamp-city.html` (set `DOC=` for another file). The host code comes from `HOST_KEY` and is never written to a file.
+- Players join `ws://<server>:8080/`. For `wss://`, put a TLS proxy in front, e.g. Caddy: `swamp.example.com { reverse_proxy :8080 }`.
+- `GET /health` answers `ok <n> connected`.
+- A click on something the game just removed (a gator someone else grabbed) is logged instead of crashing the server, and so is a malformed message from any client. It refuses to start on a busy port or with the public placeholder host code.
+- Connections that go silent (network cut, no close) are dropped after about 30 s, so a reconnecting player's old copy frees their name and crew. Before the event, leave an Otherside avatar idle on the self-hosted build, behind your real proxy, for 2+ minutes and check `/health` and the roster hold steady. If players get cut off every ~30 s, the proxy is not passing pongs: restart with `GHOST_PING=0`.
+- A restart still clears sign-ups, same as in the editor.
+
+## Position tracking and rejoining (update)
+
+- **The floor wins over the position probe.** In Otherside the floor collision position is exact, while probe reports arrive offset or turned. A probe report is now used only when that player has had no floor report for 2 s (in the air, on a boat or a ride).
+- **Reconnecting keeps your crew.** Otherside gives a reconnecting player a new connection id. When a signed-up player disconnects, their name and crew are remembered. The first sign-up with that name afterwards rejoins that crew and gets a "Welcome back" line; the slot is then used up. A name still held by a connected player never rejoins (it gets a number, e.g. "Bob 2", and goes to the smallest crew, as before). Everyone else still goes to the smallest crew.
+- Limit: if a player reconnects before their old connection has dropped, the old name is still taken, so they are treated as new.
+- Test: with a server running on port 7071 (or set `PORT`), `cd tools/selfhost && npm test`. It exits 1 on any failure.
+
+## Audit fixes (18 Nov)
+
+- 8 lights at most (cut the bank-front plaza light, the second casino light, the motorcycle row, the two fair lights and the burn barrel).
+- Loose gators have no see-through ground ring any more (the green beam marks them; walk-over pickup is the main way to grab one).
+- Countdowns change in 10 s steps and only tick every second in the last 30 s, so far fewer label writes go to every player.
+- Mascots, money bags and carried gators only send a move after 0.5 m / 0.4 m, floor reports come every 400 ms, and the glide is 450 ms.
+- Tests: with a server on port 7071, `cd tools/selfhost && npm test` (floor/probe and rejoin) and `HOST_KEY=<code> npm run test:games` (lights, gators, celebration, Bank Job).
+
 ## The city
 
 - **Plaza (spawn):** Bayou Savings bank with the big screen on its front, the 4 team check-in stands, and 4 buggies.

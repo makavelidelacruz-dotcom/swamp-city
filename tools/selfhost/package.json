@@ -1,0 +1,10 @@
+{
+  "name": "swamp-city-selfhost",
+  "private": true,
+  "type": "module",
+  "scripts": { "start": "node server.mjs", "test": "node fixtest.mjs", "test:games": "node gametest.mjs" },
+  "dependencies": {
+    "@mml-io/networked-dom-server": "0.19.7",
+    "ws": "8.18.0"
+  }
+}

@@ -32,21 +32,21 @@
      CONFIG - the only part you should need to edit
      ========================================================================= */
   const CONFIG = {
-    HOST_KEY: "2164fdc8f46047cdde8b2b0d4a83e3cc", // paste this into the controller's Host code box
-    DETAIL: "high",          // "low" cuts trees and plants roughly in half
-    LIGHT_LEVEL: 1,          // brightness of every light, 0 to 1
+    HOST_KEY: "2164fdc8f46047cdde8b2b0d4a83e3cc", // the controller's host code
+    DETAIL: "high",  // or "low"
+    LIGHT_LEVEL: 1,  // 0 to 1
     // "front": you stand just outside the east dock with the city ahead (default). "edge": on the Visitor Center
     // plaza. "center": the old placement on the bank.
     SPAWN: "front",
-    TURN: 0,                 // turn the whole build 90 / 180 / 270 degrees if it ends up beside or behind you
-    CASTLE_BASE: "",         // optional castle GLB folder
-    FRAMES: [],              // optional m-frame embeds: [{ src: "wss://...", x, y, z, ry }]
+    TURN: 0,                 // 90 / 180 / 270 turns the build
+    CASTLE_BASE: "",
+    FRAMES: [],
     MODELS: { buggy: "", airboat: "", gator: "" },
-    KENNEY: true,           // false = primitives only
+    KENNEY: true,
     // Models load from ASSET_HOST (a folder URL) or ASSET_URLS (one link or mmlstorage id per model).
     ASSET_HOST: "https://raw.githubusercontent.com/makavelidelacruz-dotcom/swamp-city/main/swamp-city-assets/",
     ASSET_URLS: {},
-    NATURE: true, MEDIEVAL: true, DOWNTOWN: true, STREETS: true, BAKED: true,   // CC0 model sets (need the hosted models)
+    NATURE: true, MEDIEVAL: true, DOWNTOWN: true, STREETS: true, BAKED: true,
     BOATS: true
   };
 
@@ -458,7 +458,7 @@
     cyl({ y: 0.92, z: CZ + 33, radius: 3.6, height: 0.1, color: "#3f7f8a", collide: "false", mat: "water" });
     gatorModel(0, 1.4, CZ + 33, 30, 1.6, "#7f8f6a", "bronze");
     FOOT.push({ cx: 0, cz: CZ + 33, r: 4.2 });
-    el("m-light", { type: "point", y: 9, z: CZ + 20, color: "#ffe2b0", intensity: 1100, distance: 40, "cast-shadows": "false" });
+    
   }
 
   /* =========================================================================
@@ -550,7 +550,7 @@
     tower({ x: 75, z: CZ - 35, w: 24, d: 12, h: 24, ry: 180, color: "#5a2f4a", glass: "#d9a3c7", band: "#2a1830", sign: "GATOR GRAND HOTEL", signColor: PINK });
     building({ x: 75, z: CZ + 36, w: 26, d: 9, h: 5, ry: 0, stilts: true, color: "#3f7a7a", roof: "flat", sign: "PELICAN MOTEL", signColor: NEON, side: false });
     el("m-light", { type: "point", x: 76, y: 7.5, z: CZ - 10, color: "#ff8ae6", intensity: 900, distance: 28, "cast-shadows": "false" });
-    el("m-light", { type: "point", x: 76, y: 7.5, z: CZ + 10, color: "#8ae6ff", intensity: 900, distance: 28, "cast-shadows": "false" });
+    
     FOOT.push({ x1: x1 - 1, x2: x2 + 1, z1: z1 - 1, z2: z2 + 1 });
   }
 
@@ -740,7 +740,7 @@
       building({ x, z, w: 9, d: 8, h: 5, color: c, ry: 0, stilts: true, roof: "gable", side: false });   // doors face the road to the south
     if (DT) for (const x of [-40, -14, 14, 40]) natModel("dt-planter", x, 0.1, CZ + 56.2, 1, 0, false);
     if (KEN) [-30, -26, 6, 10, 26].forEach((x, i) => el("m-model", { src: asset("motorcycle"), x, y: 0.5, z: CZ + 54.5, ry: 80 + i * 7, sx: 1.6, sy: 1.6, sz: 1.6, collide: "false", "cast-shadows": "false" }));
-    el("m-light", { type: "point", y: 8, z: CZ + 54, color: "#ff9ad5", intensity: 1000, distance: 40, "cast-shadows": "false" });
+    
   }
 
   const HIDE = [];
@@ -1154,8 +1154,8 @@
     rideSign("GATOR-GO-ROUND", "STEP ON WHILE IT TURNS", -28, 149.4, 4.6, 3.0, "#4a0f22", "#ffd27a");
     rideSign("GATOR DROP", "HOP ON WHILE IT'S BOARDING", 28, 153.8, 4.0, 3.6, "#2a1238", "#ff6ec7");
     live(() => { buildFerris(); buildCarousel(); buildDropTower(); buildWhack(); buildStriker(); });
-    el("m-light", { type: "point", x: 0, y: 12, z: 156, color: "#ff9ad5", intensity: 1600, distance: 45, "cast-shadows": "false" });
-    el("m-light", { type: "point", x: -28, y: 9, z: 158, color: "#ffd27a", intensity: 900, distance: 24, "cast-shadows": "false" });
+    
+    
   }
 
   // BAYOU EYE: 12 gondolas on a 14 m wheel, one loop every 2 minutes. Board at the bottom from the platform.
@@ -1421,7 +1421,7 @@
       if (NAT) for (let i = 0; i < 6; i++) natModel("rock-" + (1 + (i % 5)), jx - 14 + rand() * 26, 0.1, jz - 14 + rand() * 28, 1.4 + rand(), rand() * 360, false);
       if (MED) { natModel("med-wagon", jx + 8, 0.1, jz + 9, 1.1, 30, true); natModel("med-wagon", jx - 4, 0.1, jz + 12, 1.1, 160, true); }
     }
-    el("m-light", { type: "point", x: jx + 6.6, y: 1.6, z: jz + 2.6, color: "#ff9a40", intensity: 1, distance: 10, "cast-shadows": "false" });   // the burn barrel's glow
+    
     text("GATOR JUNK", { x: jx + 17.3, y: 3.9, z: jz, ry: 90, width: 9, height: 1.8, "font-size": 90, color: "#120d10", "font-color": AMBER, emissive: 1, mount: "post", drop: 3.0 });
     FOOT.push({ x1: jx - 17.5, x2: jx + 17.5, z1: jz - 17.5, z2: jz + 17.5 });
 
@@ -1561,6 +1561,7 @@
   const ROSTER = { counts: [], names: [] };
   const TEAM = new Map();   // connectionId -> team index
   const NAME = new Map();   // connectionId -> display name
+  const REJOIN = new Map(); // lower-case name of a player who disconnected -> their crew (used once, on rejoin)
   const COUNTS = [0, 0, 0, 0];
   const SERIES = [0, 0, 0, 0];
   let ROUND = [0, 0, 0, 0];
@@ -1599,7 +1600,8 @@
       setT(SCREEN.subs[i], ACTIVE ? "+" + ROUND[i] + " THIS ROUND" : "SERIES POINTS");
     });
   }
-  const mmss = ms => { const s = Math.max(0, Math.ceil(ms / 1000)); return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); };
+  const mmss = ms => { let s = Math.max(0, Math.ceil(ms / 1000)); if (s > 30) s = Math.ceil(s / 10) * 10;   // 10 s steps, per second in the last 30 s
+    return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); };
   const teamLine = arr => TEAMS.map((t, i) => t.name.slice(0, 4) + " " + arr[i]).join("  ");
 
   // personal line on the big screen
@@ -1642,7 +1644,10 @@
       const taken = new Set(Array.from(NAME).filter(([c]) => c !== cid).map(([, n]) => n.toLowerCase()));
       let nm = raw, k = 2;
       while (taken.has(nm.toLowerCase())) nm = raw.slice(0, 13) + " " + k++;
-      const prev = TEAM.get(cid), i = prev !== undefined ? prev : pickCrew();
+      // back after a reconnect (new connection id): a name whose owner disconnected rejoins that crew, once
+      const prev = TEAM.get(cid), back = prev === undefined && nm === raw ? REJOIN.get(raw.toLowerCase()) : undefined;
+      if (back !== undefined) REJOIN.delete(raw.toLowerCase());
+      const i = prev !== undefined ? prev : back !== undefined ? back : pickCrew();
       if (prev === undefined) COUNTS[i]++;
       TEAM.set(cid, i);
       NAME.set(cid, nm);
@@ -1650,7 +1655,7 @@
       paintYou(cid);
       iconRefresh(cid);
       const t = TEAMS[i];
-      say(cid, "signup", prev === undefined ? "Welcome " + nm + "! You're on " + t.name + " - look for the mascot over your head" : "Name updated: " + nm + " (still " + t.name + ")", "good");
+      say(cid, "signup", back !== undefined ? "Welcome back " + nm + "! Still on " + t.name : prev === undefined ? "Welcome " + nm + "! You're on " + t.name + " - look for the mascot over your head" : "Name updated: " + nm + " (still " + t.name + ")", "good");
       if (prev === undefined && ACTIVE && GAMES[ACTIVE].join) GAMES[ACTIVE].join(cid);
       pushState();
     });
@@ -1675,7 +1680,7 @@
   // carrying loot in the BANK JOB. Positions are in world-group space, so they follow wherever the build is placed.
   // Several probes: one big one over the whole city, one at the sign-up gate and a grid of smaller ones, in case
   // a player's app limits how far a probe reaches. Each report is turned into world-group space.
-  const PROBE = { el: null, pos: new Map(), src: new Map(), pt: new Map(), seen: [0, 0, 0, 0] };
+  const PROBE = { el: null, pos: new Map(), src: new Map(), pt: new Map(), ft: new Map(), seen: [0, 0, 0, 0] };
   function trackAt(cid, at, src) {
     PROBE.src.set(cid, src);
     PROBE.pos.set(cid, at);
@@ -1684,15 +1689,16 @@
     roundupMove(cid, at);
     roundupNear(cid, at);
   }
-  // Floor tracking, for player apps that never send position-probe reports: the ground, the streets and the city
-  // models fire collision events while someone stands on them. A working probe always wins over the floor.
+  // Floor tracking: the ground, the streets and the city models fire collision events while someone stands on them.
+  // The floor always wins: in Otherside it is exact, while position-probe reports come in offset or turned. The
+  // probe only fills in for a player with no floor report in the last 2 s (in the air, on a boat, on a ride).
   function floorHook(m) {
-    m.setAttribute("collision-interval", "250");
+    m.setAttribute("collision-interval", "400");
     const on = ev => {
       const d = ev.detail || {}, cid = d.connectionId, p = d.position;
       if (cid == null || !p) return;
       PROBE.seen[3]++;
-      if (now() - (PROBE.pt.get(cid) || 0) < 2000) return;
+      PROBE.ft.set(cid, now());
       const g = k => +m.getAttribute(k) || 0, a = g("ry") * Math.PI / 180, c = Math.cos(a), s = Math.sin(a), k = g("sx") || 1;
       const lx = (+p.x || 0) * k, lz = (+p.z || 0) * k, x = g("x") + c * lx + s * lz, z = g("z") - s * lx + c * lz;
       const old = PROBE.pos.get(cid);
@@ -1708,6 +1714,7 @@
     const onMove = e => {
       const d = e.detail || {}; if (d.connectionId == null) return;
       PROBE.seen[kind]++;
+      if (now() - (PROBE.ft.get(d.connectionId) || 0) < 2000) return;   // the floor has them: ignore the probe
       let at;
       if (d.elementRelative && d.elementRelative.position) {
         const p = d.elementRelative.position;
@@ -1742,14 +1749,14 @@
     const x = at.x, y = at.y + ICON_Y, z = at.z;
     if (!b) {   // made at the player's spot, so it never flies in from somewhere else
       const g = grp({ x: r2(x), y: r2(y), z: r2(z) });
-      el("m-attr-lerp", { attr: "x,y,z", duration: 340 }, g);
+      el("m-attr-lerp", { attr: "x,y,z", duration: 450 }, g);
       const m = el("m-model", { src: natURL(ICON_NAMES[t]), sx: ICON_S, sy: ICON_S, sz: ICON_S, collide: "false", "cast-shadows": "false" }, g);
       el("m-attr-anim", { attr: "ry", start: 0, end: 360, duration: 6000, loop: "true" }, m);
       el("m-attr-anim", { attr: "y", start: 0, end: 0.12, duration: 1400, loop: "true", "ping-pong": "true", easing: "easeInOutSine" }, m);
       ICONS.set(cid, { g, team: t, x, y, z });
       return;
     }
-    if (Math.hypot(x - b.x, z - b.z) < 0.15 && Math.abs(y - b.y) < 0.15) return;   // only send real moves
+    if (Math.hypot(x - b.x, z - b.z) < 0.5 && Math.abs(y - b.y) < 0.5) return;   // only send real moves
     b.x = x; b.y = y; b.z = z;
     b.g.setAttribute("x", r2(x)); b.g.setAttribute("y", r2(y)); b.g.setAttribute("z", r2(z));
   }
@@ -1770,7 +1777,7 @@
     const at = PROBE.pos.get(cid), a = at ? at.ry * Math.PI / 180 : 0;
     const p0 = at ? { x: r2(at.x + Math.sin(a) * 0.32), y: r2(at.y + 1.15), z: r2(at.z + Math.cos(a) * 0.32), ry: r2(at.ry) } : { x: 0, y: 1.6, z: CZ, ry: 0 };
     const g = grp(p0);
-    el("m-attr-lerp", { attr: "x,y,z,ry", duration: 320 }, g);
+    el("m-attr-lerp", { attr: "x,y,z,ry", duration: 450 }, g);
     el("m-model", { src: natURL("money-bag"), x: 0.12, y: -0.45, rx: 14, rz: -10, sx: 0.85, sy: 0.85, sz: 0.85, collide: "false", "cast-shadows": "false" }, g);
     CARRY.bags.set(cid, { g, x: p0.x, y: p0.y, z: p0.z, ry: p0.ry, seen: !!at });
   }
@@ -1779,7 +1786,7 @@
     const ry = at.ry, a = ry * Math.PI / 180;
     // on the player's back: behind them (forward is -z turned by ry), at shoulder height
     const x = at.x + Math.sin(a) * 0.32, y = at.y + 1.15, z = at.z + Math.cos(a) * 0.32;
-    if (b.seen && Math.hypot(x - b.x, z - b.z) < 0.12 && Math.abs(y - b.y) < 0.12 && Math.abs(((ry - b.ry + 540) % 360) - 180) < 6) return;
+    if (b.seen && Math.hypot(x - b.x, z - b.z) < 0.4 && Math.abs(y - b.y) < 0.4 && Math.abs(((ry - b.ry + 540) % 360) - 180) < 15) return;
     b.x = x; b.y = y; b.z = z; b.ry = ry;
     if (!b.seen) { b.seen = true; b.g.setAttribute("x", r2(x)); b.g.setAttribute("y", r2(y)); b.g.setAttribute("z", r2(z)); b.g.setAttribute("ry", r2(ry)); return; }
     b.g.setAttribute("x", r2(x)); b.g.setAttribute("y", r2(y)); b.g.setAttribute("z", r2(z)); b.g.setAttribute("ry", r2(ry));
@@ -1863,11 +1870,10 @@
     el("m-model", { src: natURL("pit-jaw"), collide: "false", "cast-shadows": "false" }, jg);
     el("m-attr-anim", { attr: "rx", start: 0, end: 26, duration: 420 + (id % 5) * 60, loop: "true", "ping-pong": "true" }, jg);
     el("m-attr-anim", { attr: "ry", start: ry - 25, end: ry + 25, duration: 1800 + (id % 4) * 300, loop: "true", "ping-pong": "true", easing: "easeInOutSine" }, g);
-    const ring = cyl({ y: 0.02, radius: 0.85, height: 0.03, color: "#7dff8a", opacity: 0.45 }, g);
     const beam = el("m-model", { src: natURL("beam-gator"), sx: 0.1, sy: 0.1, sz: 0.1, collide: "false", "cast-shadows": "false" }, g);   // a little glowing green beam (6 m) so they're easy to spot
     ANCHORS["wild-" + id] = { x: r2(x), y: 1.6, z: r2(z), ry: 0, w: 4, twin: { x: r2(x), z: r2(z), ry: 180 } };
     ROUNDUP.wild.set(id, { g, x, z });
-    onClick([m, ring, beam], cid => arena.grab(cid, id));
+    onClick([m, beam], cid => arena.grab(cid, id));   // walk-over pickup is the main way (roundupNear)
   }
   // walk-over pickup: run into a loose gator to grab it (works in apps where clicks don't reach small models)
   function roundupNear(cid, at) {
@@ -1877,7 +1883,7 @@
   function roundupHold(cid) {   // the little gator in the player's arms (crosswise, in front of them)
     const at = PROBE.pos.get(cid) || { x: 0, y: 0.15, z: CZ, ry: 0 };
     const g = grp({ x: r2(at.x), y: r2(at.y + 0.95), z: r2(at.z), ry: r2(at.ry + 90) });
-    el("m-attr-lerp", { attr: "x,y,z,ry", duration: 320 }, g);
+    el("m-attr-lerp", { attr: "x,y,z,ry", duration: 450 }, g);
     const body = grp({ x: 0, z: 0, sx: LITTLE, sy: LITTLE, sz: LITTLE }, g);
     el("m-model", { src: natURL("pit-gator"), z: -0.2, collide: "false", "cast-shadows": "false" }, body);
     const jg = grp({ y: 0.24, z: 1.2 }, body);
@@ -1892,7 +1898,7 @@
     const a = at.ry * Math.PI / 180;
     // in their arms: a little in front of them (forward is -z turned by ry), at waist height, lying crosswise
     const x = at.x - Math.sin(a) * 0.45, y = at.y + 0.95, z = at.z - Math.cos(a) * 0.45, ry = at.ry + 90;
-    if (!force && Math.hypot(x - c.x, z - c.z) < 0.12 && Math.abs(y - c.y) < 0.12 && Math.abs(((ry - c.ry + 540) % 360) - 180) < 6) { /* still */ }
+    if (!force && Math.hypot(x - c.x, z - c.z) < 0.4 && Math.abs(y - c.y) < 0.4 && Math.abs(((ry - c.ry + 540) % 360) - 180) < 15) { /* still */ }
     else { c.x = x; c.y = y; c.z = z; c.ry = ry; c.g.setAttribute("x", r2(x)); c.g.setAttribute("y", r2(y)); c.g.setAttribute("z", r2(z)); c.g.setAttribute("ry", r2(ry)); }
     // delivered: carried onto the throne in the middle of the pit
     if (ACTIVE === "arena" && Math.hypot(at.x - ARENA.x, at.z - ARENA.z) < 4.6 && at.y > 0.3 && at.y < 4) arena.deliver(cid);
@@ -2626,9 +2632,9 @@
     for (const car of CARS) if (car.driver === cid) release(car);
     for (const [k, v] of SAYS) if (k.startsWith(cid + "|")) { v.nodes.forEach(n => n.remove()); SAYS.delete(k); }
     const y = YOU.get(cid); if (y) { y.remove(); YOU.delete(cid); }
-    iconHide(cid); PROBE.pos.delete(cid); PROBE.src.delete(cid); PROBE.pt.delete(cid);
+    iconHide(cid); PROBE.pos.delete(cid); PROBE.src.delete(cid); PROBE.pt.delete(cid); PROBE.ft.delete(cid);
     FAILS.delete(cid);
-    if (TEAM.has(cid)) { COUNTS[TEAM.get(cid)]--; TEAM.delete(cid); NAME.delete(cid); paintRoster(); }
+    if (TEAM.has(cid)) { const n = NAME.get(cid).toLowerCase(); if (!REJOIN.has(n)) REJOIN.set(n, TEAM.get(cid)); COUNTS[TEAM.get(cid)]--; TEAM.delete(cid); NAME.delete(cid); paintRoster(); }
     pushState();
   });
 
