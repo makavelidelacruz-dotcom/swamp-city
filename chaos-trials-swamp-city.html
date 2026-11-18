@@ -150,7 +150,7 @@
     "ferris-frame", "ferris-rim", "gondola-pink", "gondola-teal", "gondola-gold", "gondola-purple", "carousel", "carousel-base", "carousel-gator", "carousel-frog",
     "drop-tower", "drop-ring", "whack-booth", "whack-gator", "striker", "striker-puck", "fair-arch", "fair-pole", "fair-garland",
     "stand-funnel", "stand-boudin", "stand-snowball", "stand-gatorstick", "bank", "bank-vault", "money-bag",
-    "team-gator", "team-heron", "team-frog", "team-snake"];
+    "team-gator", "team-heron", "team-frog", "team-snake", "beam-gator", "beam-heron", "beam-frog", "beam-snake"];
   const ICON_NAMES = ["team-gator", "team-heron", "team-frog", "team-snake"];   // crew mascots, same order as TEAMS
   const BOATS = !!CONFIG.BOATS && (!!CONFIG.ASSET_HOST || BOAT_NAMES.every(n => CONFIG.ASSET_URLS[n]));
   // separate random stream for boats and extra clouds, so the baked city layout never shifts
@@ -739,7 +739,12 @@
       const l1 = text("DROP LOOT", { x: 6.3, y: 1.6, z: 6.19, width: 2.1, height: 0.5, "font-size": 36, color: t.color, "font-color": INK, emissive: 0.1 }, g);
       const l2 = text("click here", { x: 6.3, y: 1.0, z: 6.19, width: 2.1, height: 0.38, "font-size": 24, color: t.color, "font-color": INK, emissive: 0.1 }, g);
       onClick([board, face, l1, l2], cid => GAMES.heist.drop(cid, i));
-      cyl({ y: 30, z: 9, radius: 1.3, height: 60, color: t.color, opacity: 0.35, collide: "false", "data-game": "heist", visible: "false" }, g);
+      // crew beacon: a beam of the crew's color straight up out of the roof, always on, so every hideout is easy to find
+      if (BOATS) el("m-model", { src: natURL("beam-" + ICON_NAMES[i].slice(5)), y: 7.4, collide: "false", "cast-shadows": "false" }, g);   // glowing, fades out up high
+      else {
+        cyl({ y: 7.4 + 30, radius: 1.3, height: 60, color: t.color, opacity: 0.35, collide: "false", "cast-shadows": "false" }, g);
+        cyl({ y: 7.4 + 30, radius: 0.45, height: 60, color: t.color, opacity: 0.6, collide: "false", "cast-shadows": "false" }, g);   // brighter core
+      }
       // lit in the crew's color: a colored lamp over the forecourt, neon trim round the roofline, corners and shutter,
       // two floodlight heads on the cornice and a pool of colored light on the ground
       el("m-light", { type: "point", y: 7.5, z: 9, color: t.color, intensity: 1, distance: 30, "cast-shadows": "false" }, g);

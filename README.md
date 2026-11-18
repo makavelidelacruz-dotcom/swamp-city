@@ -257,6 +257,10 @@ Every static building block in the city is now **baked into five textured models
 - **Carried bags** use an MML position probe (only while the Bank Job runs) to put a money bag on each carrier's back.
 - **Signs** are broader and each business has its own GTA-style look: script neon for bars and the motel, bold billboards for the pawn shop and fast food, a police badge sign, stencil hideout signs and green highway-exit signs for the districts. Fonts: Anton, Bungee, Bebas Neue, Pacifico, Lobster, Monoton, Black Ops One, Alfa Slab One, Racing Sans One, Permanent Marker, Oswald (SIL Open Font License).
 
+## Hideout beacons always on (update)
+
+Every hideout now has a glowing beam in its crew's color shooting straight up out of the roof, about 60 m tall and fading out toward the top. It stays on all the time, not just during the Bank Job, so each crew can find home from anywhere in the city. New models: `beam-gator`, `beam-heron`, `beam-frog`, `beam-snake` (CC0).
+
 ## Bayou Run removed (update)
 
 The race game and its 15 checkpoint gates are gone. Four games remain: Bank Job, Gator Pit, Lucky Wheel and Turf War. The controller no longer has a Bayou Run button, so use the new controller file.

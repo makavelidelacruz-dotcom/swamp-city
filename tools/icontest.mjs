@@ -80,4 +80,6 @@ A.ws.close(); await sleep(600);
 check(icons(B).length === 1, "disconnecting removes their mascot");
 const lights = find(B, n => n.tag === "m-light" && ["#4fe08f", "#3fd0ff", "#ffc23d", "#c48bff"].includes(n.attributes.color));
 check(lights.length === 4, "each hideout has a light in its crew's color");
+const beams = find(B, n => n.tag === "m-model" && /beam-(gator|heron|frog|snake)|[0-9a-f]{64}/.test(n.attributes.src || "") && n.attributes.y === "7.4");
+check(beams.length === 4 && beams.every(n => n.attributes.visible !== "false" && !n.attributes["data-game"] && !n.attributes.x && !n.attributes.z), "every hideout has an always-on glowing beam straight up out of its roof");
 console.log(fails ? fails + " FAILED" : "ALL PASSED"); process.exit(0);
