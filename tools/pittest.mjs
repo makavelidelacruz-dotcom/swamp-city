@@ -45,7 +45,7 @@ const probe = c => find(c, n => n.tag === "m-position-probe")[0].nodeId;
 const at = (c, x, z, y) => send(c, probe(c), "positionmove", { elementRelative: { position: { x, y: y == null ? 0.5 : y, z }, rotation: { x: 0, y: 0, z: 0 } } });
 const gators = c => find(c, n => n.tag === "m-model" && /pit-gator|a62c69e6/.test(n.attributes.src || "") && n.attributes.collide === "true");
 const animsOn = (c, n) => n.children.map(id => c.nodes.get(id)).filter(k => k && k.tag === "m-attr-anim");
-send(A, A.ids["join-0"], "prompt", { value: "Ava" }); send(B, B.ids["join-1"], "prompt", { value: "Bo" }); await sleep(400);
+send(A, A.ids["signup"], "prompt", { value: "Ava" }); await sleep(150); send(B, B.ids["signup"], "prompt", { value: "Bo" }); await sleep(400);
 const gs = gators(B);
 check(gs.length === 5, "five solid pit gators (2 sweepers, 3 lungers): " + gs.length);
 const rig = find(B, n => n.tag === "m-group" && n.children.some(id => { const k = B.nodes.get(id); return k && k.tag === "m-group" && k.children.some(j => gs.some(g => g.nodeId === j)); }) && n.attributes.y === "0.5")[0];

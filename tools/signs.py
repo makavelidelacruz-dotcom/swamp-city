@@ -87,7 +87,8 @@ STYLE = {
     'WELCOME TO SWAMP CITY': ('billboard', 'bungee', '#0e3a52', '#ffffff', 'VISITOR CENTER  -  TEAM CHECK-IN STRAIGHT AHEAD'),
     'VISITOR CENTER': ('billboard', 'oswald', '#0e3a52', '#ffffff', None),
     'SWAMP CITY VISITOR CENTER': ('billboard', 'bungee', '#0e3a52', '#ffffff', 'TEAM CHECK-IN  -  PICK YOUR CREW HERE'),
-    'TEAM CHECK-IN': ('highway', 'oswald', '#12613a', '#ffffff', 'VISITOR CENTER  -  EAST EDGE'),
+    'CREW SIGN-UP': ('highway', 'oswald', '#12613a', '#ffffff', 'DOCK GATE  -  EAST EDGE'),
+    'SIGN UP HERE': ('billboard', 'bungee', '#0e3a52', '#ffffff', 'TYPE YOUR NAME  -  GET YOUR CREW'),
 }
 DISTRICT = {'UPTOWN', 'BAYOU VILLAGE', 'VOODOO QUARTER', 'OLD TOWN', 'CANNERY ROW', 'GATOR FLATS'}
 

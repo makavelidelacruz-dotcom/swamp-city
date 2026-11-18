@@ -257,6 +257,17 @@ Every static building block in the city is now **baked into five textured models
 - **Carried bags** use an MML position probe (only while the Bank Job runs) to put a money bag on each carrier's back.
 - **Signs** are broader and each business has its own GTA-style look: script neon for bars and the motel, bold billboards for the pawn shop and fast food, a police badge sign, stencil hideout signs and green highway-exit signs for the districts. Fonts: Anton, Bungee, Bebas Neue, Pacifico, Lobster, Monoton, Black Ops One, Alfa Slab One, Racing Sans One, Permanent Marker, Oswald (SIL Open Font License).
 
+## One sign-up, even crews (update)
+
+Everyone now signs up once, at the **SIGN UP HERE** gate on the dock boardwalk, the first thing you walk through after placing the build.
+
+- **Sign up:** click either podium and type your name.
+- **Your crew:** the game picks it for you. You go on whichever crew is smallest, with ties going round in turn, so the crews stay even as people join and leave.
+- **Your mascot:** it appears over your head right away (gator, heron, bullfrog or cottonmouth).
+- **Signing up again:** this only changes your name. You keep your crew.
+- **Visitor Center boards:** the four boards at the Visitor Center now just show who is on each crew. You can't pick a crew there any more.
+- **Bank plaza sign:** the freeway sign at the old plaza spot now reads "CREW SIGN-UP - DOCK GATE".
+
 ## Gator Pit rebuilt (update)
 
 The Gator Pit is now an active king-of-the-hill fight with live gators.

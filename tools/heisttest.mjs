@@ -41,7 +41,7 @@ let fails = 0;
 const check = (ok, msg) => { console.log((ok ? "PASS " : "FAIL ") + msg); if (!ok) fails++; };
 const ctl = client("controller"); await ctl.ready;
 const A = client("A"), B = client("B"); await Promise.all([A.ready, B.ready]);
-send(A, A.ids["join-0"], "prompt", { value: "Robber" }); send(B, B.ids["join-1"], "prompt", { value: "Watcher" });
+send(A, A.ids["signup"], "prompt", { value: "Robber" }); await sleep(150); send(B, B.ids["signup"], "prompt", { value: "Watcher" });
 await sleep(500);
 const host = (cmd, extra) => send(ctl, ctl.ids["hb-" + cmd], "click", Object.assign({ key: KEY }, extra || {}));
 const probes = c => find(c, n => n.tag === "m-position-probe");

@@ -69,18 +69,18 @@ await sleep(2500);
 const kioskCounts = labels(A, /BETS OPEN DURING LUCKY WHEEL/);
 check(kioskCounts.length === 4, "4 bet kiosks with a bet counter");
 // check in, start LUCKY WHEEL, then play until a win pays the team
-send(A, A.ids["join-1"], "prompt", { value: "Tester" }); await sleep(400);
+send(A, A.ids["signup"], "prompt", { value: "Tester" }); await sleep(400);
 send(A, A.ids["hb-casino"], "click", { key: KEY }); await sleep(400);
 check(state(A).active === "casino", "host starts LUCKY WHEEL");
 send(A, kioskCounts[1].nodeId, "click"); await sleep(400);
 check(labels(A, /^1 BET ON /).length === 1 && labels(A, /^NO BETS YET$/).length === 3, "placing a bet updates that kiosk's counter");
 let wins = 0, rolls = 0;
-for (let i = 0; i < 26 && state(A).round[1] === 0; i++) {
+for (let i = 0; i < 26 && state(A).round[0] === 0; i++) {
   const p = pulls[i % pulls.length]; send(A, p.nodeId, "click"); await sleep(5200);
-  if (state(A).round[1] > 0) wins++;
+  if (state(A).round[0] > 0) wins++;
   if (i % 2 === 0) { send(A, dice[0].nodeId, "click"); rolls++; await sleep(5200); }
 }
-check(state(A).round[1] > 0, "floor games pay MUNYONS during the round: " + JSON.stringify(state(A).round));
+check(state(A).round[0] > 0, "floor games pay the player's crew (GATORS) during the round: " + JSON.stringify(state(A).round));
 await sleep(Math.max(0, state(A).phaseEnd ? 0 : 0)); for (let w = 0; w < 30 && !/SPINNING|LANDED/.test(state(A).games.casino); w++) await sleep(1000); await sleep(1500);
 const wheelSpin = all(A).find(n => n.tag === "m-group" && n.children.some(id => { const m = A.nodes.get(id); return m && /wheel-spin|b4ac4ffa01d4d5c79937f40672d5c43b849214cfe8d9ddc6a11bdf02ecf64afa/.test(m.attributes.src || ""); }));
 check(+wheelSpin.attributes.rz < 0, "the wheel has spun (rz " + wheelSpin.attributes.rz + ")");

@@ -51,13 +51,13 @@ for (let i = 0; i < 8; i++) { P.push(client("P" + i)); }
 await Promise.all(P.map(p => p.ready));
 
 // check in: P0,P4 GATORS  P1,P5 MUNYONS  P2,P6 BULLFROGS  P3,P7 COTTONMOUTHS
-P.forEach((p, i) => send(p, p.ids["join-" + (i % 4)], "prompt", { value: "Player " + i }));
+for (let i = 0; i < P.length; i++) { send(P[i], P[i].ids["signup"], "prompt", { value: "Player " + i }); await sleep(120); }   // one sign-up; crews are dealt out evenly in turn
 await sleep(600);
 const r = roster(ctl);
 check(r.every(l => l.length === 2), "4 teams x 2 players in roster: " + JSON.stringify(r));
 check(mine(P[0], "Welcome Player 0").length === 1 && mine(P[1], "Welcome Player 0").length === 0, "per-player welcome visible only to its owner: " + JSON.stringify(allMine(P[0])));
 check(state(ctl).players === 8, "state shows 8 players");
-send(P[0], P[0].ids["join-0"], "prompt", { value: "Player 1" }); // name clash -> should dedupe
+send(P[0], P[0].ids["signup"], "prompt", { value: "Player 1" }); // name clash -> should dedupe, crew kept
 await sleep(300);
 check(roster(ctl)[0].includes("Player 1 2"), "duplicate name gets a suffix: " + JSON.stringify(roster(ctl)[0]));
 

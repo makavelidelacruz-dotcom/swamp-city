@@ -455,7 +455,7 @@
     }
 
     // team check-in moved to the Visitor Center on the east edge: a freeway sign points the way
-    text("TEAM CHECK-IN", { x: 0, y: 3.4, z: CZ + 17, width: 7, height: 1.6, "font-size": 80, color: "#12613a", "font-color": "#ffffff", emissive: 0.6, mount: "post", drop: 2.6 });
+    text("CREW SIGN-UP", { x: 0, y: 3.4, z: CZ + 17, width: 7, height: 1.6, "font-size": 80, color: "#12613a", "font-color": "#ffffff", emissive: 0.6, mount: "post", drop: 2.6 });
 
     // plaza dressing
     for (const [x, z] of [[-30, CZ + 35], [30, CZ + 35], [-38, CZ - 8], [38, CZ - 8], [-38, CZ - 35], [38, CZ - 35], [-20, CZ - 40], [20, CZ - 40]]) { tree(x, z, 0.9, false); FOOT.push({ cx: x, cz: z, r: 1 }); }
@@ -816,26 +816,25 @@
     });
     text("CHAOS TRIALS  |  SWAMP CITY", { y: 12.75, z: 0.2, width: 12, height: 0.9, "font-size": 70, color: "#120d10", "font-color": PINK, emissive: 0.9, mount: "marquee" }, s);
 
-    // team check-in stands in front of the porch, in the same order as the screen (GATORS on the left)
+    // crew roster boards in front of the porch (same order as the screen, GATORS on the left): who is on each crew.
+    // Nobody picks a crew here any more - everyone signs up once at the dock gate and is put on the smallest crew.
     const zs = [-15, -7, 7, 15];
     live(() => {
     TEAMS.forEach((t, i) => {
-      const p = el("m-prompt", { id: "join-" + i, message: "Join TEAM " + t.name + " (" + t.tone + ") - type your name", placeholder: "Your name" });
-      const g = grp({ x: VC.standX, z: Z - zs[i], ry: 90 }, p);
+      const g = grp({ x: VC.standX, z: Z - zs[i], ry: 90 });
       box({ y: 0.65, width: 2.6, height: 1.1, depth: 1.2, color: "#1b2a33" }, g);
       glow({ y: 0.65, z: 0.62, width: 2.4, height: 0.9, color: t.color, emissive: 0.5 }, g);
-      text("JOIN " + t.name, { y: 0.65, z: 0.64, width: 2.4, height: 0.5, "font-size": 21, color: t.color, "font-color": INK, emissive: 0.2 }, g);
+      text(t.name, { y: 0.65, z: 0.64, width: 2.4, height: 0.5, "font-size": 24, color: t.color, "font-color": INK, emissive: 0.2 }, g);
       cyl({ y: 2.2, radius: 0.07, height: 2.2, color: "#222", collide: "false" }, g);
       if (BOATS) {   // the crew's mascot turning slowly on top of the stand
         const ic = el("m-model", { src: natURL(ICON_NAMES[i]), y: 3.95, sx: 1.3, sy: 1.3, sz: 1.3, collide: "false", "cast-shadows": "false" }, g);
         el("m-attr-anim", { attr: "ry", start: 0, end: 360, duration: 9000, loop: "true" }, ic);
       }
       ROSTER.counts.push(text(t.tone + "  |  0 PLAYERS", { id: "roster-" + i, y: 3.45, z: 0.05, width: 3, height: 0.42, "font-size": 24, "font-color": t.color }, g));
-      ROSTER.names.push(text("Be the first to join!", { id: "names-" + i, y: 3.0, z: 0.05, width: 3, height: 0.38, "font-size": 20, "font-color": SKY }, g));
-      ANCHORS["join-" + i] = { x: VC.standX + 0.05, y: 4.05, z: Z - zs[i], ry: 90, w: 5 };
+      ROSTER.names.push(text("No one yet", { id: "names-" + i, y: 3.0, z: 0.05, width: 3, height: 0.38, "font-size": 20, "font-color": SKY }, g));
     });
     });
-    text("CHECK IN: click your crew's stand and type your name", { x: VC.standX, y: 4.3, z: Z, ry: 90, width: 10, height: 0.5, "font-size": 30, "font-color": AMBER, mount: "hang" });
+    text("THE CREWS - sign up at the dock gate, you're put on the smallest crew", { x: VC.standX, y: 4.3, z: Z, ry: 90, width: 10, height: 0.5, "font-size": 26, "font-color": AMBER, mount: "hang" });
     el("m-light", { type: "point", x: X0 + 3, y: 4.2, z: Z, color: "#ffe2b0", intensity: 1, distance: 30, "cast-shadows": "false" });
     // dressing: lamps, benches and shade trees round the plaza
     for (const [x, z] of [[192, -22], [192, 22], [174, -24], [174, 24], [192, -34], [174, -34], [192, 34], [174, 34]]) lamp(x, Z + z);
@@ -854,6 +853,26 @@
     box({ x: (HALF + 16 + dEnd) / 2, y: 0.25, z: Z, width: dEnd - HALF - 16, height: 0.3, depth: 4, color: WOOD, mat: "boardwalk" });
     box({ x: dEnd + 0.6, y: 0.1, z: Z, width: 1.2, height: 0.2, depth: 4, color: WOOD, mat: "boardwalk" });   // low step down to the ground
     for (const sz of [-2.3, 2.3]) lamp(dEnd - 0.5, Z + sz);
+    // THE SIGN-UP GATE: the first thing people walk through. One sign-up for everyone: type your name and you're
+    // put on whichever crew is smallest, so the crews stay even, and your crew's mascot appears over your head.
+    const gx = HALF + 18.2;   // on the boardwalk, just past the end of the marina pier
+    text("SIGN UP HERE", { x: gx + 0.3, y: 4.5, z: Z, ry: 90, width: 4.6, height: 1.2, "font-size": 90, color: "#0e3a52", "font-color": "#ffffff", emissive: 0.8, mount: "arch", drop: 3.9 });
+    live(() => {
+      const p = el("m-prompt", { id: "signup", message: "SIGN UP for Chaos Trials - type your name (you'll be put on a crew)", placeholder: "Your name" });
+      for (const sz of [-1.45, 1.45]) {   // two podiums, one each side of the walkway; click either
+        const g = grp({ x: gx, y: 0.4, z: Z + sz, ry: 90 }, p);
+        box({ y: 0.55, width: 0.95, height: 1.1, depth: 0.7, color: "#1b2a33" }, g);
+        glow({ y: 0.62, z: 0.36, width: 0.85, height: 0.85, color: NEON, emissive: 0.6 }, g);
+        text("CLICK TO SIGN UP", { y: 0.75, z: 0.37, width: 0.85, height: 0.26, "font-size": 18, color: NEON, "font-color": INK, emissive: 0.3 }, g);
+        text("type your name", { y: 0.47, z: 0.37, width: 0.85, height: 0.2, "font-size": 13, color: NEON, "font-color": INK, emissive: 0.3 }, g);
+        if (BOATS) ICON_NAMES.forEach((n, k) => {   // the four mascots turning on top: one of these will be yours
+          const ic = el("m-model", { src: natURL(n), x: -0.3 + (k % 2) * 0.6, y: 1.2, z: k < 2 ? -0.12 : 0.18, sx: 0.55, sy: 0.55, sz: 0.55, collide: "false", "cast-shadows": "false" }, g);
+          el("m-attr-anim", { attr: "ry", start: 0, end: 360, duration: 7000 + k * 900, loop: "true" }, ic);
+        });
+      }
+      SIGNUP.count = text("0 SIGNED UP  |  crews stay even", { x: gx + 0.32, y: 3.25, z: Z, ry: 90, width: 4.2, height: 0.42, "font-size": 24, "font-color": AMBER, color: "#0b0f0c", emissive: 0.5 });
+    });
+    ANCHORS.signup = { x: gx + 0.9, y: 2.55, z: Z, ry: 90, w: 4.6 };
   }
 
   function buildHideouts() {
@@ -1561,6 +1580,7 @@
   /* =========================================================================
      SHARED STATE: players, teams, messages
      ========================================================================= */
+  const SIGNUP = { count: null };
   const ANCHORS = {};
   const ROSTER = { counts: [], names: [] };
   const TEAM = new Map();   // connectionId -> team index
@@ -1587,7 +1607,7 @@
   const teamOf = cid => TEAM.get(cid);
   function needTeam(cid, anchor) {
     if (TEAM.has(cid)) return true;
-    say(cid, anchor, "Check in first - pick your crew at the Visitor Center (east edge)", "bad");
+    say(cid, anchor, "Sign up first - at the gate on the east dock, where you came in", "bad");
     return false;
   }
   function award(team, pts) {
@@ -1622,34 +1642,41 @@
     TEAMS.forEach((t, i) => {
       setT(ROSTER.counts[i], t.tone + "  |  " + COUNTS[i] + (COUNTS[i] === 1 ? " PLAYER" : " PLAYERS"));
       const n = lists[i];
-      setT(ROSTER.names[i], n.length ? n.slice(-3).reverse().join(", ") + (n.length > 3 ? " +" + (n.length - 3) : "") : "Be the first to join!");
+      setT(ROSTER.names[i], n.length ? n.slice(-3).reverse().join(", ") + (n.length > 3 ? " +" + (n.length - 3) : "") : "No one yet");
     });
+    setT(SIGNUP.count, TEAM.size + " SIGNED UP  |  crews stay even");
     const st = document.getElementById("hb-state");
     st.setAttribute("data-roster", JSON.stringify(lists));
   }
 
+  // one sign-up for everyone: the crew is picked for you (the smallest crew; ties go round in turn), so the crews
+  // stay even. Signing up again only changes your name - you keep your crew.
+  let NEXT_CREW = 0;
+  function pickCrew() {
+    const min = Math.min(...COUNTS);
+    for (let k = 0; k < TEAMS.length; k++) { const i = (NEXT_CREW + k) % TEAMS.length; if (COUNTS[i] === min) { NEXT_CREW = (i + 1) % TEAMS.length; return i; } }
+    return 0;
+  }
   function hookPrompts() {
-    TEAMS.forEach((t, i) => {
-      document.getElementById("join-" + i).addEventListener("prompt", e => {
-        const cid = e.detail && e.detail.connectionId;
-        if (cid == null) return;
-        const raw = String(e.detail.value == null ? "" : e.detail.value).replace(/[^ -~]/g, "").replace(/\s+/g, " ").trim().slice(0, 16);
-        if (!raw) return say(cid, "join-" + i, "Type your name to join " + t.name, "bad");
-        const taken = new Set(Array.from(NAME).filter(([c]) => c !== cid).map(([, n]) => n.toLowerCase()));
-        let nm = raw, k = 2;
-        while (taken.has(nm.toLowerCase())) nm = raw.slice(0, 13) + " " + k++;
-        const prev = TEAM.get(cid);
-        if (prev !== undefined && prev !== i) { COUNTS[prev]--; for (const g of Object.values(GAMES)) g.leave(cid); }
-        if (prev !== i) COUNTS[i]++;
-        TEAM.set(cid, i);
-        NAME.set(cid, nm);
-        paintRoster();
-        paintYou(cid);
-        iconRefresh(cid);
-        say(cid, "join-" + i, prev === undefined ? "Welcome " + nm + "! You're a " + t.name.slice(0, -1) : prev === i ? "Name updated: " + nm : "Switched to " + t.name, "good");
-        if (ACTIVE && GAMES[ACTIVE].join) GAMES[ACTIVE].join(cid);
-        pushState();
-      });
+    document.getElementById("signup").addEventListener("prompt", e => {
+      const cid = e.detail && e.detail.connectionId;
+      if (cid == null) return;
+      const raw = String(e.detail.value == null ? "" : e.detail.value).replace(/[^ -~]/g, "").replace(/\s+/g, " ").trim().slice(0, 16);
+      if (!raw) return say(cid, "signup", "Type your name to sign up", "bad");
+      const taken = new Set(Array.from(NAME).filter(([c]) => c !== cid).map(([, n]) => n.toLowerCase()));
+      let nm = raw, k = 2;
+      while (taken.has(nm.toLowerCase())) nm = raw.slice(0, 13) + " " + k++;
+      const prev = TEAM.get(cid), i = prev !== undefined ? prev : pickCrew();
+      if (prev === undefined) COUNTS[i]++;
+      TEAM.set(cid, i);
+      NAME.set(cid, nm);
+      paintRoster();
+      paintYou(cid);
+      iconRefresh(cid);
+      const t = TEAMS[i];
+      say(cid, "signup", prev === undefined ? "Welcome " + nm + "! You're on " + t.name + " - look for the mascot over your head" : "Name updated: " + nm + " (still " + t.name + ")", "good");
+      if (prev === undefined && ACTIVE && GAMES[ACTIVE].join) GAMES[ACTIVE].join(cid);
+      pushState();
     });
   }
 
@@ -2362,9 +2389,9 @@
     if (!ACTIVE) {
       setT(SCREEN.title, "INTERMISSION");
       setT(SCREEN.kind, note || "THE HOST WILL START THE NEXT GAME SOON");
-      setT(SCREEN.what, KEN ? "Check in at a team stand below. Grab a truck - click it to drive." : "Check in at a team stand below. Grab a buggy - click its hood to drive.");
+      setT(SCREEN.what, KEN ? "Sign up at the dock gate - you're put on a crew. Grab a truck - click it to drive." : "Sign up at the dock gate - you're put on a crew. Grab a buggy - click its hood to drive.");
       setT(SCREEN.where, "TONIGHT: BANK JOB  |  GATOR PIT  |  LUCKY WHEEL  |  TURF WAR");
-      setT(SCREEN.status, TEAM.size + " PLAYERS CHECKED IN");
+      setT(SCREEN.status, TEAM.size + " PLAYERS SIGNED UP");
       return;
     }
     const i = INFO[ACTIVE];
