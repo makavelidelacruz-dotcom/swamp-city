@@ -1661,7 +1661,7 @@
      ========================================================================= */
   const INFO = {
     heist: { title: "BANK JOB", kind: "CREWS  |  4 MINUTES", what: "Grab a bag from the vault, get it to YOUR hideout before the dye pack pops (75s).", where: "Vault inside Yuppie Ape Savings > your hideout out past the inner ring road - take a buggy!" },
-    arena: { title: "GATOR PIT", kind: "CREWS  |  4 MINUTES  |  GATOR ROUND-UP", what: "Little gators are loose all over the city (look for the green beams). Click one to grab it, carry it to the Gator Pit and onto the throne: +1 for your crew. The pit gators guard the throne - get chomped and yours gets away.", where: "Gators: every street. Drop-off: the throne in the Gator Pit, west side. Last 30 seconds: FEEDING FRENZY, deliveries count double." },
+    arena: { title: "GATOR PIT", kind: "CREWS  |  4 MINUTES  |  GATOR ROUND-UP", what: "Little gators are loose all over the city (look for the green beams). Run into one to grab it, carry it to the Gator Pit and onto the throne: +1 for your crew. The pit gators guard the throne - get chomped and yours gets away.", where: "Gators: every street. Drop-off: the throne in the Gator Pit, west side. Last 30 seconds: FEEDING FRENZY, deliveries count double." },
     casino: { title: "LUCKY WHEEL", kind: "CREWS  |  6 SPINS", what: "Click a bet board before each spin: GATOR, FROG or SKULL pay +2, CROWN pays +6. Swamp Slots, the Mega Gator jackpot and Gator Dice pay too.", where: "Token Gator Casino, east side of the city" },
     turf: { title: "TURF WAR", kind: "CREWS  |  4 MINUTES", what: "Open any house door, go inside and click CLAIM THIS HOUSE. Every 10 seconds each house you own scores 1.", where: "Every house in the city - shacks, shops, bars and the Old Town houses. Grab a truck!" }
   };
@@ -1682,6 +1682,7 @@
     iconMove(cid, at);
     carryMove(cid, at);
     roundupMove(cid, at);
+    roundupNear(cid, at);
   }
   // Floor tracking, for player apps that never send position-probe reports: the ground, the streets and the city
   // models fire collision events while someone stands on them. A working probe always wins over the floor.
@@ -1862,11 +1863,16 @@
     el("m-model", { src: natURL("pit-jaw"), collide: "false", "cast-shadows": "false" }, jg);
     el("m-attr-anim", { attr: "rx", start: 0, end: 26, duration: 420 + (id % 5) * 60, loop: "true", "ping-pong": "true" }, jg);
     el("m-attr-anim", { attr: "ry", start: ry - 25, end: ry + 25, duration: 1800 + (id % 4) * 300, loop: "true", "ping-pong": "true", easing: "easeInOutSine" }, g);
-    const ring = cyl({ y: 0.02, radius: 0.85, height: 0.03, color: "#7dff8a", opacity: 0.45, collide: "false" }, g);
+    const ring = cyl({ y: 0.02, radius: 0.85, height: 0.03, color: "#7dff8a", opacity: 0.45 }, g);
     const beam = el("m-model", { src: natURL("beam-gator"), sx: 0.1, sy: 0.1, sz: 0.1, collide: "false", "cast-shadows": "false" }, g);   // a little glowing green beam (6 m) so they're easy to spot
     ANCHORS["wild-" + id] = { x: r2(x), y: 1.6, z: r2(z), ry: 0, w: 4, twin: { x: r2(x), z: r2(z), ry: 180 } };
     ROUNDUP.wild.set(id, { g, x, z });
     onClick([m, ring, beam], cid => arena.grab(cid, id));
+  }
+  // walk-over pickup: run into a loose gator to grab it (works in apps where clicks don't reach small models)
+  function roundupNear(cid, at) {
+    if (ACTIVE !== "arena" || !TEAM.has(cid) || ROUNDUP.carry.has(cid) || (PIT.stun.get(cid) || 0) > now() || (ROUNDUP.cool.get(cid) || 0) > now()) return;
+    for (const [id, w] of ROUNDUP.wild) if (Math.hypot(at.x - w.x, at.z - w.z) < 2) return arena.grab(cid, id);
   }
   function roundupHold(cid) {   // the little gator in the player's arms (crosswise, in front of them)
     const at = PROBE.pos.get(cid) || { x: 0, y: 0.15, z: CZ, ry: 0 };
