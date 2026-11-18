@@ -1670,14 +1670,23 @@
   // Reports where each player is about three times a second. It places the crew mascot over the head of every
   // checked-in player (everyone can see who runs with which crew), and the money bag on the back of anyone
   // carrying loot in the BANK JOB. Positions are in world-group space, so they follow wherever the build is placed.
-  const PROBE = { el: null, pos: new Map() };   // connectionId -> { x, y, z, ry }
+  const PROBE = { el: null, pos: new Map(), seen: 0 };   // connectionId -> { x, y, z, ry }
   function probeStart() {
     if (PROBE.el) return;
     PROBE.el = el("m-position-probe", { range: 460, interval: 300 });
     const onMove = e => {
-      const d = e.detail || {}; if (d.connectionId == null || !d.elementRelative) return;
-      const p = d.elementRelative.position || {}, ry = +((d.elementRelative.rotation || {}).y) || 0;
-      const at = { x: +p.x || 0, y: +p.y || 0, z: +p.z || 0, ry };
+      const d = e.detail || {}; if (d.connectionId == null) return;
+      PROBE.seen++;
+      let at;
+      if (d.elementRelative && d.elementRelative.position) {
+        const p = d.elementRelative.position;
+        at = { x: +p.x || 0, y: +p.y || 0, z: +p.z || 0, ry: +((d.elementRelative.rotation || {}).y) || 0 };
+      } else {   // clients that only send the document-relative spot: turn it into world-group space
+        const q = (d.documentRelative || d).position || d.position; if (!q) return;
+        const a = (+W.getAttribute("ry") || 0) * Math.PI / 180, c = Math.cos(a), s = Math.sin(a);
+        const dx = (+q.x || 0) - (+W.getAttribute("x") || 0), dz = (+q.z || 0) - (+W.getAttribute("z") || 0);
+        at = { x: c * dx - s * dz, y: (+q.y || 0) - (+W.getAttribute("y") || 0), z: s * dx + c * dz, ry: +(((d.documentRelative || d).rotation || {}).y) - (+W.getAttribute("ry") || 0) || 0 };
+      }
       PROBE.pos.set(d.connectionId, at);
       iconMove(d.connectionId, at);
       carryMove(d.connectionId, at);
@@ -2510,7 +2519,7 @@
     setT(SCREEN.status, GAMES[ACTIVE].status(t));
   }
   function pushState() {
-    const t = now(), s = { boot: BOOT, active: ACTIVE, players: TEAM.size, crews: COUNTS.slice(), series: SERIES.slice(), round: ROUND.slice(), note: NOTE_UNTIL > t ? NOTE : "", cars: CARS.filter(c => c.driver != null).length, games: {} };
+    const t = now(), s = { boot: BOOT, active: ACTIVE, players: TEAM.size, probe: PROBE.pos.size, seen: PROBE.seen, crews: COUNTS.slice(), series: SERIES.slice(), round: ROUND.slice(), note: NOTE_UNTIL > t ? NOTE : "", cars: CARS.filter(c => c.driver != null).length, games: {} };
     for (const k in GAMES) s.games[k] = GAMES[k].status(t);
     document.getElementById("hb-state").setAttribute("data-state", JSON.stringify(s));
   }
