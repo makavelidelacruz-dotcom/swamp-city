@@ -21,7 +21,8 @@ js = js.slice(0, start) + 'const CONFIG = window.SWAMP_CONFIG;' + js.slice(end +
 
 // fill in this project's values
 const urls = JSON.parse(fs.readFileSync(urlsPath, 'utf8'));
-const urlLines = Object.keys(urls).sort().map(k => `      "${k}": "${urls[k]}"`).join(',\n');
+const short = u => u.replace(/^https:\/\/mmlstorage\.com\/([0-9a-f]{64})$/, "$1");   // mmlstorage links go in as bare file ids
+const urlLines = Object.keys(urls).sort().map(k => `"${k}":"${short(urls[k])}"`).reduce((rows, e, i) => { if (i % 2 === 0) rows.push([e]); else rows[rows.length - 1].push(e); return rows; }, []).map(r => '      ' + r.join(', ')).join(',\n');
 configText = configText
   .replace(/HOST_KEY: "[^"]*"/, `HOST_KEY: "${hostKey}"`)
   .replace(/ASSET_HOST: "[^"]*"/, 'ASSET_HOST: ""')

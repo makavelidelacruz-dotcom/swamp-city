@@ -135,7 +135,8 @@
     "normaltree-1", "normaltree-2", "normaltree-3", "bush", "bush-large", "bush-large-flowers", "bush-small-flowers", "plant-flowers", "grass-large",
     "rock-1", "rock-2", "rock-3", "rock-4", "rock-5"];
   const NAT = !!CONFIG.NATURE && (!!CONFIG.ASSET_HOST || NATURE_NAMES.every(n => CONFIG.ASSET_URLS[n]));
-  function natURL(name) { return CONFIG.ASSET_URLS[name] || CONFIG.ASSET_HOST.replace(/\/?$/, "/") + name + ".glb"; }
+  // ASSET_URLS values are full links, or just an mmlstorage file id (64 hex), which keeps the document small
+  function natURL(name) { const u = CONFIG.ASSET_URLS[name]; if (u) return u.includes("://") ? u : "https://mmlstorage.com/" + u; return CONFIG.ASSET_HOST.replace(/\/?$/, "/") + name + ".glb"; }
   const MED_DIM = { "med-house": [8.4, 10], "med-townhouse": [5.8, 7.8], "med-hall": [10, 12.6], "med-cottage": [5.8, 5.8] }; // footprints incl. roof overhang
   // enterable versions (open doorway, wooden floor, ceiling): [door x, depth] in model space
   const MED_DOOR = { "med-house": [0, 8], "med-townhouse": [1, 6], "med-hall": [1, 10], "med-cottage": [1, 4] };
