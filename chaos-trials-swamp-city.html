@@ -35,9 +35,13 @@
     HOST_KEY: "2164fdc8f46047cdde8b2b0d4a83e3cc", // paste this into the controller's Host code box
     DETAIL: "high",          // "low" cuts trees, reeds and lily pads roughly in half
     LIGHT_LEVEL: 1,          // brightness of every light in the world, 0 to 1. 0 turns them all off
-    // Where the world sits when you place it: "edge" puts the Visitor Center on the east edge at the spot you place
-    // it (so everyone spawns there and checks in), "center" is the old placement centred on the bank.
-    SPAWN: "edge",
+    // Where the world sits when you place it:
+    //   "front"  - you stand just OUTSIDE the city, at the foot of the east dock, and the whole city is in front of you.
+    //              Walk down the dock to the Visitor Center to check in. (default)
+    //   "edge"   - you stand on the plaza in front of the Visitor Center, inside the build.
+    //   "center" - the old placement, centred on the bank.
+    SPAWN: "front",
+    TURN: 0,                 // extra turn of the whole build in degrees (90, 180, 270) if it ends up beside or behind you
     // Optional: folder URL that holds your princess castle GLBs (citadel_grounds.glb, citadel_walls.glb,
     // citadel_keep.glb, citadel_crown.glb). When set, the castle appears on Queen's Isle in the swamp.
     CASTLE_BASE: "",
@@ -165,8 +169,19 @@
   const W = document.getElementById("world");
   // VISITOR CENTER on the east edge (the old KGTR radio block). The world is shifted so its spawn spot is the document
   // origin: wherever the build is placed, people arrive at the Visitor Center, not in the middle of the city.
-  const VC = { x: 186, z: CZ, front: 180, standX: 171, spawnX: 163 };
-  if (!BAKE_EXPORT && String(CONFIG.SPAWN || "edge") !== "center") { W.setAttribute("x", String(-VC.spawnX)); W.setAttribute("z", String(-VC.z)); }
+  // The Visitor Center faces east, toward the dock where people arrive; the dock's land end (arriveX) is just past
+  // the edge of the build, so whoever places it stands off the build with the whole city straight ahead of them.
+  const VC = { x: 164, z: CZ, front: 170, standX: 179, spawnX: 187, arriveX: 242 };
+  {
+    const SP = String(CONFIG.SPAWN || "front");
+    if (!BAKE_EXPORT && SP !== "center") {
+      const [ax, az, ry0] = SP === "edge" ? [VC.spawnX, VC.z, 0] : [VC.arriveX, VC.z, -90];   // -90: the city lies ahead (-z)
+      const ry = ry0 + (+CONFIG.TURN || 0), a = ry * Math.PI / 180, c = Math.cos(a), sn = Math.sin(a);
+      const rnd = n => String(Math.round(n * 100) / 100 + 0);
+      W.setAttribute("x", rnd(-(c * ax + sn * az))); W.setAttribute("z", rnd(-(-sn * ax + c * az)));
+      if (ry % 360) W.setAttribute("ry", String(ry));
+    }
+  }
   const FOOT = []; // car blockers: {x1,x2,z1,z2} or {cx,cz,r}
   let seed = 7;
   const rand = () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
@@ -649,24 +664,24 @@
   function buildVisitorCenter() {
     const X0 = VC.front, Z = VC.z, H = 13.4;
     // plaza paving from the street to the porch, a compass-rose spawn pad and the welcome arch
-    box({ x: 167.5, y: 0.125, z: Z, width: 24, height: 0.03, depth: 72, color: "#c9c1ae", collide: "false", mat: "concrete" });
+    box({ x: 182.5, y: 0.125, z: Z, width: 24, height: 0.03, depth: 72, color: "#c9c1ae", collide: "false", mat: "concrete" });
     cyl({ x: VC.spawnX, y: 0.145, z: Z, radius: 2.8, height: 0.03, color: "#d9a33a", collide: "false", mat: "gold" });
     cyl({ x: VC.spawnX, y: 0.155, z: Z, radius: 2.55, height: 0.04, color: "#efe7d6", collide: "false", mat: "marble" });
-    text("WELCOME TO SWAMP CITY", { x: 157.4, y: 5.1, z: Z, ry: 90, width: 14, height: 1.8, "font-size": 100, color: "#0e3a52", "font-color": "#ffffff", emissive: 0.7, mount: "arch", drop: 4.2 });
-    text("SWAMP CITY VISITOR CENTER", { x: 157.2, y: 5.1, z: Z, ry: -90, width: 14, height: 1.8, "font-size": 100, color: "#0e3a52", "font-color": "#ffffff", emissive: 0.7, mount: "wall", back: 0.06 });   // the arch's street side
+    text("WELCOME TO SWAMP CITY", { x: 192.6, y: 5.1, z: Z, ry: 90, width: 14, height: 1.8, "font-size": 100, color: "#0e3a52", "font-color": "#ffffff", emissive: 0.7, mount: "arch", drop: 4.2 });
+    text("SWAMP CITY VISITOR CENTER", { x: 192.4, y: 5.1, z: Z, ry: -90, width: 14, height: 1.8, "font-size": 100, color: "#0e3a52", "font-color": "#ffffff", emissive: 0.7, mount: "wall", back: 0.06 });   // the arch's plaza side
     // the hall: stone plinth, warm stucco walls with limestone corners, a stone cornice
     box({ x: VC.x, y: 0.4, z: Z, width: 12.6, height: 0.6, depth: 28.6, color: "#8a8070", mat: "stone" });
     box({ x: VC.x, y: 0.7 + H / 2, z: Z, width: 12, height: H, depth: 28, color: "#e8d9b8", mat: "stucco" });
-    for (const zz of [-13.8, 13.8]) for (const xx of [X0 + 0.2, X0 + 11.8]) box({ x: xx, y: 0.7 + H / 2, z: Z + zz, width: 0.9, height: H, depth: 0.9, color: "#d8cbb0", mat: "limestone" });
+    for (const zz of [-13.8, 13.8]) for (const xx of [X0 - 0.2, X0 - 11.8]) box({ x: xx, y: 0.7 + H / 2, z: Z + zz, width: 0.9, height: H, depth: 0.9, color: "#d8cbb0", mat: "limestone" });
     box({ x: VC.x, y: H + 0.95, z: Z, width: 12.8, height: 0.5, depth: 28.8, color: "#bfb39a", mat: "cornice-stone" });
     // clock tower with a copper dome, visible from across the city
-    box({ x: VC.x + 2, y: H + 1.2 + 3.2, z: Z, width: 6, height: 6.4, depth: 6, color: "#e8d9b8", mat: "stucco" });
-    box({ x: VC.x + 2, y: H + 7.8, z: Z, width: 6.8, height: 0.4, depth: 6.8, color: "#bfb39a", mat: "cornice-stone" });
-    sph({ x: VC.x + 2, y: H + 8.0, z: Z, radius: 2.7, sy: 0.6, color: "#7fae9b", collide: "true", mat: "copper" });
-    sph({ x: VC.x + 2, y: H + 9.9, z: Z, radius: 0.3, color: "#ff3b3b", mat: "beacon" });
-    text("VISITOR CENTER", { x: VC.x - 1.05, y: H + 4.4, z: Z, ry: -90, width: 5.6, height: 1.0, "font-size": 70, color: "#0e3a52", "font-color": "#ffffff", emissive: 0.6, mount: "wall", back: 0.06 });
-    // the facade, built in a group that faces west (local +z = west, local +x = south)
-    const f = grp({ x: X0, z: Z, ry: -90 });
+    box({ x: VC.x - 2, y: H + 1.2 + 3.2, z: Z, width: 6, height: 6.4, depth: 6, color: "#e8d9b8", mat: "stucco" });
+    box({ x: VC.x - 2, y: H + 7.8, z: Z, width: 6.8, height: 0.4, depth: 6.8, color: "#bfb39a", mat: "cornice-stone" });
+    sph({ x: VC.x - 2, y: H + 8.0, z: Z, radius: 2.7, sy: 0.6, color: "#7fae9b", collide: "true", mat: "copper" });
+    sph({ x: VC.x - 2, y: H + 9.9, z: Z, radius: 0.3, color: "#ff3b3b", mat: "beacon" });
+    text("VISITOR CENTER", { x: VC.x + 1.05, y: H + 4.4, z: Z, ry: 90, width: 5.6, height: 1.0, "font-size": 70, color: "#0e3a52", "font-color": "#ffffff", emissive: 0.6, mount: "wall", back: 0.06 });
+    // the facade, built in a group that faces east (local +z = east, local +x = north)
+    const f = grp({ x: X0, z: Z, ry: 90 });
     box({ y: 1.95, z: 0.06, width: 3.4, height: 2.6, depth: 0.12, color: "#10161a", collide: "false", mat: "glassdoor" }, f);
     for (const xx of [-10, -5.6, 5.6, 10]) glow({ x: xx, y: 2.4, z: 0.04, width: 2.6, height: 2.2, color: "#ffe2a8", emissive: 0.55, mat: "window" }, f);
     // porch canopy on iron posts, with a neon edge in swamp green
@@ -695,7 +710,7 @@
     live(() => {
     TEAMS.forEach((t, i) => {
       const p = el("m-prompt", { id: "join-" + i, message: "Join TEAM " + t.name + " (" + t.tone + ") - type your name", placeholder: "Your name" });
-      const g = grp({ x: VC.standX, z: Z + zs[i], ry: -90 }, p);
+      const g = grp({ x: VC.standX, z: Z - zs[i], ry: 90 }, p);
       box({ y: 0.65, width: 2.6, height: 1.1, depth: 1.2, color: "#1b2a33" }, g);
       glow({ y: 0.65, z: 0.62, width: 2.4, height: 0.9, color: t.color, emissive: 0.5 }, g);
       text("JOIN " + t.name, { y: 0.65, z: 0.64, width: 2.4, height: 0.5, "font-size": 21, color: t.color, "font-color": INK, emissive: 0.2 }, g);
@@ -706,22 +721,28 @@
       }
       ROSTER.counts.push(text(t.tone + "  |  0 PLAYERS", { id: "roster-" + i, y: 3.45, z: 0.05, width: 3, height: 0.42, "font-size": 24, "font-color": t.color }, g));
       ROSTER.names.push(text("Be the first to join!", { id: "names-" + i, y: 3.0, z: 0.05, width: 3, height: 0.38, "font-size": 20, "font-color": SKY }, g));
-      ANCHORS["join-" + i] = { x: VC.standX - 0.05, y: 4.05, z: Z + zs[i], ry: -90, w: 5 };
+      ANCHORS["join-" + i] = { x: VC.standX + 0.05, y: 4.05, z: Z - zs[i], ry: 90, w: 5 };
     });
     });
-    text("CHECK IN: click your crew's stand and type your name", { x: VC.standX, y: 4.3, z: Z, ry: -90, width: 10, height: 0.5, "font-size": 30, "font-color": AMBER, mount: "hang" });
-    el("m-light", { type: "point", x: X0 - 3, y: 4.2, z: Z, color: "#ffe2b0", intensity: 1, distance: 30, "cast-shadows": "false" });
+    text("CHECK IN: click your crew's stand and type your name", { x: VC.standX, y: 4.3, z: Z, ry: 90, width: 10, height: 0.5, "font-size": 30, "font-color": AMBER, mount: "hang" });
+    el("m-light", { type: "point", x: X0 + 3, y: 4.2, z: Z, color: "#ffe2b0", intensity: 1, distance: 30, "cast-shadows": "false" });
     // dressing: lamps, benches and shade trees round the plaza
-    for (const [x, z] of [[158, -22], [158, 22], [176, -24], [176, 24], [158, -34], [176, -34], [158, 34], [176, 34]]) lamp(x, Z + z);
-    for (const [x, z] of [[166, -27], [166, 27]]) {
+    for (const [x, z] of [[192, -22], [192, 22], [174, -24], [174, 24], [192, -34], [174, -34], [192, 34], [174, 34]]) lamp(x, Z + z);
+    for (const [x, z] of [[184, -27], [184, 27]]) {
       box({ x, y: 0.55, z: Z + z, width: 3, height: 0.1, depth: 0.7, color: WOOD, mat: "planks" });
       for (const s2 of [-1, 1]) box({ x: x + s2 * 1.2, y: 0.32, z: Z + z, width: 0.12, height: 0.4, depth: 0.6, color: "#2b2b2b", mat: "iron" });
     }
-    if (NAT) for (const [x, z, k, ry] of [[160, -29, 1, 40], [172, -30, 2, 130], [160, 29, 3, 220], [172, 30, 1, 300], [191, -22, 2, 10], [191, 22, 3, 80]]) {
+    if (NAT) for (const [x, z, k, ry] of [[190, -29, 1, 40], [178, -30, 2, 130], [190, 29, 3, 220], [178, 30, 1, 300], [159, -22, 2, 10], [159, 22, 3, 80]]) {
       natModel("normaltree-" + k, x, 0.1, Z + z, 1.25, ry, true); FOOT.push({ cx: x, cz: Z + z, r: 1 });
     }
     footBox(VC.x, Z, 13, 29, 0);
-    for (const zz of zs) FOOT.push({ cx: VC.standX, cz: Z + zz, r: 1.6 });
+    for (const zz of zs) FOOT.push({ cx: VC.standX, cz: Z - zz, r: 1.6 });
+    // the arrival dock: a boardwalk from the end of the east marina pier to solid ground just past the build,
+    // with two lamps at the gate, so people step off the ground straight onto the pier and walk in
+    const dEnd = VC.arriveX - 3.2;   // where the raised boardwalk ends and the low step begins
+    box({ x: (HALF + 16 + dEnd) / 2, y: 0.25, z: Z, width: dEnd - HALF - 16, height: 0.3, depth: 4, color: WOOD, mat: "boardwalk" });
+    box({ x: dEnd + 0.6, y: 0.1, z: Z, width: 1.2, height: 0.2, depth: 4, color: WOOD, mat: "boardwalk" });   // low step down to the ground
+    for (const sz of [-2.3, 2.3]) lamp(dEnd - 0.5, Z + sz);
   }
 
   function buildHideouts() {
@@ -2179,7 +2200,7 @@
   const PICKUPS = ["pickup-red", "pickup-blue", "pickup-gold", "pickup-green"];
   const TRUCKS = ["truck-red", "truck-yellow", "truck-green", "truck-purple", "truck-green", "truck-red", "truck-yellow", "truck-purple", "truck-red", "truck-yellow", "truck-green", "truck-purple"];
   function buildCars() {
-    [[162, -33], [170, -33], [162, 33], [170, 33]].forEach(([x, z], k) => buggy(k, x, VC.z + z, -90)); // Visitor Center, nose toward the street
+    [[188, -33], [180, -33], [188, 33], [180, 33]].forEach(([x, z], k) => buggy(k, x, VC.z + z, 90)); // Visitor Center, nose toward the street
     HIDEOUTS.forEach((h, i) => { // one beside each hideout, nose toward the inner road
       const rad = h.ry * Math.PI / 180, lx = -10, lz = 9;
       buggy(4 + i, h.x + lx * Math.cos(rad) + lz * Math.sin(rad), h.z - lx * Math.sin(rad) + lz * Math.cos(rad), h.ry);

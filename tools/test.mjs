@@ -179,7 +179,7 @@ await sleep(300);
 check(state(ctl).active === null, "stop returns to intermission");
 host("cars");
 await sleep(500);
-check(P[5].nodes.get(P[5].ids["car-0"]).attributes.x === "162" && P[5].nodes.get(P[5].ids["car-0"]).attributes.z === String(-20 - 33), "reset puts cars home");
+check(P[5].nodes.get(P[5].ids["car-0"]).attributes.x === "188" && P[5].nodes.get(P[5].ids["car-0"]).attributes.z === String(-20 - 33), "reset puts cars home");
 P[0].ws.close();
 await sleep(600);
 check(roster(ctl)[0].length === 1, "disconnect removes the player from the roster");

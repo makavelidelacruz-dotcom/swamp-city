@@ -42,11 +42,11 @@ const check = (ok, msg) => { console.log((ok ? "PASS " : "FAIL ") + msg); if (!o
 // crew mascots over players' heads + Visitor Center spawn
 const A = client("A"), B = client("B"); await Promise.all([A.ready, B.ready]);
 const world = find(B, n => n.tag === "m-group" && n.attributes.id === "world")[0];
-check(world && world.attributes.x === "-163" && world.attributes.z === "20", "world is shifted so the Visitor Center plaza is the origin: " + (world && [world.attributes.x, world.attributes.z]));
+check(world && world.attributes.x === "-20" && world.attributes.z === "-242" && world.attributes.ry === "-90", "placed in front: you stand just off the east dock, city straight ahead (-z): " + (world && [world.attributes.x, world.attributes.z, world.attributes.ry]));
 const join = [0, 1, 2, 3].map(i => find(B, n => n.attributes.id === "join-" + i)[0]);
 check(join.every(Boolean), "four check-in stands");
 const standG = i => B.nodes.get(join[i].children.find(id => B.nodes.get(id).tag === "m-group"));
-check([0, 1, 2, 3].every(i => standG(i).attributes.x === "171" && standG(i).attributes.ry === "-90"), "stands sit in front of the Visitor Center, facing the spawn");
+check([0, 1, 2, 3].every(i => standG(i).attributes.x === "179" && standG(i).attributes.ry === "90"), "stands sit in front of the Visitor Center, facing the dock");
 check(find(B, n => n.tag === "m-label" && n.attributes.content === "INTERMISSION").length === 1, "one big screen");
 const probe = () => find(A, n => n.tag === "m-position-probe")[0];
 check(!!probe(), "position probe is on before any game");

@@ -84,7 +84,7 @@ STYLE = {
     'CURTIS': ('script', 'monoton', '#0a0a18', '#5fb6ff', None), 'HOODOO': ('script', 'permanent-marker', '#120a18', '#9be15d', None),
     'CAJUN GRILL': ('billboard', 'alfa-slab-one', '#c0241e', '#ffe08a', None), 'DRY DOCK': ('stencil', 'black-ops-one', '#2b2a26', '#ffd21f', None),
     'SHRIMP CO.': ('billboard', 'bungee', '#ff7a5c', '#ffffff', None),
-    'WELCOME TO SWAMP CITY': ('billboard', 'bungee', '#0e3a52', '#ffffff', 'DOWNTOWN  -  BANK  -  CASINO  -  SWAMP FAIR'),
+    'WELCOME TO SWAMP CITY': ('billboard', 'bungee', '#0e3a52', '#ffffff', 'VISITOR CENTER  -  TEAM CHECK-IN STRAIGHT AHEAD'),
     'VISITOR CENTER': ('billboard', 'oswald', '#0e3a52', '#ffffff', None),
     'SWAMP CITY VISITOR CENTER': ('billboard', 'bungee', '#0e3a52', '#ffffff', 'TEAM CHECK-IN  -  PICK YOUR CREW HERE'),
     'TEAM CHECK-IN': ('highway', 'oswald', '#12613a', '#ffffff', 'VISITOR CENTER  -  EAST EDGE'),
