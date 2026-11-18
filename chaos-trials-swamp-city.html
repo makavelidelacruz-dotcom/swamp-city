@@ -910,10 +910,17 @@
       const g = grp({ x: r2(Math.cos(a) * R), y: r2(Math.sin(a) * R) }, spin);
       el("m-attr-anim", { attr: "rz", start: 0, end: -360, duration: LOOP, loop: "true" }, g);   // stays level
       el("m-model", { src: natURL(cols[k % 4]), collide: "false" }, g);
-      ghost({ y: -3.06, width: 2.3, height: 0.12, depth: 1.7 }, g);                              // floor
-      for (const s of [-1, 1]) ghost({ x: s * 1.2, y: -2.45, width: 0.12, height: 1.1, depth: 1.8 }, g);
-      ghost({ y: -2.45, z: 0.9, width: 2.4, height: 1.1, depth: 0.12 }, g);
-      ghost({ y: -2.72, z: -0.9, width: 2.4, height: 0.55, depth: 0.12 }, g);                    // low front lip: hop in
+      // solid MML surfaces that ride with the gondola, so avatars stand on real primitives (not the model mesh)
+      const paint = ["#e0457a", "#1f9f9a", "#d9a21b", "#7a3cb0"][k % 4], GOLDC = "#d9a33a";
+      box({ y: -3.08, width: 2.3, height: 0.2, depth: 1.7, color: "#8a6a48" }, g);                          // floor, top 2 cm above the model's
+      for (const s of [-1, 1]) {
+        box({ x: s * 1.1, y: -2.4, width: 0.06, height: 1.16, depth: 1.66, color: paint }, g);              // side walls, waist-high
+        box({ x: s * 1.1, y: -1.8, width: 0.09, height: 0.09, depth: 1.7, color: GOLDC }, g);               // side top rails
+      }
+      box({ y: -2.4, z: 0.8, width: 2.14, height: 1.16, depth: 0.06, color: paint }, g);                    // back wall
+      box({ y: -1.8, z: 0.8, width: 2.26, height: 0.09, depth: 0.09, color: GOLDC }, g);                    // back top rail
+      box({ y: -2.72, z: -0.8, width: 2.14, height: 0.52, depth: 0.06, color: paint }, g);                  // low front wall: hop in over it
+      box({ y: -2.44, z: -0.8, width: 2.26, height: 0.09, depth: 0.09, color: GOLDC }, g);                  // front top rail
     }
     footBox(X, Z - 1.5, 18, 11, 0);
   }

@@ -33,7 +33,7 @@ A Grand Theft Auto style MML world for 4 teams and 50+ players. It uses the same
   - **Cannery Row (north):** warehouses and the Bayou Cannery with its smokestacks.
   - **Bayou Village (south):** stilt shacks and the Swamp Fair.
 - **Swamp Fair** (south of the city, through the striped gate). Every ride carries players on hidden floors that move with it:
-  - **Bayou Eye:** a 14 m Ferris wheel with 12 lit gondolas that stay level. It never stops (one loop every 2 minutes): climb the platform stairs and hop into a gondola as it passes the bottom.
+  - **Bayou Eye:** a 14 m Ferris wheel with 12 lit gondolas that stay level. It never stops (one loop every 2 minutes): climb the platform stairs and hop into a gondola as it passes the bottom. Each gondola has solid MML surfaces that turn with it (a wooden floor, waist-high walls and gold rails), so avatars stand on real primitives rather than the model.
   - **Gator-Go-Round:** a carousel with 16 bobbing gators and frogs under a striped canopy. It turns slowly all the time; step on from the boarding ring.
   - **Gator Drop:** a 32 m tower topped with a giant gator head. Hop on the ring while it says BOARDING; it climbs 26 m, hangs, then drops. The sign counts down to the next drop.
   - **Whack-a-Gator:** click the counter to play. Gators pop up for 20 seconds; bop as many as you can. The booth shows the high score.
