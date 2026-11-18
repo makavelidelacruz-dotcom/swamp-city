@@ -43,7 +43,7 @@ const H = client("host"), A = client("A"), B = client("B"); await Promise.all([H
 const host = cmd => send(H, H.ids["hb-" + cmd], "click", { key: KEY });
 const probe = c => find(c, n => n.tag === "m-position-probe")[0].nodeId;
 const at = (c, x, z, y) => send(c, probe(c), "positionmove", { elementRelative: { position: { x, y: y == null ? 0.5 : y, z }, rotation: { x: 0, y: 0, z: 0 } } });
-const gators = c => find(c, n => n.tag === "m-model" && /pit-gator|[0-9a-f]{64}/.test(n.attributes.src || "") && n.attributes.collide === "true");
+const gators = c => find(c, n => n.tag === "m-model" && /pit-gator|a62c69e6/.test(n.attributes.src || "") && n.attributes.collide === "true");
 const animsOn = (c, n) => n.children.map(id => c.nodes.get(id)).filter(k => k && k.tag === "m-attr-anim");
 send(A, A.ids["join-0"], "prompt", { value: "Ava" }); send(B, B.ids["join-1"], "prompt", { value: "Bo" }); await sleep(400);
 const gs = gators(B);
